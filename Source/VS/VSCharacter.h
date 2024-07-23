@@ -61,18 +61,38 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
 
+	/** Sound to play each time we reloading */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	USoundBase* ReloadSound;
+
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation;
+
+	/** AnimMontage to play each time we reloading */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UAnimMontage* ReloadAnimation;
 
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
 
+	bool bIsReload = false;
+
+	bool bIsAiming = false;
+
 protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
+
+	void InitReload();
+
+	void StopReload();
+
+	void InitAiming();
+
+	void StopAiming();
 
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);

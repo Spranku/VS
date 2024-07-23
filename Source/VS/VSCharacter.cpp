@@ -102,6 +102,12 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("TurnRate", this, &AVSCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AVSCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AVSCharacter::InitReload);
+	PlayerInputComponent->BindAction("Reload", IE_Released, this, &AVSCharacter::StopReload);
+
+	PlayerInputComponent->BindAction("Aiming", IE_Pressed, this, &AVSCharacter::InitAiming);
+	PlayerInputComponent->BindAction("Aiming", IE_Released, this, &AVSCharacter::StopAiming);
 }
 
 void AVSCharacter::OnFire()
@@ -144,6 +150,30 @@ void AVSCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+}
+
+void AVSCharacter::InitReload()
+{
+	bIsReload = true;
+	UE_LOG(LogTemp, Warning, TEXT("InitReload"));
+}
+
+void AVSCharacter::StopReload()
+{
+	bIsReload = false;
+	UE_LOG(LogTemp, Warning, TEXT("StopReload"));
+}
+
+void AVSCharacter::InitAiming()
+{
+	bIsAiming = true;
+	UE_LOG(LogTemp, Warning, TEXT("InitAiming"));
+}
+
+void AVSCharacter::StopAiming()
+{
+	bIsAiming = false;
+	UE_LOG(LogTemp, Warning, TEXT("StopAiming"));
 }
 
 void AVSCharacter::MoveForward(float Value)
