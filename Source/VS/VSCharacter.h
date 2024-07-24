@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Actors/BaseWeapon.h"
 #include "VSCharacter.generated.h"
 
 class UInputComponent;
@@ -76,6 +77,9 @@ public:
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Class")
+	TSubclassOf<class ABaseWeapon> WeaponClass = nullptr;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	bool bIsCrouch = false;
