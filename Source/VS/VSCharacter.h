@@ -77,14 +77,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	bool bIsCrouch = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsReload = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsAiming = false;
 
 protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
+
+	void InitCrouch();
+
+	void StopCrouch();
 
 	void InitReload();
 

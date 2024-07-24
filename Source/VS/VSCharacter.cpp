@@ -88,6 +88,9 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AVSCharacter::InitCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AVSCharacter::StopCrouch);
+
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AVSCharacter::OnFire);
 
@@ -150,6 +153,18 @@ void AVSCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+}
+
+void AVSCharacter::InitCrouch()
+{
+	bIsCrouch = true;
+	UE_LOG(LogTemp, Warning, TEXT("InitCrouch"));
+}
+
+void AVSCharacter::StopCrouch()
+{
+	bIsCrouch = false;
+	UE_LOG(LogTemp, Warning, TEXT("StopCrouch"));
 }
 
 void AVSCharacter::InitReload()
