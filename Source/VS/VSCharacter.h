@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Actors/BaseWeapon.h"
+#include "FuncLibrary/Types.h"
 #include "VSCharacter.generated.h"
 
 class UInputComponent;
@@ -78,8 +79,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Class")
+	UPROPERTY(Replicated)
+	EMovementState MovementState = EMovementState::Run_State;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	FCharacterSpeed MovementInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Class")
 	TSubclassOf<class ABaseWeapon> WeaponClass = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	TArray<UAnimMontage*> DeadsAnim;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bIsMoving = false;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	bool bIsCrouch = false;
@@ -87,7 +100,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsReload = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,Replicated)
 	bool bIsAiming = false;
 
 protected:
@@ -124,6 +137,16 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
+
+	void ChangeMovementState();
+
+	void CharacterUpdate();
+
+	UFUNCTION(Server, Reliable)
+		void SetMovementState_OnServer(EMovementState NewState);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void SetMovementState_Multicast(EMovementState NewState);
 	
 protected:
 	// APawn interface
@@ -135,6 +158,8 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 };
 

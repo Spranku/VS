@@ -10,6 +10,8 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -182,12 +184,15 @@ void AVSCharacter::StopReload()
 void AVSCharacter::InitAiming()
 {
 	bIsAiming = true;
+	ChangeMovementState();
 	UE_LOG(LogTemp, Warning, TEXT("InitAiming"));
 }
 
 void AVSCharacter::StopAiming()
 {
 	bIsAiming = false;
+	ChangeMovementState();
+	//SetMovementState_OnServer(MovementState::)
 	UE_LOG(LogTemp, Warning, TEXT("StopAiming"));
 }
 
@@ -219,5 +224,97 @@ void AVSCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AVSCharacter::ChangeMovementState()
+{
+	EMovementState NewState = EMovementState::Run_State;
+	if (!bIsCrouch && !bIsAiming)
+	{
+		NewState = EMovementState::Run_State;
+		UE_LOG(LogTemp, Error, TEXT("Run"));
+	}
+	else
+	{
+		if (bIsCrouch)
+		{
+			bIsAiming = false;
+			NewState = EMovementState::Crouch_State;
+		}
+		else
+		{
+			if (bIsAiming)
+			{
+				bIsCrouch = false;
+				NewState = EMovementState::AimWalk_State;
+				UE_LOG(LogTemp, Error, TEXT("AimWalkState"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("bIsAiming = false"));
+			}
+		}
+	}
+
+	SetMovementState_OnServer(NewState);
+
+	CharacterUpdate();
+
+	////Weapon state update
+	//AWeaponDefault* myWeapon = GetCurrentWeapon();
+	//if (myWeapon)
+	//{
+	//	myWeapon->UpdateStateWeapon_OnServer(NewState);
+	//}
+}
+
+void AVSCharacter::CharacterUpdate()
+{
+	float ResSpeed = 600.0f;
+
+	switch (MovementState)
+	{
+	case EMovementState::Aim_State:
+		ResSpeed = MovementInfo.AimSpeed;
+		break;
+	case EMovementState::AimWalk_State:
+		ResSpeed = MovementInfo.AimSpeed;
+		break;
+	case EMovementState::Crouch_State:
+		ResSpeed = MovementInfo.CrouchSpeed;
+		break;
+	case EMovementState::Run_State:
+		ResSpeed = MovementInfo.RunSpeed;
+		break;
+	default:
+		break;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = ResSpeed;
+}
+
+void AVSCharacter::SetMovementState_OnServer_Implementation(EMovementState NewState)
+{
+	SetMovementState_Multicast(NewState);
+}
+
+void AVSCharacter::SetMovementState_Multicast_Implementation(EMovementState NewState)
+{
+	MovementState = NewState;
+	CharacterUpdate();
+}
+
+void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AVSCharacter, MovementState);
+	DOREPLIFETIME(AVSCharacter, bIsAiming);
+	DOREPLIFETIME(AVSCharacter, bIsMoving);
+	/*DOREPLIFETIME(ATPSCharacter, CurrentWeapon);
+	DOREPLIFETIME(ATPSCharacter, CurrentIndexWeapon);
+	DOREPLIFETIME(ATPSCharacter, Effects);
+	DOREPLIFETIME(ATPSCharacter, EffectAdd);
+	DOREPLIFETIME(ATPSCharacter, EffectRemove);*/
 }
 
