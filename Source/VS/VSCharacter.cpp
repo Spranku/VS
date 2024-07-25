@@ -185,15 +185,12 @@ void AVSCharacter::InitAiming()
 {
 	bIsAiming = true;
 	ChangeMovementState();
-	UE_LOG(LogTemp, Warning, TEXT("InitAiming"));
 }
 
 void AVSCharacter::StopAiming()
 {
 	bIsAiming = false;
 	ChangeMovementState();
-	//SetMovementState_OnServer(MovementState::)
-	UE_LOG(LogTemp, Warning, TEXT("StopAiming"));
 }
 
 void AVSCharacter::MoveForward(float Value)
@@ -232,7 +229,6 @@ void AVSCharacter::ChangeMovementState()
 	if (!bIsCrouch && !bIsAiming)
 	{
 		NewState = EMovementState::Run_State;
-		UE_LOG(LogTemp, Error, TEXT("Run"));
 	}
 	else
 	{
@@ -247,11 +243,7 @@ void AVSCharacter::ChangeMovementState()
 			{
 				bIsCrouch = false;
 				NewState = EMovementState::AimWalk_State;
-				UE_LOG(LogTemp, Error, TEXT("AimWalkState"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("bIsAiming = false"));
+
 			}
 		}
 	}
