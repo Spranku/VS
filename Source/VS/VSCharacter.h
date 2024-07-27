@@ -124,7 +124,7 @@ protected:
 	void InitReload();
 
 	void StopReload();
-
+	
 	void InitAiming();
 
 	void StopAiming();
@@ -146,6 +146,12 @@ protected:
 	void CharacterUpdate();
 
 	UFUNCTION(Server, Reliable)
+	void StartAiming_OnServer();
+
+	UFUNCTION(Server, Reliable)
+	void StopAiming_OnServer();
+
+	UFUNCTION(Server, Reliable)
 	void SetMovementState_OnServer(EMovementState NewState);
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -156,14 +162,15 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
+
 	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
 public:
-	/** Returns Mesh1P subobject **/
+	
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
+
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")

@@ -141,9 +141,10 @@ void AVSCharacter::EquipWeapon(const int32 Index)
 {
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
 
-	if (IsLocallyControlled())
+	if (IsLocallyControlled() || HasAuthority())
 	{
 		CurrentIndex = Index;
+
 		const ABaseWeapon* OldWeapon = CurrentWeapon;
 		CurrentWeapon = Weapons[Index];
 		OnRep_CurrentWeapon(OldWeapon);
@@ -229,14 +230,12 @@ void AVSCharacter::StopReload()
 
 void AVSCharacter::InitAiming()
 {
-	bIsAiming = true;
-	ChangeMovementState();
+	HasAuthority() ? bIsAiming = true : StartAiming_OnServer();
 }
 
 void AVSCharacter::StopAiming()
 {
-	bIsAiming = false;
-	ChangeMovementState();
+	HasAuthority() ? bIsAiming = false : StopAiming_OnServer();
 }
 
 void AVSCharacter::MoveForward(float Value)
@@ -364,6 +363,8 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->SetActorTransform(GetMesh()->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
 			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
 			CurrentWeapon->CurrentOwner = this;
+
+			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(true);
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
 	}
@@ -396,10 +397,16 @@ void AVSCharacter::InitWeapon()
 	}*/
 }
 
-//ABaseWeapon* AVSCharacter::GetCurrentWeapon()
-//{
-//	return CurrentWeapon;
-//}
+void AVSCharacter::StopAiming_OnServer_Implementation()
+{
+	StopAiming();
+}
+
+void AVSCharacter::StartAiming_OnServer_Implementation()
+{
+	InitAiming();
+}
+
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
