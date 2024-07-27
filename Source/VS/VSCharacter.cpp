@@ -48,8 +48,8 @@ AVSCharacter::AVSCharacter()
 	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
-	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	FP_Gun->SetupAttachment(RootComponent);
+	FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	//FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
@@ -92,6 +92,11 @@ void AVSCharacter::BeginPlay()
 	{
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+}
+
+void AVSCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
