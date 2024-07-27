@@ -146,7 +146,7 @@ protected:
 	void CharacterUpdate();
 
 	UFUNCTION(Server, Reliable)
-	void StartAiming_OnServer();
+	void InitAiming_OnServer();
 
 	UFUNCTION(Server, Reliable)
 	void StopAiming_OnServer();

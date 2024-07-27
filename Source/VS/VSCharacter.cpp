@@ -234,8 +234,13 @@ void AVSCharacter::InitAiming()
 	}
 	else
 	{
-		StartAiming_OnServer();
+		InitAiming_OnServer();
 	}
+}
+
+void AVSCharacter::InitAiming_OnServer_Implementation()
+{
+	InitAiming();
 }
 
 void AVSCharacter::StopAiming()
@@ -249,6 +254,11 @@ void AVSCharacter::StopAiming()
 	{
 		StopAiming_OnServer();
 	}
+}
+
+void AVSCharacter::StopAiming_OnServer_Implementation()
+{
+	StopAiming();
 }
 
 void AVSCharacter::MoveForward(float Value)
@@ -366,7 +376,6 @@ void AVSCharacter::SetMovementState_Multicast_Implementation(EMovementState NewS
 	CharacterUpdate();
 }
 
-
 void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 {
 	if (CurrentWeapon)
@@ -410,15 +419,7 @@ void AVSCharacter::InitWeapon()
 	}*/
 }
 
-void AVSCharacter::StopAiming_OnServer_Implementation()
-{
-	StopAiming();
-}
 
-void AVSCharacter::StartAiming_OnServer_Implementation()
-{
-	InitAiming();
-}
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
