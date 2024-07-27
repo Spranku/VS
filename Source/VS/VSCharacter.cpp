@@ -67,6 +67,25 @@ void AVSCharacter::BeginPlay()
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
+	if (HasAuthority())
+	{
+		for (const TSubclassOf<ABaseWeapon>& WeaponClass : DefaultWeapons)
+		{
+			if (!WeaponClass) continue;
+			FActorSpawnParameters Params;
+			Params.Owner = this;
+			ABaseWeapon* SpawnedWeapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
+			const int32 Index = Weapons.Add(SpawnedWeapon);
+			if (Index == CurrentIndex)
+			{
+				CurrentWeapon = SpawnedWeapon;
+				OnRep_CurrentWeapon(nullptr);
+			}
+		}
+	}
+
+	//InitWeapon();
+
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
 	{
@@ -113,6 +132,33 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 	PlayerInputComponent->BindAction("Aiming", IE_Pressed, this, &AVSCharacter::InitAiming);
 	PlayerInputComponent->BindAction("Aiming", IE_Released, this, &AVSCharacter::StopAiming);
+
+	PlayerInputComponent->BindAction(FName("NextWeapon"), EInputEvent::IE_Pressed, this, &AVSCharacter::NextWeapon);
+	PlayerInputComponent->BindAction(FName("LastWeapon"), EInputEvent::IE_Pressed, this, &AVSCharacter::LastWeapon);
+}
+
+void AVSCharacter::EquipWeapon(const int32 Index)
+{
+	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
+
+	if (IsLocallyControlled())
+	{
+		CurrentIndex = Index;
+		const ABaseWeapon* OldWeapon = CurrentWeapon;
+		CurrentWeapon = Weapons[Index];
+		OnRep_CurrentWeapon(OldWeapon);
+	}
+	else if (!HasAuthority())
+	{
+		SetCurrentWeapon_OnServer(Weapons[Index]);
+	}
+}
+
+void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
+{
+	const ABaseWeapon* OldWeapon = CurrentWeapon;
+	CurrentWeapon = NewWeapon;
+	OnRep_CurrentWeapon(OldWeapon);
 }
 
 void AVSCharacter::OnFire()
@@ -223,6 +269,18 @@ void AVSCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
+void AVSCharacter::NextWeapon()
+{
+	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
+	EquipWeapon(Index);
+}
+
+void AVSCharacter::LastWeapon()
+{
+	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
+	EquipWeapon(Index);
+}
+
 void AVSCharacter::ChangeMovementState()
 {
 	EMovementState NewState = EMovementState::Run_State;
@@ -296,6 +354,53 @@ void AVSCharacter::SetMovementState_Multicast_Implementation(EMovementState NewS
 	CharacterUpdate();
 }
 
+
+void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
+{
+	if (CurrentWeapon)
+	{
+		if (!CurrentWeapon->CurrentOwner)
+		{
+			CurrentWeapon->SetActorTransform(GetMesh()->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
+			CurrentWeapon->CurrentOwner = this;
+		}
+		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
+	}
+
+	if (OldWeapon)
+	{
+		OldWeapon->SkeletalMeshWeapon->SetVisibility(false);
+	}
+}
+
+void AVSCharacter::InitWeapon()
+{
+	/*if (!DefaultWeapons.IsValidIndex())
+	{
+		FVector SpawnLocation = FVector(0);
+		FRotator SpawnRotation = FRotator(0);
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = GetInstigator();
+
+		ABaseWeapon* myWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(WeaponClass, &SpawnLocation, &SpawnRotation, SpawnParams));
+		if (myWeapon)
+		{
+			FAttachmentTransformRules Rule(EAttachmentRule::SnapToTarget, false);
+			myWeapon->AttachToComponent(GetMesh(), Rule, FName("WeaponSocket"));
+			CurrentWeapon = myWeapon;
+		}
+	}*/
+}
+
+//ABaseWeapon* AVSCharacter::GetCurrentWeapon()
+//{
+//	return CurrentWeapon;
+//}
+
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -303,8 +408,10 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, MovementState);
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
-	/*DOREPLIFETIME(ATPSCharacter, CurrentWeapon);
-	DOREPLIFETIME(ATPSCharacter, CurrentIndexWeapon);
+	//DOREPLIFETIME(AVSCharacter, CurrentWeapon);
+	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
+	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
+	/*DOREPLIFETIME(ATPSCharacter, CurrentIndexWeapon);
 	DOREPLIFETIME(ATPSCharacter, Effects);
 	DOREPLIFETIME(ATPSCharacter, EffectAdd);
 	DOREPLIFETIME(ATPSCharacter, EffectRemove);*/

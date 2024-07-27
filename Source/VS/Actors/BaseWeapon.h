@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/ArrowComponent.h"
+#include "/Projects/VS/Source/VS/FuncLibrary/Types.h"
 #include "BaseWeapon.generated.h"
 
 UCLASS()
@@ -28,11 +29,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UArrowComponent* ShootLocation = nullptr;
 
+	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
+	class AVSCharacter* CurrentOwner;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon logic")
 	bool WeaponFiring = false;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Weapon logic")
 	bool WeaponReloading = false;
+
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FWeaponInfo WeaponSettings;;
 
 	float FireTime = 0.0f;
 

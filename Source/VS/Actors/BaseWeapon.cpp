@@ -9,7 +9,7 @@ ABaseWeapon::ABaseWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	bReplicates = true;
+	SetReplicates(true);
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
@@ -33,7 +33,13 @@ void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	WeaponInit();
+	//WeaponInit();
+
+	if (!CurrentOwner)
+	{
+		SkeletalMeshWeapon->SetVisibility(true);
+		//StaticMeshWeapon->SetVisibility(true);
+	}
 }
 
 // Called every frame

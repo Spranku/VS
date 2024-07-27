@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Actors/BaseWeapon.h"
 #include "FuncLibrary/Types.h"
+#include "Actors/BaseWeapon.h"
 #include "VSCharacter.generated.h"
 
 class UInputComponent;
@@ -75,6 +76,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* ReloadAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	TArray<UAnimMontage*> DeadsAnim;
+
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
@@ -85,11 +89,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FCharacterSpeed MovementInfo;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Class")
-	TSubclassOf<class ABaseWeapon> WeaponClass = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Class")
+	TArray<TSubclassOf<class ABaseWeapon>> DefaultWeapons;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
-	TArray<UAnimMontage*> DeadsAnim;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite,Replicated, Category = "State")
+	TArray<class ABaseWeapon*> Weapons;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "State")
+	int32 CurrentIndex = 0;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")
+	class ABaseWeapon* CurrentWeapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
@@ -104,8 +114,7 @@ public:
 	bool bIsAiming = false;
 
 protected:
-	
-	/** Fires a projectile. */
+
 	void OnFire();
 
 	void InitCrouch();
@@ -120,38 +129,36 @@ protected:
 
 	void StopAiming();
 
-	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
-	/** Handles stafing movement, left and right */
 	void MoveRight(float Val);
 
-	/**
-	 * Called via input to turn at a given rate.
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void TurnAtRate(float Rate);
 
-	/**
-	 * Called via input to turn look up/down at a given rate.
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void LookUpAtRate(float Rate);
+
+	void NextWeapon();
+
+	void LastWeapon();
 
 	void ChangeMovementState();
 
 	void CharacterUpdate();
 
 	UFUNCTION(Server, Reliable)
-		void SetMovementState_OnServer(EMovementState NewState);
+	void SetMovementState_OnServer(EMovementState NewState);
 
 	UFUNCTION(NetMulticast, Reliable)
-		void SetMovementState_Multicast(EMovementState NewState);
+	void SetMovementState_Multicast(EMovementState NewState);
+
+	UFUNCTION()
+	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
+
+	UFUNCTION(Server, Reliable)
+	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
+	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
 	
-protected:
-	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
 
 public:
 	/** Returns Mesh1P subobject **/
@@ -159,7 +166,13 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void EquipWeapon(const int32 Index);
+
+	UFUNCTION()
+	void InitWeapon();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 };
 
