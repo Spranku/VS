@@ -176,6 +176,8 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UFUNCTION(BlueprintCallable)
+	ABaseWeapon* GetCurrentWeapon();
 
 	UFUNCTION()
 	void InitWeapon();

@@ -406,6 +406,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false); 
 		FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
+		FP_Gun->SetWorldScale3D(FVector(2));
 	}
 
 	if (OldWeapon)
@@ -434,6 +435,11 @@ void AVSCharacter::InitWeapon()
 			CurrentWeapon = myWeapon;
 		}
 	}*/
+}
+
+ABaseWeapon* AVSCharacter::GetCurrentWeapon()
+{
+	return CurrentWeapon;
 }
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
