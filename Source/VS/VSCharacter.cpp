@@ -134,14 +134,13 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAction(FName("LastWeapon"), EInputEvent::IE_Pressed, this, &AVSCharacter::LastWeapon);
 }
 
-void AVSCharacter::EquipWeapon(const int32 Index)
+void AVSCharacter::EquipWeapon_Implementation(const int32 Index)
 {
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
 		CurrentIndex = Index;
-
 		const ABaseWeapon* OldWeapon = CurrentWeapon;
 		CurrentWeapon = Weapons[Index];
 		OnRep_CurrentWeapon(OldWeapon);
@@ -261,6 +260,35 @@ void AVSCharacter::StopAiming_OnServer_Implementation()
 	StopAiming();
 }
 
+void AVSCharacter::NextWeapon()
+{
+	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
+
+	if (HasAuthority())
+	{
+		
+		EquipWeapon(Index);
+	}
+	else
+	{
+		EquipWeapon(Index);
+	}
+}
+
+void AVSCharacter::LastWeapon()
+{
+	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
+
+	if (HasAuthority())
+	{
+		EquipWeapon(Index);
+	}
+	else
+	{
+		EquipWeapon(Index);
+	}
+}
+
 void AVSCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
@@ -289,18 +317,6 @@ void AVSCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-void AVSCharacter::NextWeapon()
-{
-	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
-	EquipWeapon(Index);
-}
-
-void AVSCharacter::LastWeapon()
-{
-	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
-	EquipWeapon(Index);
 }
 
 void AVSCharacter::ChangeMovementState()
@@ -419,8 +435,6 @@ void AVSCharacter::InitWeapon()
 	}*/
 }
 
-
-
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -428,11 +442,12 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, MovementState);
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
-	//DOREPLIFETIME(AVSCharacter, CurrentWeapon);
+
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
-	/*DOREPLIFETIME(ATPSCharacter, CurrentIndexWeapon);
-	DOREPLIFETIME(ATPSCharacter, Effects);
+	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
+
+	/*DOREPLIFETIME(ATPSCharacter, Effects);
 	DOREPLIFETIME(ATPSCharacter, EffectAdd);
 	DOREPLIFETIME(ATPSCharacter, EffectRemove);*/
 }

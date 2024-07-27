@@ -95,7 +95,7 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite,Replicated, Category = "State")
 	TArray<class ABaseWeapon*> Weapons;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "State")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite,Replicated, Category = "State")
 	int32 CurrentIndex = 0;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")
@@ -151,6 +151,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void StopAiming_OnServer();
 
+	UFUNCTION(Server,Reliable)
+	void EquipWeapon(const int32 Index);
+
 	UFUNCTION(Server, Reliable)
 	void SetMovementState_OnServer(EMovementState NewState);
 
@@ -173,8 +176,6 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	void EquipWeapon(const int32 Index);
 
 	UFUNCTION()
 	void InitWeapon();
