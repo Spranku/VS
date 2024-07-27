@@ -97,9 +97,6 @@ void AVSCharacter::BeginPlay()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings
@@ -230,12 +227,28 @@ void AVSCharacter::StopReload()
 
 void AVSCharacter::InitAiming()
 {
-	HasAuthority() ? bIsAiming = true : StartAiming_OnServer();
+	if (HasAuthority())
+	{
+		bIsAiming = true;
+		ChangeMovementState();
+	}
+	else
+	{
+		StartAiming_OnServer();
+	}
 }
 
 void AVSCharacter::StopAiming()
 {
-	HasAuthority() ? bIsAiming = false : StopAiming_OnServer();
+	if (HasAuthority())
+	{
+		bIsAiming = false;
+		ChangeMovementState();
+	}
+	else
+	{
+		StopAiming_OnServer();
+	}
 }
 
 void AVSCharacter::MoveForward(float Value)
@@ -406,7 +419,6 @@ void AVSCharacter::StartAiming_OnServer_Implementation()
 {
 	InitAiming();
 }
-
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
