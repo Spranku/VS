@@ -64,8 +64,6 @@ void AVSCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
-	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
 	if (HasAuthority())
 	{
@@ -74,17 +72,16 @@ void AVSCharacter::BeginPlay()
 			if (!WeaponClass) continue;
 			FActorSpawnParameters Params;
 			Params.Owner = this;
-			ABaseWeapon* SpawnedWeapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
-			const int32 Index = Weapons.Add(SpawnedWeapon);
+			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
+			const int32 Index = Weapons.Add(Weapon3P);
 			if (Index == CurrentIndex)
 			{
-				CurrentWeapon = SpawnedWeapon;
+				CurrentWeapon = Weapon3P;
 				OnRep_CurrentWeapon(nullptr);
 			}
 		}
 	}
-
-	//InitWeapon();
+	FP_Gun->bOnlyOwnerSee = true;
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
@@ -403,8 +400,12 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->CurrentOwner = this;
 
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(true);
+			
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
+
+		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false); 
+		FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 	}
 
 	if (OldWeapon)
