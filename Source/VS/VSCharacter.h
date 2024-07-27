@@ -152,7 +152,7 @@ protected:
 	void StopAiming_OnServer();
 
 	UFUNCTION(Server,Reliable)
-	void EquipWeapon(const int32 Index);
+	void EquipWeapon_OnServer(const int32 Index);
 
 	UFUNCTION(Server, Reliable)
 	void SetMovementState_OnServer(EMovementState NewState);

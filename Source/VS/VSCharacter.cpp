@@ -134,7 +134,7 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAction(FName("LastWeapon"), EInputEvent::IE_Pressed, this, &AVSCharacter::LastWeapon);
 }
 
-void AVSCharacter::EquipWeapon_Implementation(const int32 Index)
+void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
 
@@ -267,11 +267,11 @@ void AVSCharacter::NextWeapon()
 	if (HasAuthority())
 	{
 		
-		EquipWeapon(Index);
+		EquipWeapon_OnServer(Index);
 	}
 	else
 	{
-		EquipWeapon(Index);
+		EquipWeapon_OnServer(Index);
 	}
 }
 
@@ -281,11 +281,11 @@ void AVSCharacter::LastWeapon()
 
 	if (HasAuthority())
 	{
-		EquipWeapon(Index);
+		EquipWeapon_OnServer(Index);
 	}
 	else
 	{
-		EquipWeapon(Index);
+		EquipWeapon_OnServer(Index);
 	}
 }
 
