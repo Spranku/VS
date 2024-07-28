@@ -129,8 +129,6 @@ protected:
 	void StopCrouch();
 
 	void InitReload();
-
-	/// void StopReload();
 	
 	void InitAiming();
 

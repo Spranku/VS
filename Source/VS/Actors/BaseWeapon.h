@@ -47,8 +47,6 @@ public:
 	FAdditionalWeaponInfo WeaponInfo;
 
 	float FireTime = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
 		
 	bool WeaponAiming = false;
 
@@ -62,6 +60,7 @@ public:
 
 	float DropShellTimer = -1.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
 
 	//UPROPERTY(Replicated)

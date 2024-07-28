@@ -128,7 +128,6 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AVSCharacter::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AVSCharacter::InitReload);
-	/// PlayerInputComponent->BindAction("Reload", IE_Released, this, &AVSCharacter::StopReload);
 
 	PlayerInputComponent->BindAction("Aiming", IE_Pressed, this, &AVSCharacter::InitAiming);
 	PlayerInputComponent->BindAction("Aiming", IE_Released, this, &AVSCharacter::StopAiming);
@@ -226,14 +225,7 @@ void AVSCharacter::InitReload()
 {
 	bIsReload = true;
 	TryReloadWeapon();
-	//UE_LOG(LogTemp, Warning, TEXT("InitReload"));
 }
-
-//void AVSCharacter::StopReload()
-//{
-//	bIsReload = false;
-//	//UE_LOG(LogTemp, Warning, TEXT("StopReload"));
-//}
 
 void AVSCharacter::TryReloadWeapon()
 {
