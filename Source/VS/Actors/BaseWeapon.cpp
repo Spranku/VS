@@ -32,7 +32,7 @@ void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//WeaponInit();
+	WeaponInit();
 
 	if (!CurrentOwner)
 	{
@@ -158,6 +158,8 @@ void ABaseWeapon::Fire()
 	//
 	FireTime = WeaponSetting.RateOfFire;
 
+	WeaponInfo.Round = WeaponInfo.Round - 1;
+
 	//AdditionalWeaponInfo.Round = AdditionalWeaponInfo.Round - 1; \
 	//	ChangeDispersionByShoot();*/
 
@@ -204,7 +206,7 @@ void ABaseWeapon::Fire()
 			if (myProjectile /* && myProjectile != nullptr*/)
 			{
 				myProjectile->InitialLifeSpan = 20.0f;
-				UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::Fire - cuccess spawn projectile;"));
+				//UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::Fire - cuccess spawn projectile;"));
 				//Projectile->BulletProjectileMovement->InitialSpeed = 2500.0f;
 
 //				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
@@ -224,15 +226,16 @@ void ABaseWeapon::Fire()
 void ABaseWeapon::InitReload()
 {
 	WeaponReloading = true;
-	ReloadTimer = 1.8f/*WeaponSetting.ReloadTime*/; 
+	//ReloadTimer = 1.8f; 
 
+	ReloadTimer = WeaponSetting.ReloadTime;
+	UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::InitReload - Success"));
 	//if (WeaponSetting.AnimCharReload)
 	//{
 	//	OnWeaponReloadStart.Broadcast(WeaponSetting.AnimCharReload);
 	//	AnimWeaponStart_Multicast(WeaponSetting.AnimCharReload);
 	//}
 
-	
 	//if (WeaponSetting.ClipDropMesh.DropMesh)
 	//{
 	//	DropClipFlag = true;
@@ -243,6 +246,7 @@ void ABaseWeapon::InitReload()
 void ABaseWeapon::FinishReload()
 {
 	WeaponReloading = false;
+	WeaponInfo.Round = WeaponSetting.MaxRound;
 
 	//int8 AviableAmmoFromInventory = GetAviableAmmoForReload();
 	//int8 AmmoNeedTakeFromInv;
@@ -298,7 +302,7 @@ bool ABaseWeapon::CheckCanWeaponReload()
 
 int32 ABaseWeapon::GetWeaponRound()
 {
-	return 30;
+	return WeaponInfo.Round;
 }
 
 void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)

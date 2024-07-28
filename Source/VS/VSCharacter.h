@@ -110,7 +110,7 @@ public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	bool bIsCrouch = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsReload = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,Replicated)
@@ -130,7 +130,7 @@ protected:
 
 	void InitReload();
 
-	void StopReload();
+	/// void StopReload();
 	
 	void InitAiming();
 
@@ -157,6 +157,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void StopAiming_OnServer();
+
+	UFUNCTION()
+	void TryReloadWeapon();
 
 	UFUNCTION(Server,Reliable)
 	void EquipWeapon_OnServer(const int32 Index);

@@ -43,6 +43,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	FWeaponInfo WeaponSetting;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FAdditionalWeaponInfo WeaponInfo;
+
 	float FireTime = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
@@ -105,6 +108,8 @@ public:
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
+
+
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

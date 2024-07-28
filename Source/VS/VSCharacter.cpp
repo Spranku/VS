@@ -128,7 +128,7 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AVSCharacter::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AVSCharacter::InitReload);
-	PlayerInputComponent->BindAction("Reload", IE_Released, this, &AVSCharacter::StopReload);
+	/// PlayerInputComponent->BindAction("Reload", IE_Released, this, &AVSCharacter::StopReload);
 
 	PlayerInputComponent->BindAction("Aiming", IE_Pressed, this, &AVSCharacter::InitAiming);
 	PlayerInputComponent->BindAction("Aiming", IE_Released, this, &AVSCharacter::StopAiming);
@@ -225,13 +225,26 @@ void AVSCharacter::StopCrouch()
 void AVSCharacter::InitReload()
 {
 	bIsReload = true;
-	UE_LOG(LogTemp, Warning, TEXT("InitReload"));
+	TryReloadWeapon();
+	//UE_LOG(LogTemp, Warning, TEXT("InitReload"));
 }
 
-void AVSCharacter::StopReload()
+//void AVSCharacter::StopReload()
+//{
+//	bIsReload = false;
+//	//UE_LOG(LogTemp, Warning, TEXT("StopReload"));
+//}
+
+void AVSCharacter::TryReloadWeapon()
 {
-	bIsReload = false;
-	UE_LOG(LogTemp, Warning, TEXT("StopReload"));
+	if (CurrentWeapon)
+	{
+		if (CurrentWeapon->GetWeaponRound() <= CurrentWeapon->WeaponSetting.MaxRound)
+		{
+			CurrentWeapon->InitReload();
+			UE_LOG(LogTemp, Warning, TEXT(" AVSCharacter::TryReloadWeapon - InitReload()"));
+		}
+	}
 }
 
 void AVSCharacter::InitAiming()
@@ -306,7 +319,7 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	if (myWeapon)
 	{
 		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
-		UE_LOG(LogTemp, Warning, TEXT("AVSCharacter::FireEvent - SetWeaponStateFire_OnServer(true);"));
+		//UE_LOG(LogTemp, Warning, TEXT("AVSCharacter::FireEvent - SetWeaponStateFire_OnServer(true);"));
 	}
 	else
 	{
@@ -432,6 +445,8 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
 
+		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
+
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 		FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 		FP_Gun->SetWorldScale3D(FVector(2));
@@ -477,6 +492,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, MovementState);
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
+	DOREPLIFETIME(AVSCharacter, bIsReload);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
@@ -486,4 +502,5 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ATPSCharacter, EffectAdd);
 	DOREPLIFETIME(ATPSCharacter, EffectRemove);*/
 }
+
 

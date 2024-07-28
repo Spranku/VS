@@ -12,7 +12,8 @@ ABaseProjectile::ABaseProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SetReplicates(true);
+	//SetReplicates(true);
+	bReplicates = true;
 
 	BulletCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 	BulletCollisionSphere->SetSphereRadius(16.f);
