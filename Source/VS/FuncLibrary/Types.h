@@ -30,22 +30,10 @@ struct FCharacterSpeed
 };
 
 USTRUCT(BlueprintType)
-struct FWeaponInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
-	float WeaponDamage = 20.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
-	float RateOfFire = 0.5;
-
-};
-
-USTRUCT(BlueprintType)
 struct FProjectileInfo
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
 	TSubclassOf<class ABaseProjectile> Projectile = nullptr;
 
@@ -65,10 +53,10 @@ struct FProjectileInfo
 	float ProjectileDamage = 20.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
-	float ProjectileLifeTime = 30.0f; 
+	float ProjectileLifeTime = 30.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
-	float ProjcetileInitSpeed = 2000.0f;  
+	float ProjcetileInitSpeed = 2000.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
 	float ProjcetileMaxSpeed = 2000.0f;
@@ -81,4 +69,20 @@ struct FProjectileInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
 	TMap<TEnumAsByte<EPhysicalSurface>, UParticleSystem*> HitFXs;
+};
+
+USTRUCT(BlueprintType)
+struct FWeaponInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	float WeaponDamage = 20.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	float RateOfFire = 0.5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+	FProjectileInfo ProjectileSetting;
+
 };

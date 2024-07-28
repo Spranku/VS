@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Components/ArrowComponent.h"
 #include "/Projects/VS/Source/VS/FuncLibrary/Types.h"
+#include "Net/UnrealNetwork.h"
+#include "BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
 UCLASS()
@@ -32,14 +34,14 @@ public:
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon logic")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponFiring = false;
 
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Weapon logic")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponReloading = false;
 
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FWeaponInfo WeaponSettings;;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
+	FWeaponInfo WeaponSetting;
 
 	float FireTime = 0.0f;
 
@@ -59,7 +61,6 @@ public:
 
 	float ReloadTimer = 0.0f;
 
-	// Ðàçáðîñ
 	//UPROPERTY(Replicated)
 	bool ShouldReduseDispersion = false;
 	float CurrentDispersion = 0.0f;
@@ -101,6 +102,9 @@ public:
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void SetWeaponStateFire_OnServer(bool bIsFire);
+
+	UFUNCTION()
+	FProjectileInfo GetProjectile();
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

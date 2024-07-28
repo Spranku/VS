@@ -55,7 +55,6 @@ void ABaseProjectile::BeginPlay()
 void ABaseProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ABaseProjectile::InitProjectile(FProjectileInfo InitParam)

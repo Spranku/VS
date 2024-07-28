@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BaseWeapon.h"
-#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -128,8 +127,7 @@ void ABaseWeapon::WeaponInit()
 void ABaseWeapon::Fire()
 {
 	//UAnimMontage* AnimToPlay = nullptr;
-
-	///*if (WeaponAiming)
+	//*if (WeaponAiming)
 	//	AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFireAim;
 	//else
 	//	AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFire;*/
@@ -139,8 +137,7 @@ void ABaseWeapon::Fire()
 	//	AnimWeaponStart_Multicast(WeaponSetting.AnimWeaponInfo.AnimWeaponFire);
 	//}
 
-
-	///*if (WeaponSetting.ShellBullets.DropMesh)
+	//*if (WeaponSetting.ShellBullets.DropMesh)
 	//{
 	//	if (WeaponSetting.ShellBullets.DropMeshTime < 0.0f)
 	//	{
@@ -159,7 +156,7 @@ void ABaseWeapon::Fire()
 	//	}
 	//}
 	//
-	//FireTime = WeaponSetting.RateOfFire;
+	FireTime = WeaponSetting.RateOfFire;
 
 	//AdditionalWeaponInfo.Round = AdditionalWeaponInfo.Round - 1; \
 	//	ChangeDispersionByShoot();*/
@@ -170,51 +167,58 @@ void ABaseWeapon::Fire()
 
 	//int8 NumberProjectile = GetNumberProjectileByShot();
 
-	//if (ShootLocation)
-	//{
-	//																
-	//	FVector SpawnLocation = ShootLocation->GetComponentLocation();
-	//	FRotator SpawnRotation = ShootLocation->GetComponentRotation();
-	//	
-	//	FProjectileInfo ProjectileInfo;
-	//	ProjectileInfo = GetProjectile();
-	//	FVector EndLocation;
+	if (ShootLocation)
+	{
 
-	//
+		FVector SpawnLocation = ShootLocation->GetComponentLocation();
+		FRotator SpawnRotation = ShootLocation->GetComponentRotation();
 
-	//	for (int8 i = 0; i < NumberProjectile; i++)
-	//	{
-	//		EndLocation = GetFireEndLocation();
+		FProjectileInfo ProjectileInfo;
+		ProjectileInfo = GetProjectile();
+		FVector EndLocation;
 
-	//	
-	//		if (ProjectileInfo.Projectile)
-	//		{
-	//			
-	//			FVector Dir = /*ShootEndLocation*/ GetFireEndLocation() - SpawnLocation;
-	//			Dir.Normalize();
-	//		
-	//			FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0), FVector::ZeroVector);
-	//			SpawnRotation = myMatrix.Rotator();
+		//
 
-	//			//Projectile Init ballistic fire
-	//		
-	//			FActorSpawnParameters SpawnParams;
-	//			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	//			SpawnParams.Owner = GetOwner();
-	//			SpawnParams.Instigator = GetInstigator();
+		//	for (int8 i = 0; i < NumberProjectile; i++)
+		//	{
+		//		EndLocation = GetFireEndLocation();
 
-	//			AProjectileDefault* myProjectile = Cast<AProjectileDefault>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
-	//			if (myProjectile /* && myProjectile != nullptr*/)
-	//			{
-	//				//ToDo Init Projectile settings by id in table row(or keep in weapon table)
-	//				// 
-	//				
-	//				//myProjectile->InitialLifeSpan = 20.0f;
-	//				//Projectile->BulletProjectileMovement->InitialSpeed = 2500.0f;
+		//	
+		if (ProjectileInfo.Projectile)
+		{
+			//			
+			//			FVector Dir = /*ShootEndLocation*/ GetFireEndLocation() - SpawnLocation;
+			//			Dir.Normalize();
+			//		
+			//			FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0), FVector::ZeroVector);
+			//			SpawnRotation = myMatrix.Rotator();
 
-	//				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
-	//			}
-	//		}
+			
+		
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			SpawnParams.Owner = GetOwner();
+			SpawnParams.Instigator = GetInstigator();
+
+			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
+			if (myProjectile /* && myProjectile != nullptr*/)
+			{
+				myProjectile->InitialLifeSpan = 20.0f;
+				UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::Fire - cuccess spawn projectile;"));
+				//Projectile->BulletProjectileMovement->InitialSpeed = 2500.0f;
+
+//				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
+			}
+			else
+			{
+
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT(" ABaseWeapon::Fire - (ProjectileInfo.Projectile = NULL;"));
+		}
+	}
 }
 
 void ABaseWeapon::InitReload()
@@ -270,7 +274,7 @@ void ABaseWeapon::CancelReload()
 
 bool ABaseWeapon::CheckWeaponCanFire()
 {
-	return !BlockFire;
+	return  true /*!BlockFire*/;
 }
 
 bool ABaseWeapon::CheckCanWeaponReload()
@@ -294,7 +298,7 @@ bool ABaseWeapon::CheckCanWeaponReload()
 
 int32 ABaseWeapon::GetWeaponRound()
 {
-	return int32();
+	return 30;
 }
 
 void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
@@ -304,6 +308,11 @@ void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 	else
 		WeaponFiring = false;
 	FireTime = 0.01f;
+}
+
+FProjectileInfo ABaseWeapon::GetProjectile()
+{
+	return WeaponSetting.ProjectileSetting;
 }
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

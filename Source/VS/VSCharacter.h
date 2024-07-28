@@ -120,6 +120,10 @@ protected:
 
 	void OnFire();
 
+	void EndFire();
+
+	void FireEvent(bool bIsFiring);
+
 	void InitCrouch();
 
 	void StopCrouch();
