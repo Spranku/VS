@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Net/UnrealNetwork.h"
 #include "BaseWeapon.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()

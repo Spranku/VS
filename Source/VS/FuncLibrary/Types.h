@@ -40,3 +40,45 @@ struct FWeaponInfo
 	float RateOfFire = 0.5;
 
 };
+
+USTRUCT(BlueprintType)
+struct FProjectileInfo
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	TSubclassOf<class ABaseProjectile> Projectile = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
+	class UStaticMesh* ProjectileStaticMesh = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
+	FTransform ProjectileStaticMeshOffset = FTransform();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
+	class UParticleSystem* ProjectileTrialFX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
+	FTransform ProjectileTrialFxOffset = FTransform();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float ProjectileDamage = 20.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float ProjectileLifeTime = 30.0f; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float ProjcetileInitSpeed = 2000.0f;  
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float ProjcetileMaxSpeed = 2000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	TMap<TEnumAsByte<EPhysicalSurface>, UMaterialInterface*> HitDecals;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	USoundBase* HitSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	TMap<TEnumAsByte<EPhysicalSurface>, UParticleSystem*> HitFXs;
+};
