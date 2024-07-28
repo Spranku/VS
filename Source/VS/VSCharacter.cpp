@@ -485,6 +485,9 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
 	DOREPLIFETIME(AVSCharacter, bIsReload);
+	DOREPLIFETIME(AVSCharacter, Direction);
+	DOREPLIFETIME(AVSCharacter, AimPitch);
+	DOREPLIFETIME(AVSCharacter, AimYaw);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);

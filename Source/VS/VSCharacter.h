@@ -116,6 +116,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,Replicated)
 	bool bIsAiming = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	float Direction;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	float AimPitch;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	float AimYaw;
+
 protected:
 
 	void OnFire();
