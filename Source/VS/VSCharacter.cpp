@@ -379,7 +379,6 @@ void AVSCharacter::PitchOnServer_Implementation(float PitchRep)
 	PitchMulticast(PitchRep);
 }
 
-
 void AVSCharacter::ChangeMovementState()
 {
 	EMovementState NewState = EMovementState::Run_State;
@@ -481,7 +480,6 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	}
 }
 
-
 void AVSCharacter::InitWeapon()
 {
 	/*if (!DefaultWeapons.IsValidIndex())
@@ -525,10 +523,6 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
-
-	/*DOREPLIFETIME(ATPSCharacter, Effects);
-	DOREPLIFETIME(ATPSCharacter, EffectAdd);
-	DOREPLIFETIME(ATPSCharacter, EffectRemove);*/
 }
 
 
