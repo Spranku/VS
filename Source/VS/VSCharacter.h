@@ -123,6 +123,9 @@ public:
 	float AimPitch;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	float Pitch_OnRep;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float AimYaw;
 
 protected:
@@ -149,7 +152,7 @@ protected:
 
 	void TurnAtRate(float Rate);
 
-	void LookUpAtRate(float Rate);
+	void LookUpAtRate(float Rate);;
 
 	void NextWeapon();
 
@@ -159,10 +162,16 @@ protected:
 
 	void CharacterUpdate();
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(NetMulticast, Unreliable)
+	void PitchMulticast(float PitchRep);
+
+	UFUNCTION(Server, Unreliable)
+	void PitchOnServer(float PitchRep);
+
+	UFUNCTION(Server, UnReliable)
 	void InitAiming_OnServer();
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, UnReliable)
 	void StopAiming_OnServer();
 
 	UFUNCTION()

@@ -9,6 +9,7 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MotionControllerComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -347,7 +348,37 @@ void AVSCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+
+	if (BaseLookUpRate != 0)
+	{
+		float Pitch = UKismetMathLibrary::Clamp(UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch, -90.0f, 90.0f);
+
+		if (HasAuthority())
+		{
+			PitchMulticast(Pitch);
+			Pitch_OnRep = Pitch;
+		}
+		else
+		{
+			PitchOnServer(Pitch);
+			Pitch_OnRep = Pitch;
+		}
+	}
 }
+
+void AVSCharacter::PitchMulticast_Implementation(float PitchRep)
+{
+	if (!IsLocallyControlled())
+	{
+		Pitch_OnRep = PitchRep;
+	}
+}
+
+void AVSCharacter::PitchOnServer_Implementation(float PitchRep)
+{
+	PitchMulticast(PitchRep);
+}
+
 
 void AVSCharacter::ChangeMovementState()
 {
@@ -450,6 +481,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	}
 }
 
+
 void AVSCharacter::InitWeapon()
 {
 	/*if (!DefaultWeapons.IsValidIndex())
@@ -487,6 +519,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, bIsReload);
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
+	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, AimYaw);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
@@ -497,5 +530,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ATPSCharacter, EffectAdd);
 	DOREPLIFETIME(ATPSCharacter, EffectRemove);*/
 }
+
+
 
 
