@@ -205,11 +205,11 @@ void ABaseWeapon::Fire()
 			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
 			if (myProjectile /* && myProjectile != nullptr*/)
 			{
-				myProjectile->InitialLifeSpan = 20.0f;
+				//myProjectile->InitialLifeSpan = 20.0f;
 				//UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::Fire - cuccess spawn projectile;"));
 				//Projectile->BulletProjectileMovement->InitialSpeed = 2500.0f;
 
-//				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
+				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
 			}
 			else
 			{

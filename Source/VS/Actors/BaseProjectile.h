@@ -67,6 +67,7 @@ public:
 			AActor* OtherActor,
 			UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex);
+
 	UFUNCTION()
 	virtual void ImpactProjectile();
 

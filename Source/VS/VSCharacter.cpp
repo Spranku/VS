@@ -58,13 +58,13 @@ AVSCharacter::AVSCharacter()
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
+
 }
 
 void AVSCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
 
 	if (HasAuthority())
 	{
@@ -82,7 +82,7 @@ void AVSCharacter::BeginPlay()
 			}
 		}
 	}
-	FP_Gun->bOnlyOwnerSee = true;
+	//FP_Gun->bOnlyOwnerSee = true;
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
