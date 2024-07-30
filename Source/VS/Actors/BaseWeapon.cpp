@@ -162,53 +162,29 @@ void ABaseWeapon::Fire()
 
 	//AdditionalWeaponInfo.Round = AdditionalWeaponInfo.Round - 1; \
 	//	ChangeDispersionByShoot();*/
-
 	//OnWeaponFireStart.Broadcast(AnimToPlay);
-
 	//FXWeaponFire_Multicast(WeaponSetting.EffectFireWeapon, WeaponSetting.SoundFireWeapon);
-
 	//int8 NumberProjectile = GetNumberProjectileByShot();
 
 	if (ShootLocation)
 	{
-
-		FVector SpawnLocation = ShootLocation->GetComponentLocation();
-		FRotator SpawnRotation = ShootLocation->GetComponentRotation();
+		SpawnLocation = ShootLocation->GetComponentLocation();
+		SpawnRotation = ShootLocation->GetComponentRotation();
+		SpawnRotation.Pitch = ServerPitch; // TO DO FULL LOCATION ? 
 
 		FProjectileInfo ProjectileInfo;
 		ProjectileInfo = GetProjectile();
-		FVector EndLocation;
-
-		//
-
-		//	for (int8 i = 0; i < NumberProjectile; i++)
-		//	{
-		//		EndLocation = GetFireEndLocation();
-
-		//	
+	
 		if (ProjectileInfo.Projectile)
 		{
-			//			
-			//			FVector Dir = /*ShootEndLocation*/ GetFireEndLocation() - SpawnLocation;
-			//			Dir.Normalize();
-			//		
-			//			FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0), FVector::ZeroVector);
-			//			SpawnRotation = myMatrix.Rotator();
-
-			
-		
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			SpawnParams.Owner = GetOwner();
 			SpawnParams.Instigator = GetInstigator();
 
 			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
-			if (myProjectile /* && myProjectile != nullptr*/)
+			if (myProjectile)
 			{
-				//myProjectile->InitialLifeSpan = 20.0f;
-				//UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::Fire - cuccess spawn projectile;"));
-				//Projectile->BulletProjectileMovement->InitialSpeed = 2500.0f;
-
 				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
 			}
 			else
@@ -305,12 +281,17 @@ int32 ABaseWeapon::GetWeaponRound()
 	return WeaponInfo.Round;
 }
 
-void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
+void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch)
 {
 	if (CheckWeaponCanFire())
+	{
 		WeaponFiring = bIsFire;
+		ServerPitch = Pitch;
+	}
 	else
+	{
 		WeaponFiring = false;
+	}
 	FireTime = 0.01f;
 }
 
@@ -325,5 +306,6 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
-	//DOREPLIFETIME(AWeaponDefault, ShootEndLocation);
+	DOREPLIFETIME(ABaseWeapon, SpawnRotation);
+	DOREPLIFETIME(ABaseWeapon, SpawnLocation);
 }

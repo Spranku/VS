@@ -136,8 +136,6 @@ protected:
 
 	void EndFire();
 
-	void FireEvent(bool bIsFiring);
-
 	void InitCrouch();
 
 	void StopCrouch();
@@ -148,14 +146,6 @@ protected:
 
 	void StopAiming();
 
-	void MoveForward(float Val);
-
-	void MoveRight(float Val);
-
-	void TurnAtRate(float Rate);
-
-	void LookUpAtRate(float Rate);;
-
 	void NextWeapon();
 
 	void LastWeapon();
@@ -163,6 +153,22 @@ protected:
 	void ChangeMovementState();
 
 	void CharacterUpdate();
+
+	void FireEvent(bool bIsFiring);
+
+	void MoveForward(float Val);
+
+	void MoveRight(float Val);
+
+	void TurnAtRate(float Rate);
+
+	void LookUpAtRate(float Rate);
+
+	UFUNCTION()
+	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
+
+	UFUNCTION()
+	void TryReloadWeapon();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
@@ -176,9 +182,6 @@ protected:
 	UFUNCTION(Server, UnReliable)
 	void StopAiming_OnServer();
 
-	UFUNCTION()
-	void TryReloadWeapon();
-
 	UFUNCTION(Server,Reliable)
 	void EquipWeapon_OnServer(const int32 Index);
 
@@ -187,9 +190,6 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void SetMovementState_Multicast(EMovementState NewState);
-
-	UFUNCTION()
-	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
 
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
@@ -211,6 +211,5 @@ public:
 	void InitWeapon();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 };
 

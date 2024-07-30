@@ -46,6 +46,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo WeaponInfo;
 
+	UPROPERTY(Replicated)
+	FRotator SpawnRotation; // TO DO FULL LOCATION ? 
+
+	UPROPERTY(Replicated)
+	FVector SpawnLocation; // TO DO FULL LOCATION ? 
+
+	float ServerPitch = 0.0f;
+
 	float FireTime = 0.0f;
 		
 	bool WeaponAiming = false;
@@ -103,12 +111,10 @@ public:
 	int32 GetWeaponRound();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void SetWeaponStateFire_OnServer(bool bIsFire);
+	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch);
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
-
-
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

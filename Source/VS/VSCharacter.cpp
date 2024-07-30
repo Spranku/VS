@@ -82,6 +82,8 @@ void AVSCharacter::BeginPlay()
 void AVSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+
 }
 
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -295,8 +297,7 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
-		//UE_LOG(LogTemp, Warning, TEXT("AVSCharacter::FireEvent - SetWeaponStateFire_OnServer(true);"));
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep);
 	}
 	else
 	{
