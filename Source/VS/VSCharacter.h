@@ -128,6 +128,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float AimYaw;
 
+	FTimerHandle TimerHandle;
+
 protected:
 
 	void OnFire();

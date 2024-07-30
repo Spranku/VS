@@ -66,23 +66,7 @@ void AVSCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		for (const TSubclassOf<ABaseWeapon>& WeaponClass : DefaultWeapons)
-		{
-			if (!WeaponClass) continue;
-			FActorSpawnParameters Params;
-			Params.Owner = this;
-			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
-			const int32 Index = Weapons.Add(Weapon3P);
-			if (Index == CurrentIndex)
-			{
-				CurrentWeapon = Weapon3P;
-				OnRep_CurrentWeapon(nullptr);
-			}
-		}
-	}
-	//FP_Gun->bOnlyOwnerSee = true;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AVSCharacter::InitWeapon, 1.0f, false);
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
@@ -482,24 +466,24 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 
 void AVSCharacter::InitWeapon()
 {
-	/*if (!DefaultWeapons.IsValidIndex())
+	if (HasAuthority())
 	{
-		FVector SpawnLocation = FVector(0);
-		FRotator SpawnRotation = FRotator(0);
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.Owner = GetOwner();
-		SpawnParams.Instigator = GetInstigator();
-
-		ABaseWeapon* myWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(WeaponClass, &SpawnLocation, &SpawnRotation, SpawnParams));
-		if (myWeapon)
+		for (const TSubclassOf<ABaseWeapon>& WeaponClass : DefaultWeapons)
 		{
-			FAttachmentTransformRules Rule(EAttachmentRule::SnapToTarget, false);
-			myWeapon->AttachToComponent(GetMesh(), Rule, FName("WeaponSocket"));
-			CurrentWeapon = myWeapon;
+			if (!WeaponClass) continue;
+			FActorSpawnParameters Params;
+			Params.Owner = this;
+			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
+			const int32 Index = Weapons.Add(Weapon3P);
+			if (Index == CurrentIndex)
+			{
+				CurrentWeapon = Weapon3P;
+				OnRep_CurrentWeapon(nullptr);
+			}
+			//FP_Gun->bOnlyOwnerSee = true;
 		}
-	}*/
+	}
+	TimerHandle.Invalidate();
 }
 
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
