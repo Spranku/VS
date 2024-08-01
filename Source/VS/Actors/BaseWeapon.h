@@ -46,11 +46,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo WeaponInfo;
 
-	UPROPERTY(Replicated)
-	FRotator SpawnRotation; // TO DO FULL LOCATION ? 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
+	float ReloadTimer = 0.0f;
 
-	UPROPERTY(Replicated)
-	FVector SpawnLocation; // TO DO FULL LOCATION ? 
+	FVector ShootLoc;
+
+	FRotator ShootRot;
 
 	float ServerPitch = 0.0f;
 
@@ -67,9 +68,6 @@ public:
 	float DropClipTimer = -1.0f;
 
 	float DropShellTimer = -1.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
-	float ReloadTimer = 0.0f;
 
 	//UPROPERTY(Replicated)
 	bool ShouldReduseDispersion = false;
@@ -111,7 +109,7 @@ public:
 	int32 GetWeaponRound();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch);
+	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch, FVector Loc, FRotator Rot);
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();

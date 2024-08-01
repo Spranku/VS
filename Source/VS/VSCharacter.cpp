@@ -59,6 +59,7 @@ AVSCharacter::AVSCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
+	bReplicates = true;
 }
 
 void AVSCharacter::BeginPlay()
@@ -297,7 +298,9 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep);
+		const FRotator SpawnRotation = GetControlRotation();
+		const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep,SpawnLocation, SpawnRotation);
 	}
 	else
 	{

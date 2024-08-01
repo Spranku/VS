@@ -24,7 +24,6 @@ ABaseWeapon::ABaseWeapon()
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
-
 }
 
 // Called when the game starts or when spawned
@@ -50,7 +49,7 @@ void ABaseWeapon::Tick(float DeltaTime)
 	{
 		FireTick(DeltaTime);
 		ReloadTick(DeltaTime);
-		DispersionTick(DeltaTime);
+		//DispersionTick(DeltaTime);
 		//ClipDropTick(DeltaTime);
 		//ShellDropTick(DeltaTime);
 	}
@@ -168,9 +167,9 @@ void ABaseWeapon::Fire()
 
 	if (ShootLocation)
 	{
-		SpawnLocation = ShootLocation->GetComponentLocation();
-		SpawnRotation = ShootLocation->GetComponentRotation();
-		SpawnRotation.Pitch = ServerPitch; // TO DO FULL LOCATION ? 
+		FVector SpawnLocation = ShootLocation->GetComponentLocation();
+		FRotator SpawnRotation = ShootLocation->GetComponentRotation();
+		//SpawnRotation.Pitch = ServerPitch; // TO DO FULL LOCATION ? 
 
 		FProjectileInfo ProjectileInfo;
 		ProjectileInfo = GetProjectile();
@@ -182,7 +181,7 @@ void ABaseWeapon::Fire()
 			SpawnParams.Owner = GetOwner();
 			SpawnParams.Instigator = GetInstigator();
 
-			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
+			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &ShootLoc, &ShootRot, SpawnParams));
 			if (myProjectile)
 			{
 				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
@@ -281,12 +280,14 @@ int32 ABaseWeapon::GetWeaponRound()
 	return WeaponInfo.Round;
 }
 
-void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch)
+void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch,FVector Loc, FRotator Rot)
 {
 	if (CheckWeaponCanFire())
 	{
 		WeaponFiring = bIsFire;
 		ServerPitch = Pitch;
+		ShootLoc = Loc;
+		ShootRot = Rot;
 	}
 	else
 	{
@@ -306,6 +307,4 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
-	DOREPLIFETIME(ABaseWeapon, SpawnRotation);
-	DOREPLIFETIME(ABaseWeapon, SpawnLocation);
 }
