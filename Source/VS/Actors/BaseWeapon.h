@@ -49,10 +49,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
 
-	FVector ShootLoc;
-
-	FRotator ShootRot;
-
 	float ServerPitch = 0.0f;
 
 	float FireTime = 0.0f;
@@ -109,7 +105,7 @@ public:
 	int32 GetWeaponRound();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch, FVector Loc, FRotator Rot);
+	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch);
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();

@@ -181,7 +181,7 @@ void ABaseWeapon::Fire()
 			SpawnParams.Owner = GetOwner();
 			SpawnParams.Instigator = GetInstigator();
 
-			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &ShootLoc, &ShootRot, SpawnParams));
+			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
 			if (myProjectile)
 			{
 				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
@@ -280,14 +280,12 @@ int32 ABaseWeapon::GetWeaponRound()
 	return WeaponInfo.Round;
 }
 
-void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch,FVector Loc, FRotator Rot)
+void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch)
 {
 	if (CheckWeaponCanFire())
 	{
 		WeaponFiring = bIsFire;
 		ServerPitch = Pitch;
-		ShootLoc = Loc;
-		ShootRot = Rot;
 	}
 	else
 	{

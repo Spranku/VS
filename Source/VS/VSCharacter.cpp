@@ -160,6 +160,8 @@ void AVSCharacter::OnFire()
 	//	{
 	//		if (!bUsingMotionControllers)
 	//		{
+	// 
+	// 
 	//			const FRotator SpawnRotation = GetControlRotation();
 	//			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 	//			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
@@ -298,9 +300,7 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		const FRotator SpawnRotation = GetControlRotation();
-		const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep,SpawnLocation, SpawnRotation);
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep);
 	}
 	else
 	{
@@ -446,20 +446,16 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	{
 		if (!CurrentWeapon->CurrentOwner)
 		{
-			CurrentWeapon->SetActorTransform(GetMesh()->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
-			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
+			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
+			CurrentWeapon->AttachToComponent(/*GetMesh()*/ Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
 			CurrentWeapon->CurrentOwner = this;
-
-			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(true);
-			
+			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
-		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
-
+		//CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
 		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
-		FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
-		FP_Gun->SetWorldScale3D(FVector(2));
+		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 	}
 
 	if (OldWeapon)
