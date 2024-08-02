@@ -451,7 +451,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
-		//CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
+		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
 		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
