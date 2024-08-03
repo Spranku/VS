@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BaseWeapon.h"
+#include "DrawDebugHelpers.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "/Projects/VS/Source/VS/VSCharacter.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -24,12 +27,25 @@ ABaseWeapon::ABaseWeapon()
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
 void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
+	if (MyChar)
+	{
+		Character = MyChar;
+		UE_LOG(LogTemp, Warning, TEXT("Success cast to Character"));	
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
+	}
 	
 	WeaponInit();
 
@@ -45,15 +61,15 @@ void ABaseWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (HasAuthority())
-	{
+	///if (HasAuthority())
+	///{
 		FireTick(DeltaTime);
 		ReloadTick(DeltaTime);
 		//DispersionTick(DeltaTime);
 		//ClipDropTick(DeltaTime);
 		//ShellDropTick(DeltaTime);
-	}
-
+	///}
+	
 }
 
 void ABaseWeapon::ReloadTick(float DeltaTime)
@@ -125,76 +141,54 @@ void ABaseWeapon::WeaponInit()
 
 void ABaseWeapon::Fire()
 {
-	//UAnimMontage* AnimToPlay = nullptr;
-	//*if (WeaponAiming)
-	//	AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFireAim;
-	//else
-	//	AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFire;*/
-
-	//if (WeaponSetting.AnimWeaponInfo.AnimWeaponFire)
-	//{
-	//	AnimWeaponStart_Multicast(WeaponSetting.AnimWeaponInfo.AnimWeaponFire);
-	//}
-
-	//*if (WeaponSetting.ShellBullets.DropMesh)
-	//{
-	//	if (WeaponSetting.ShellBullets.DropMeshTime < 0.0f)
-	//	{
-	//		InitDropMesh_OnServer(WeaponSetting.ShellBullets.DropMesh,
-	//			WeaponSetting.ShellBullets.DropMeshOffset,
-	//			WeaponSetting.ShellBullets.DropMeshImpulseDir,
-	//			WeaponSetting.ShellBullets.DropMeshLifeTime,
-	//			WeaponSetting.ShellBullets.ImpulseRandomDispersion,
-	//			WeaponSetting.ShellBullets.PowerImpulse,
-	//			WeaponSetting.ShellBullets.CustomMass);
-	//	}
-	//	else
-	//	{
-	//		DropShellFlag = true;
-	//		DropShellTimer = WeaponSetting.ShellBullets.DropMeshTime;
-	//	}
-	//}
-	//
+	UE_LOG(LogTemp, Warning, TEXT("FIRE"));
 	FireTime = WeaponSetting.RateOfFire;
-
 	WeaponInfo.Round = WeaponInfo.Round - 1;
 
-	//AdditionalWeaponInfo.Round = AdditionalWeaponInfo.Round - 1; \
-	//	ChangeDispersionByShoot();*/
-	//OnWeaponFireStart.Broadcast(AnimToPlay);
-	//FXWeaponFire_Multicast(WeaponSetting.EffectFireWeapon, WeaponSetting.SoundFireWeapon);
-	//int8 NumberProjectile = GetNumberProjectileByShot();
+	FTransform ShootTo;
 
-	if (ShootLocation)
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetInstigator();
+
+	FProjectileInfo ProjectileInfo;
+	ProjectileInfo = GetProjectile();
+
+	FHitResult HitResult;
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), Character->GetForwardVectorFromCamera() * 10000.0f + SkeletalMeshWeapon->GetSocketLocation("Ironsight"),ECollisionChannel::ECC_Visibility))
 	{
-		FVector SpawnLocation = ShootLocation->GetComponentLocation();
-		FRotator SpawnRotation = ShootLocation->GetComponentRotation();
-		//SpawnRotation.Pitch = ServerPitch; // TO DO FULL LOCATION ? 
+		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(SkeletalMeshWeapon->GetSocketLocation("Ironsight"), HitResult.ImpactPoint), SkeletalMeshWeapon->GetSocketLocation("Ironsight"));
+	}
+	else
+	{
+		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(HitResult.ImpactPoint, Character->GetForwardVectorFromCamera() * 10000.0f + SkeletalMeshWeapon->GetSocketLocation("Ironsight")), SkeletalMeshWeapon->GetSocketLocation("Ironsight"));
+	}
 
-		FProjectileInfo ProjectileInfo;
-		ProjectileInfo = GetProjectile();
-	
-		if (ProjectileInfo.Projectile)
-		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			SpawnParams.Owner = GetOwner();
-			SpawnParams.Instigator = GetInstigator();
+	SpawnProjectileOnServer(ShootTo);
+}
 
-			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
-			if (myProjectile)
-			{
-				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
-			}
-			else
-			{
+void ABaseWeapon::SpawnProjectileOnServer_Implementation(FTransform TransformToSpawn)
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetInstigator();
 
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT(" ABaseWeapon::Fire - (ProjectileInfo.Projectile = NULL;"));
-		}
+	FProjectileInfo ProjectileInfo;
+	ProjectileInfo = GetProjectile();
+
+	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &TransformToSpawn, SpawnParams));
+
+	//ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &TransformToSpawn.GetLocation(), &TransformToSpawn.GetRotation(), SpawnParams));
+	if (myProjectile)
+	{
+		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
+		UE_LOG(LogTemp, Warning, TEXT("Success spawn"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed spawn"));
 	}
 }
 

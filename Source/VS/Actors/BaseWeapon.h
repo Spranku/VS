@@ -10,6 +10,8 @@
 #include "BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
+class AVSCharacter;
+
 UCLASS()
 class VS_API ABaseWeapon : public AActor
 {
@@ -33,6 +35,8 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
+
+	AVSCharacter* Character = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponFiring = false;
@@ -109,6 +113,9 @@ public:
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
+
+	UFUNCTION(Server,Reliable)
+	void SpawnProjectileOnServer(FTransform TransformToSpawn);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

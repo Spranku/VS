@@ -33,11 +33,11 @@ class AVSCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
 
+public:
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
-public:
 	AVSCharacter();
 
 protected:
@@ -208,6 +208,8 @@ public:
 
 	UFUNCTION()
 	void InitWeapon();
+
+	FVector GetForwardVectorFromCamera();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

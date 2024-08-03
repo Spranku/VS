@@ -486,6 +486,11 @@ void AVSCharacter::InitWeapon()
 	TimerHandle.Invalidate();
 }
 
+FVector AVSCharacter::GetForwardVectorFromCamera()
+{
+	return FirstPersonCameraComponent->GetForwardVector();
+}
+
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
 {
 	return CurrentWeapon;
@@ -503,6 +508,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, AimYaw);
+	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
