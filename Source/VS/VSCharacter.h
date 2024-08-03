@@ -129,7 +129,6 @@ public:
 
 	FTimerHandle TimerHandle;
 
-	UPROPERTY(Replicated)
 	FRotator CamForwardVector;
 
 protected:
@@ -213,6 +212,8 @@ public:
 	void InitWeapon();
 
 	FVector GetForwardVectorFromCamera();
+
+	FVector GetLocationFromCamera();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

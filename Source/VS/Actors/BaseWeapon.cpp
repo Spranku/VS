@@ -12,6 +12,7 @@ ABaseWeapon::ABaseWeapon()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetReplicates(true);
+	/// NetUpdateFrequency = 100.0f;
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
@@ -29,6 +30,7 @@ ABaseWeapon::ABaseWeapon()
 	ShootLocation->SetupAttachment(RootComponent);
 
 	bReplicates = true;
+	//SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
@@ -61,14 +63,11 @@ void ABaseWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	///if (HasAuthority())
-	///{
-		FireTick(DeltaTime);
-		ReloadTick(DeltaTime);
-		//DispersionTick(DeltaTime);
-		//ClipDropTick(DeltaTime);
-		//ShellDropTick(DeltaTime);
-	///}
+	FireTick(DeltaTime);
+	ReloadTick(DeltaTime);
+	//DispersionTick(DeltaTime);
+	//ClipDropTick(DeltaTime);
+	//ShellDropTick(DeltaTime);
 	
 }
 
@@ -139,46 +138,25 @@ void ABaseWeapon::WeaponInit()
 	}
 }
 
-void ABaseWeapon::Fire()
+void ABaseWeapon::Fire_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("FIRE"));
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
 
-
 	FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
 	FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f;
-
-	ServerFire(MuzzleLocation, ShootDirection);
-}
-
-void ABaseWeapon::ServerFire_Implementation(FVector Location, FVector Direction)
-{
 	FTransform ShootTo;
-
-	/*FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Owner = GetOwner();
-	SpawnParams.Instigator = GetInstigator();
-
-	FProjectileInfo ProjectileInfo;
-	ProjectileInfo = GetProjectile();*/
-
 	FHitResult HitResult;
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Direction /** 10000.0f*/ + Location, ECollisionChannel::ECC_Visibility))
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection  + MuzzleLocation, ECollisionChannel::ECC_Visibility))
 	{
-		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(Location, HitResult.ImpactPoint), Location);
+		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
 	}
 	else
 	{
-		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(Location, Direction /** 10000.0f*/ + Location), Location);
+		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
 	}
 
-	SpawnProjectileOnServer(ShootTo);
-}
-
-void ABaseWeapon::SpawnProjectileOnServer_Implementation(FTransform TransformToSpawn)
-{
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
@@ -187,15 +165,13 @@ void ABaseWeapon::SpawnProjectileOnServer_Implementation(FTransform TransformToS
 	FProjectileInfo ProjectileInfo;
 	ProjectileInfo = GetProjectile();
 
-	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &TransformToSpawn, SpawnParams));
-
+	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &ShootTo, SpawnParams));
 	if (myProjectile)
 	{
 		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
-		UE_LOG(LogTemp, Warning, TEXT("Success spawn"));
 	}
 	else
-	{
+	{ 
 		UE_LOG(LogTemp, Error, TEXT("Failed spawn"));
 	}
 }
@@ -282,12 +258,11 @@ int32 ABaseWeapon::GetWeaponRound()
 	return WeaponInfo.Round;
 }
 
-void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch)
+void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 {
 	if (CheckWeaponCanFire())
 	{
 		WeaponFiring = bIsFire;
-		ServerPitch = Pitch;
 	}
 	else
 	{
@@ -307,4 +282,5 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
+	
 }

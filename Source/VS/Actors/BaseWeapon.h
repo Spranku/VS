@@ -77,6 +77,7 @@ public:
 	float CurrentDispersionRecoil = 0.1f;
 	float CurrentDispersionReduction = 0.1f;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -93,10 +94,6 @@ public:
 
 	void WeaponInit();
 
-	void Fire();
-
-	UFUNCTION(Server,Reliable)
-	void ServerFire(FVector Location, FVector Direction);
 
 	void InitReload();
 
@@ -108,17 +105,17 @@ public:
 
 	bool CheckCanWeaponReload();
 
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void SetWeaponStateFire_OnServer(bool bIsFire);
+
+	UFUNCTION(Server, Reliable)
+	void Fire();
+
 	UFUNCTION(BlueprintCallable)
 	int32 GetWeaponRound();
 
-	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch);
-
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
-
-	UFUNCTION(Server,Reliable)
-	void SpawnProjectileOnServer(FTransform TransformToSpawn);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

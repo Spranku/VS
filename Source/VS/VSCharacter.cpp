@@ -60,6 +60,9 @@ AVSCharacter::AVSCharacter()
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
 	bReplicates = true;
+
+	///WeaponRotationUpdateInterval = 0.5f;  // Обновление каждые 0.5 секунды
+	///LastWeaponRotationUpdateTime = 0.0f;
 }
 
 void AVSCharacter::BeginPlay()
@@ -84,7 +87,19 @@ void AVSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/*if (CurrentWeapon && Controller)
+	{
+		LastWeaponRotationUpdateTime += DeltaTime;
+		if (LastWeaponRotationUpdateTime >= WeaponRotationUpdateInterval)
+		{
+			FRotator CameraRotation = Controller->GetControlRotation();
+			CurrentWeapon->SetWeaponRotation(CameraRotation);
+			LastWeaponRotationUpdateTime = 0.0f;
+		}
 
+		 ///FRotator CameraRotation = Controller->GetControlRotation(); 
+		 /// CurrentWeapon->SetWeaponRotation(CameraRotation);
+	}*/
 }
 
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -140,6 +155,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 		SetCurrentWeapon_OnServer(Weapons[Index]);
 	}
 }
+
 
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
 {
@@ -300,7 +316,7 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep);
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
 	}
 	else
 	{
@@ -490,6 +506,14 @@ FVector AVSCharacter::GetForwardVectorFromCamera()
 {
 	CamForwardVector = Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator; /// Working
 	return CamForwardVector.Vector();
+	//return FirstPersonCameraComponent->GetForwardVector();
+
+	//return FirstPersonCameraComponent->GetForwardVector();
+}
+
+FVector AVSCharacter::GetLocationFromCamera()
+{
+	return FirstPersonCameraComponent->GetComponentLocation();
 }
 
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
@@ -510,7 +534,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, AimYaw);
 	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
-	DOREPLIFETIME(AVSCharacter, CamForwardVector);
+
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
