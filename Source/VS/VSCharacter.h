@@ -129,6 +129,9 @@ public:
 
 	FTimerHandle TimerHandle;
 
+	UPROPERTY(Replicated)
+	FRotator CamForwardVector;
+
 protected:
 
 	void OnFire();

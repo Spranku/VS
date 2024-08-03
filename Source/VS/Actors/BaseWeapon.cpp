@@ -145,24 +145,33 @@ void ABaseWeapon::Fire()
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
 
+
+	FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
+	FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f;
+
+	ServerFire(MuzzleLocation, ShootDirection);
+}
+
+void ABaseWeapon::ServerFire_Implementation(FVector Location, FVector Direction)
+{
 	FTransform ShootTo;
 
-	FActorSpawnParameters SpawnParams;
+	/*FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
 	SpawnParams.Instigator = GetInstigator();
 
 	FProjectileInfo ProjectileInfo;
-	ProjectileInfo = GetProjectile();
+	ProjectileInfo = GetProjectile();*/
 
 	FHitResult HitResult;
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), Character->GetForwardVectorFromCamera() * 10000.0f + SkeletalMeshWeapon->GetSocketLocation("Ironsight"),ECollisionChannel::ECC_Visibility))
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Location, Direction /** 10000.0f*/ + Location, ECollisionChannel::ECC_Visibility))
 	{
-		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(SkeletalMeshWeapon->GetSocketLocation("Ironsight"), HitResult.ImpactPoint), SkeletalMeshWeapon->GetSocketLocation("Ironsight"));
+		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(Location, HitResult.ImpactPoint), Location);
 	}
 	else
 	{
-		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(HitResult.ImpactPoint, Character->GetForwardVectorFromCamera() * 10000.0f + SkeletalMeshWeapon->GetSocketLocation("Ironsight")), SkeletalMeshWeapon->GetSocketLocation("Ironsight"));
+		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(Location, Direction /** 10000.0f*/ + Location), Location);
 	}
 
 	SpawnProjectileOnServer(ShootTo);
@@ -180,7 +189,6 @@ void ABaseWeapon::SpawnProjectileOnServer_Implementation(FTransform TransformToS
 
 	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &TransformToSpawn, SpawnParams));
 
-	//ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &TransformToSpawn.GetLocation(), &TransformToSpawn.GetRotation(), SpawnParams));
 	if (myProjectile)
 	{
 		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);

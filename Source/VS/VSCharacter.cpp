@@ -488,7 +488,8 @@ void AVSCharacter::InitWeapon()
 
 FVector AVSCharacter::GetForwardVectorFromCamera()
 {
-	return FirstPersonCameraComponent->GetForwardVector();
+	CamForwardVector = Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator; /// Working
+	return CamForwardVector.Vector();
 }
 
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
@@ -509,6 +510,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, AimYaw);
 	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
+	DOREPLIFETIME(AVSCharacter, CamForwardVector);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);

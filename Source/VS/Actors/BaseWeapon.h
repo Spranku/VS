@@ -95,6 +95,9 @@ public:
 
 	void Fire();
 
+	UFUNCTION(Server,Reliable)
+	void ServerFire(FVector Location, FVector Direction);
+
 	void InitReload();
 
 	void FinishReload();
