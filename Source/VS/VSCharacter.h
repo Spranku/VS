@@ -33,6 +33,9 @@ class AVSCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	USceneComponent* WeaponPivot;
+
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
@@ -127,6 +130,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float AimYaw;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Weapon")
+	FRotator WeaponPitch;
+
 	FTimerHandle TimerHandle;
 
 protected:
@@ -208,6 +214,14 @@ public:
 
 	UFUNCTION()
 	void InitWeapon();
+
+	UFUNCTION(Server, Reliable)
+	void SetWeaponPitch_OnServer(FRotator Rotation);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void SetWeaponPitch_Multicast(FRotator Rotation);
+
+
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

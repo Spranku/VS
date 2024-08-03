@@ -10,6 +10,8 @@
 #include "BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
+class AVSCharacter;
+
 UCLASS()
 class VS_API ABaseWeapon : public AActor
 {
@@ -48,6 +50,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	FVector GunOffset;
+
+	FRotator PitchWeapon;
 
 	float ServerPitch = 0.0f;
 
@@ -105,7 +112,7 @@ public:
 	int32 GetWeaponRound();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch);
+	void SetWeaponStateFire_OnServer(bool bIsFire, FRotator WeaponPitch);
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();

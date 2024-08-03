@@ -24,6 +24,8 @@ ABaseWeapon::ABaseWeapon()
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
+
+	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 }
 
 // Called when the game starts or when spawned
@@ -167,7 +169,7 @@ void ABaseWeapon::Fire()
 
 	if (ShootLocation)
 	{
-		FVector SpawnLocation = ShootLocation->GetComponentLocation();
+		FVector SpawnLocation = ShootLocation->GetComponentLocation() + PitchWeapon.RotateVector(GunOffset);
 		FRotator SpawnRotation = ShootLocation->GetComponentRotation();
 		//SpawnRotation.Pitch = ServerPitch; // TO DO FULL LOCATION ? 
 
@@ -181,7 +183,7 @@ void ABaseWeapon::Fire()
 			SpawnParams.Owner = GetOwner();
 			SpawnParams.Instigator = GetInstigator();
 
-			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
+			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &PitchWeapon, SpawnParams));
 			if (myProjectile)
 			{
 				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
@@ -280,12 +282,13 @@ int32 ABaseWeapon::GetWeaponRound()
 	return WeaponInfo.Round;
 }
 
-void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch)
+void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, FRotator WeaponPitch)
 {
 	if (CheckWeaponCanFire())
 	{
 		WeaponFiring = bIsFire;
-		ServerPitch = Pitch;
+		//ServerPitch = Pitch;
+		PitchWeapon = WeaponPitch;
 	}
 	else
 	{

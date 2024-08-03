@@ -35,21 +35,12 @@ AVSCharacter::AVSCharacter()
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
-	Mesh1P->bCastDynamicShadow = false;
-	Mesh1P->CastShadow = false;
-	Mesh1P->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
-	Mesh1P->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
-
 	// Create a gun mesh component
 	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
 	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
-	FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	FP_Gun->SetupAttachment(GetMesh()/*, TEXT("GripPoint")*/);
 	//FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
@@ -58,6 +49,19 @@ AVSCharacter::AVSCharacter()
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
+
+	WeaponPivot = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponPivot"));
+	WeaponPivot->SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f));
+
+	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
+	Mesh1P->SetOnlyOwnerSee(true);
+	//Mesh1P->SetupAttachment(WeaponPivot);
+	Mesh1P->bCastDynamicShadow = false;
+	Mesh1P->CastShadow = false;
+	Mesh1P->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
+	Mesh1P->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
+	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 
 	bReplicates = true;
 }
@@ -300,7 +304,8 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep);
+		SetWeaponPitch_OnServer(WeaponPitch);
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, WeaponPitch);
 	}
 	else
 	{
@@ -336,6 +341,8 @@ void AVSCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+
+	SetWeaponPitch_OnServer(FirstPersonCameraComponent->GetComponentRotation());
 
 	if (BaseLookUpRate != 0)
 	{
@@ -486,9 +493,21 @@ void AVSCharacter::InitWeapon()
 	TimerHandle.Invalidate();
 }
 
+void AVSCharacter::SetWeaponPitch_OnServer_Implementation(FRotator Rotation)
+{
+	WeaponPitch = Rotation;
+	SetWeaponPitch_Multicast(WeaponPitch);
+}
+
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
 {
 	return CurrentWeapon;
+}
+
+void AVSCharacter::SetWeaponPitch_Multicast_Implementation(FRotator Rotation)
+{
+
+	WeaponPivot->SetRelativeRotation(Rotation);
 }
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -503,6 +522,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, AimYaw);
+	DOREPLIFETIME(AVSCharacter, WeaponPitch);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
