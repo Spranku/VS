@@ -12,7 +12,6 @@ ABaseWeapon::ABaseWeapon()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetReplicates(true);
-	/// NetUpdateFrequency = 100.0f;
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
@@ -30,7 +29,6 @@ ABaseWeapon::ABaseWeapon()
 	ShootLocation->SetupAttachment(RootComponent);
 
 	bReplicates = true;
-	//SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
@@ -54,7 +52,6 @@ void ABaseWeapon::BeginPlay()
 	if (!CurrentOwner)
 	{
 		SkeletalMeshWeapon->SetVisibility(true);
-		//StaticMeshWeapon->SetVisibility(true);
 	}
 }
 
@@ -93,7 +90,6 @@ void ABaseWeapon::FireTick(float DeltaTime)
 		if (FireTime < 0.f)
 		{
 			FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
-			//UE_LOG(LogTemp, Error, TEXT("Muzzle location: %s"), *MuzzleLocation.ToString());
 			FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f; /// 
 			
 			FTransform ShootTo;

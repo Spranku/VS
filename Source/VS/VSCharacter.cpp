@@ -60,9 +60,6 @@ AVSCharacter::AVSCharacter()
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
 	bReplicates = true;
-
-	///WeaponRotationUpdateInterval = 0.5f;  // Обновление каждые 0.5 секунды
-	///LastWeaponRotationUpdateTime = 0.0f;
 }
 
 void AVSCharacter::BeginPlay()
@@ -517,11 +514,8 @@ void AVSCharacter::InitWeapon()
 
 FVector AVSCharacter::GetForwardVectorFromCamera()
 {
-	CamForwardVector = Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator; /// Working
+	CamForwardVector = Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator; 
 	return CamForwardVector.Vector();
-	//return FirstPersonCameraComponent->GetForwardVector();
-
-	//return FirstPersonCameraComponent->GetForwardVector();
 }
 
 FVector AVSCharacter::GetLocationFromCamera()

@@ -94,7 +94,6 @@ public:
 
 	void WeaponInit();
 
-
 	void InitReload();
 
 	void FinishReload();

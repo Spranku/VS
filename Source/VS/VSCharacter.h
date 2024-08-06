@@ -131,6 +131,8 @@ public:
 
 	FRotator CamForwardVector;
 
+	FRotator ControlRotationSynchronized;
+
 protected:
 
 	void OnFire();
@@ -219,10 +221,11 @@ public:
 
 
 	UFUNCTION(Server, Reliable)
-		void S_LookUPSync(FRotator RotationSync);
+	void S_LookUPSync(FRotator RotationSync);
+
 	UFUNCTION(NetMulticast, Reliable)
-		void M_LookUPSync(FRotator RotationSync);
-	FRotator ControlRotationSynchronized;
+	void M_LookUPSync(FRotator RotationSync);
+
 
 };
 
