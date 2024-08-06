@@ -367,6 +367,20 @@ void AVSCharacter::LookUpAtRate(float Rate)
 			PitchOnServer(Pitch);
 			Pitch_OnRep = Pitch;
 		}
+		/// Oleg
+
+		if (IsLocallyControlled())
+		{
+			FRotator Rotation = GetControlRotation();
+			if (HasAuthority())
+			{
+				M_LookUPSync(Rotation);
+			}
+			else
+			{
+				S_LookUPSync(Rotation);
+			}
+		}
 	}
 }
 
@@ -539,6 +553,24 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
+}
+
+void AVSCharacter::S_LookUPSync_Implementation(FRotator RotationSync)
+{
+	ControlRotationSynchronized = RotationSync;
+	if (!IsLocallyControlled())
+	{
+		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
+	}
+}
+
+void AVSCharacter::M_LookUPSync_Implementation(FRotator RotationSync)
+{
+	ControlRotationSynchronized = RotationSync;
+	if (!IsLocallyControlled())
+	{
+		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
+	}
 }
 
 

@@ -92,7 +92,23 @@ void ABaseWeapon::FireTick(float DeltaTime)
 	{
 		if (FireTime < 0.f)
 		{
-			Fire();
+			FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
+			//UE_LOG(LogTemp, Error, TEXT("Muzzle location: %s"), *MuzzleLocation.ToString());
+			FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f; /// 
+			
+			FTransform ShootTo;
+			FHitResult HitResult;
+
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection + MuzzleLocation, ECollisionChannel::ECC_Visibility))
+			{
+				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
+			}
+			else
+			{
+				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
+			}
+
+			Fire(ShootTo);
 		}
 		else
 			FireTime -= DeltaTime;
@@ -138,24 +154,10 @@ void ABaseWeapon::WeaponInit()
 	}
 }
 
-void ABaseWeapon::Fire_Implementation()
+void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 {
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
-
-	FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
-	FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f;
-	FTransform ShootTo;
-	FHitResult HitResult;
-
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection  + MuzzleLocation, ECollisionChannel::ECC_Visibility))
-	{
-		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
-	}
-	else
-	{
-		ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
-	}
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

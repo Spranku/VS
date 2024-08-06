@@ -216,5 +216,13 @@ public:
 	FVector GetLocationFromCamera();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+	UFUNCTION(Server, Reliable)
+		void S_LookUPSync(FRotator RotationSync);
+	UFUNCTION(NetMulticast, Reliable)
+		void M_LookUPSync(FRotator RotationSync);
+	FRotator ControlRotationSynchronized;
+
 };
 

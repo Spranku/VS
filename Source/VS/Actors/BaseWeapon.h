@@ -109,7 +109,7 @@ public:
 	void SetWeaponStateFire_OnServer(bool bIsFire);
 
 	UFUNCTION(Server, Reliable)
-	void Fire();
+	void Fire(FTransform ShootTo);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetWeaponRound();
