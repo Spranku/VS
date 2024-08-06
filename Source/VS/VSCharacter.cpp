@@ -367,7 +367,6 @@ void AVSCharacter::LookUpAtRate(float Rate)
 			PitchOnServer(Pitch);
 			Pitch_OnRep = Pitch;
 		}
-		/// Oleg
 
 		if (IsLocallyControlled())
 		{
