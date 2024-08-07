@@ -21,9 +21,10 @@ ABaseWeapon::ABaseWeapon()
 	SkeletalMeshWeapon->SetCollisionProfileName(TEXT("NoCollision"));
 	SkeletalMeshWeapon->SetupAttachment(RootComponent);
 
-	StaticMeshWeapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshWeapon"));
+	StaticMeshWeapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scope"));
 	StaticMeshWeapon->SetGenerateOverlapEvents(false);
 	StaticMeshWeapon->SetCollisionProfileName(TEXT("NoCollision"));
+	StaticMeshWeapon->SetupAttachment(SkeletalMeshWeapon);
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
@@ -62,7 +63,7 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 	FireTick(DeltaTime);
 	ReloadTick(DeltaTime);
-	//DispersionTick(DeltaTime);
+	DispersionTick(DeltaTime);
 	//ClipDropTick(DeltaTime);
 	//ShellDropTick(DeltaTime);
 	
@@ -70,8 +71,10 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 void ABaseWeapon::ReloadTick(float DeltaTime)
 {
-	if (WeaponReloading)
+	if (WeaponReloading || GetWeaponRound() < 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("WeaponReloading || GetWeaponRound = true"));
+
 		if (ReloadTimer < 0.0f)
 		{
 			FinishReload();
@@ -154,7 +157,17 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 {
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
+	ChangeDispersionByShoot();
 
+	FVector SpawnLocation = ShootTo.GetLocation();
+	FRotator SpawnRotation = ShootTo.GetRotation().Rotator();
+	/// --------------------------------------------------------------------------------------------
+	FVector EndLocation = GetFireEndLocation();
+	FVector Dir = GetFireEndLocation() - SpawnLocation;
+	Dir.Normalize();
+	FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0), FVector::ZeroVector);
+	SpawnRotation = myMatrix.Rotator(); 
+	/// --------------------------------------------------------------------------------------------
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
@@ -163,7 +176,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	FProjectileInfo ProjectileInfo;
 	ProjectileInfo = GetProjectile();
 
-	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &ShootTo, SpawnParams));
+	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation,&SpawnRotation, SpawnParams));
 	if (myProjectile)
 	{
 		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
@@ -227,6 +240,47 @@ void ABaseWeapon::CancelReload()
 	OnWeaponReloadEnd.Broadcast(false, 0);*/
 }
 
+void ABaseWeapon::ChangeDispersionByShoot()
+{
+	CurrentDispersion = CurrentDispersion + CurrentDispersionRecoil;
+}
+
+FVector ABaseWeapon::ApplyDispersionToShoot(FVector DirectionShoot) const
+{
+	/*if (ShowDebug)
+	{
+		DrawDebugCone(GetWorld(), ShootLocation->GetComponentLocation(), DirectionShoot, WeaponSetting.DistanceTrace, GetCurrentDispersion() * PI / 180.f, GetCurrentDispersion() * PI / 180.f, 32, FColor::Emerald, false, .1f, (uint8)'/000', 1.0f);
+	}*/
+
+	return FMath::VRandCone(DirectionShoot, GetCurrentDispersion() * PI / 180.f);
+}
+
+float ABaseWeapon::GetCurrentDispersion() const
+{
+	float Result = CurrentDispersion;
+	return Result;
+}
+
+FVector ABaseWeapon::GetFireEndLocation() const
+{
+	bool bShootDirection = false;
+	FVector EndLocation = FVector(0.f);
+	FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
+
+	if (tmpV.Size() > 100.0f)
+	{
+		EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") /*ShootLocation->GetComponentLocation()*/ + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") /*ShootLocation->GetComponentLocation()*/ - ShootEndLocation).GetSafeNormal() * -20000.0f);
+		//UE_LOG(LogTemp, Error, TEXT("True"));
+	}
+	else
+	{
+		EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
+		UE_LOG(LogTemp, Error, TEXT("False"));
+	}
+
+	return EndLocation;
+}
+
 bool ABaseWeapon::CheckWeaponCanFire()
 {
 	return  true /*!BlockFire*/;
@@ -274,11 +328,42 @@ FProjectileInfo ABaseWeapon::GetProjectile()
 	return WeaponSetting.ProjectileSetting;
 }
 
+void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMovementState)
+{
+	/// BlockFire = false; for crouch
+
+	switch (NewMovementState)
+	{
+	case EMovementState::AimWalk_State:
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMax;
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMin;
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
+		break;
+	case EMovementState::Run_State:
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMax;
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMin;
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
+		break;
+	default:
+		break;
+	}
+	//ChangeDispersion();
+}
+
+void ABaseWeapon::UpdateWeaponByCharacterMovementStateOnServer_Implementation(FVector NewShootEndLocation, bool NewShouldReduceDispersion)
+{
+	ShootEndLocation = NewShootEndLocation;
+	ShouldReduseDispersion = NewShouldReduceDispersion;
+}
+
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
+	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
 	
 }

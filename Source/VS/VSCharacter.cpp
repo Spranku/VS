@@ -50,7 +50,6 @@ AVSCharacter::AVSCharacter()
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
 	FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	//FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
@@ -83,6 +82,7 @@ void AVSCharacter::BeginPlay()
 void AVSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	MovementTick(DeltaTime);
 
 	/*if (CurrentWeapon && Controller)
 	{
@@ -152,7 +152,6 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 		SetCurrentWeapon_OnServer(Weapons[Index]);
 	}
 }
-
 
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
 {
@@ -321,6 +320,58 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	}
 }
 
+void AVSCharacter::MovementTick(float DeltaTime)
+{
+	//if (CharHealthComponent && CharHealthComponent->GetIsAlive())
+	//{
+	if (GetController() && GetController()->IsLocalPlayerController())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Local"));
+		if (CurrentWeapon)
+		{
+			FVector Displacement = FVector(0);
+			bool bIsReduceDispersion = false;
+			switch (MovementState)
+			{
+			case EMovementState::Run_State:
+				Displacement = /*FVector(0.0f, 15.0f, 30.0f)*/ (GetForwardVectorFromCamera() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			case EMovementState::AimWalk_State:
+				bIsReduceDispersion = true;
+				Displacement = (GetForwardVectorFromCamera() * 10000.0f);
+				break;
+			default:
+				break;
+			}
+			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
+		}
+	}
+	else
+	{
+		if (CurrentWeapon)
+		{
+			FVector Displacement = FVector(0);
+			bool bIsReduceDispersion = false;
+			switch (MovementState)
+			{
+			case EMovementState::Run_State:
+				Displacement = /*FVector(0.0f, 15.0f, 30.0f)*/ (GetForwardVectorFromCamera() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			case EMovementState::AimWalk_State:
+				bIsReduceDispersion = true;
+				Displacement = /*FVector(0.0f, 0.0f, 0.0f)*/  (GetForwardVectorFromCamera() * 10000.0f);
+				break;
+			default:
+				break;
+			}
+			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
+		}
+	}
+
+}
+
 void AVSCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
@@ -393,6 +444,24 @@ void AVSCharacter::PitchOnServer_Implementation(float PitchRep)
 	PitchMulticast(PitchRep);
 }
 
+void AVSCharacter::S_LookUPSync_Implementation(FRotator RotationSync)
+{
+	ControlRotationSynchronized = RotationSync;
+	if (!IsLocallyControlled())
+	{
+		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
+	}
+}
+
+void AVSCharacter::M_LookUPSync_Implementation(FRotator RotationSync)
+{
+	ControlRotationSynchronized = RotationSync;
+	if (!IsLocallyControlled())
+	{
+		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
+	}
+}
+
 void AVSCharacter::ChangeMovementState()
 {
 	EMovementState NewState = EMovementState::Run_State;
@@ -419,15 +488,13 @@ void AVSCharacter::ChangeMovementState()
 	}
 
 	SetMovementState_OnServer(NewState);
-
 	CharacterUpdate();
 
-	////Weapon state update
-	//AWeaponDefault* myWeapon = GetCurrentWeapon();
-	//if (myWeapon)
-	//{
-	//	myWeapon->UpdateStateWeapon_OnServer(NewState);
-	//}
+	ABaseWeapon* myWeapon = GetCurrentWeapon();
+	if (myWeapon)
+	{
+		myWeapon->UpdateStateWeapon_OnServer(NewState);
+	}
 }
 
 void AVSCharacter::CharacterUpdate()
@@ -546,24 +613,6 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
-}
-
-void AVSCharacter::S_LookUPSync_Implementation(FRotator RotationSync)
-{
-	ControlRotationSynchronized = RotationSync;
-	if (!IsLocallyControlled())
-	{
-		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
-	}
-}
-
-void AVSCharacter::M_LookUPSync_Implementation(FRotator RotationSync)
-{
-	ControlRotationSynchronized = RotationSync;
-	if (!IsLocallyControlled())
-	{
-		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
-	}
 }
 
 

@@ -15,6 +15,30 @@ enum class EMovementState : uint8
 };
 
 USTRUCT(BlueprintType)
+struct FWeaponDispersion
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float AimWalk_StateDispersionAimMax = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float AimWalk_StateDispersionAimMin = 0.1f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float AimWalk_StateDispersionAimRecoil = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float AimWalk_StateDispersionAimReduction = 0.4f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float Run_StateDispersionAimMax = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float Run_StateDispersionAimMin = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float Run_StateDispersionAimRecoil = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	float Run_StateDispersionAimReduction = 0.1f;
+};
+
+USTRUCT(BlueprintType)
 struct FCharacterSpeed
 {
 	GENERATED_BODY()
@@ -85,8 +109,14 @@ struct FWeaponInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	float ReloadTime = 1.8;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trace")
+	float DistanceTrace = 2000.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	int32 MaxRound = 12;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	FWeaponDispersion DispersionWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
 	FProjectileInfo ProjectileSetting;

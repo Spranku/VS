@@ -39,6 +39,9 @@ public:
 	AVSCharacter* Character = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
+	bool ShowDebug = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponFiring = false;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
@@ -53,10 +56,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
 
+	UPROPERTY(Replicated)
+	FVector ShootEndLocation = FVector(0);
+
 	float ServerPitch = 0.0f;
 
 	float FireTime = 0.0f;
 		
+	float DropClipTimer = -1.0f;
+
+	float DropShellTimer = -1.0f;
+
 	bool WeaponAiming = false;
 
 	bool BlockFire = false;
@@ -65,9 +75,6 @@ public:
 
 	bool DropShellFlag = false;
 
-	float DropClipTimer = -1.0f;
-
-	float DropShellTimer = -1.0f;
 
 	//UPROPERTY(Replicated)
 	bool ShouldReduseDispersion = false;
@@ -100,9 +107,24 @@ public:
 
 	void CancelReload();
 
+	void ChangeDispersionByShoot();
+
+
+	float GetCurrentDispersion() const;
+
 	bool CheckWeaponCanFire();
 
 	bool CheckCanWeaponReload();
+
+	FVector GetFireEndLocation() const;
+
+	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetWeaponRound();
+
+	UFUNCTION()
+	FProjectileInfo GetProjectile();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void SetWeaponStateFire_OnServer(bool bIsFire);
@@ -110,11 +132,11 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Fire(FTransform ShootTo);
 
-	UFUNCTION(BlueprintCallable)
-	int32 GetWeaponRound();
+	UFUNCTION(Server, Unreliable)
+	void UpdateStateWeapon_OnServer(EMovementState NewMovementState);
 
-	UFUNCTION()
-	FProjectileInfo GetProjectile();
+	UFUNCTION(Server, Unreliable)
+	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

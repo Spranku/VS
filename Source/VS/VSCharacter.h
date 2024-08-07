@@ -159,6 +159,8 @@ protected:
 
 	void FireEvent(bool bIsFiring);
 
+	void MovementTick(float DeltaTime);
+
 	void MoveForward(float Val);
 
 	void MoveRight(float Val);
