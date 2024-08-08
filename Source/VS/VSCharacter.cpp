@@ -99,6 +99,61 @@ void AVSCharacter::Tick(float DeltaTime)
 	}*/
 }
 
+void AVSCharacter::MovementTick(float DeltaTime)
+{
+	//if (CharHealthComponent && CharHealthComponent->GetIsAlive())
+	//{
+
+
+	FString SEnum = UEnum::GetValueAsString(GetMovementState());
+	UE_LOG(LogTemp, Error, TEXT("MovementState - %s"), *SEnum);
+
+	if (GetController() && GetController()->IsLocalPlayerController())
+	{
+		if (CurrentWeapon)
+		{
+			FVector Displacement = FVector(0);
+			bool bIsReduceDispersion = false;
+			switch (MovementState)
+			{
+			case EMovementState::Run_State:
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			case EMovementState::AimWalk_State:
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			default:
+				break;
+			}
+			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
+		}
+	}
+	else
+	{
+		if (CurrentWeapon)
+		{
+			FVector Displacement = FVector(0);
+			bool bIsReduceDispersion = false;
+			switch (MovementState)
+			{
+			case EMovementState::Run_State:
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			case EMovementState::AimWalk_State:
+				bIsReduceDispersion = true;
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				break;
+			default:
+				break;
+			}
+			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
+		}
+	}
+}
+
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings
@@ -320,57 +375,6 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	}
 }
 
-void AVSCharacter::MovementTick(float DeltaTime)
-{
-	//if (CharHealthComponent && CharHealthComponent->GetIsAlive())
-	//{
-	if (GetController() && GetController()->IsLocalPlayerController())
-	{
-		/// UE_LOG(LogTemp, Error, TEXT("Local"));
-		if (CurrentWeapon)
-		{
-			FVector Displacement = FVector(0);
-			bool bIsReduceDispersion = false;
-			switch (MovementState)
-			{
-			case EMovementState::Run_State:
-				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
-				bIsReduceDispersion = true;
-				break;
-			case EMovementState::AimWalk_State:
-				bIsReduceDispersion = true;
-				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
-				break;
-			default:
-				break;
-			}
-			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
-		}
-	}
-	else
-	{
-		if (CurrentWeapon)
-		{
-			FVector Displacement = FVector(0);
-			bool bIsReduceDispersion = false;
-			switch (MovementState)
-			{
-			case EMovementState::Run_State:
-				Displacement = /*FVector(0.0f, 15.0f, 30.0f)*/ (GetForwardVectorFromCamera() * 10000.0f);
-				bIsReduceDispersion = true;
-				break;
-			case EMovementState::AimWalk_State:
-				bIsReduceDispersion = true;
-				Displacement = /*FVector(0.0f, 0.0f, 0.0f)*/  (GetForwardVectorFromCamera() * 10000.0f);
-				break;
-			default:
-				break;
-			}
-			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
-		}
-	}
-
-}
 
 void AVSCharacter::MoveForward(float Value)
 {
@@ -429,6 +433,11 @@ void AVSCharacter::LookUpAtRate(float Rate)
 			}
 		}
 	}
+}
+
+EMovementState AVSCharacter::GetMovementState()
+{
+	return MovementState;
 }
 
 void AVSCharacter::PitchMulticast_Implementation(float PitchRep)

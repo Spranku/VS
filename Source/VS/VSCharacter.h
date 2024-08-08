@@ -169,6 +169,8 @@ protected:
 
 	void LookUpAtRate(float Rate);
 
+	EMovementState GetMovementState();
+
 	UFUNCTION()
 	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
 

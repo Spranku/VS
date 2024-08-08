@@ -336,15 +336,15 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 	{
 	case EMovementState::AimWalk_State:
 		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMax;
-		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMin;
-		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
-		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
+		CurrentDispersionMin = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMin;
+		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
+		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
 		break;
 	case EMovementState::Run_State:
 		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMax;
-		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMin;
-		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
-		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
+		CurrentDispersionMin = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMin;
+		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
+		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
 		break;
 	default:
 		break;
