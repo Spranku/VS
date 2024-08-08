@@ -3,6 +3,7 @@
 #include "BaseWeapon.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "/Projects/VS/Source/VS/VSCharacter.h"
 
 // Sets default values
@@ -66,7 +67,6 @@ void ABaseWeapon::Tick(float DeltaTime)
 	DispersionTick(DeltaTime);
 	//ClipDropTick(DeltaTime);
 	//ShellDropTick(DeltaTime);
-	
 }
 
 void ABaseWeapon::ReloadTick(float DeltaTime)
@@ -94,7 +94,6 @@ void ABaseWeapon::FireTick(float DeltaTime)
 		{
 			FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
 			FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f; /// 
-			
 			FTransform ShootTo;
 			FHitResult HitResult;
 
@@ -106,7 +105,6 @@ void ABaseWeapon::FireTick(float DeltaTime)
 			{
 				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
 			}
-
 			Fire(ShootTo);
 		}
 		else
@@ -161,13 +159,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 	FVector SpawnLocation = ShootTo.GetLocation();
 	FRotator SpawnRotation = ShootTo.GetRotation().Rotator();
-	/// --------------------------------------------------------------------------------------------
 	FVector EndLocation = GetFireEndLocation();
-	FVector Dir = GetFireEndLocation() - SpawnLocation;
+	FVector Dir = EndLocation - SpawnLocation;
 	Dir.Normalize();
-	FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0), FVector::ZeroVector);
+	FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0),  FVector::ZeroVector);
 	SpawnRotation = myMatrix.Rotator(); 
-	/// --------------------------------------------------------------------------------------------
+	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
@@ -247,11 +244,6 @@ void ABaseWeapon::ChangeDispersionByShoot()
 
 FVector ABaseWeapon::ApplyDispersionToShoot(FVector DirectionShoot) const
 {
-	/*if (ShowDebug)
-	{
-		DrawDebugCone(GetWorld(), ShootLocation->GetComponentLocation(), DirectionShoot, WeaponSetting.DistanceTrace, GetCurrentDispersion() * PI / 180.f, GetCurrentDispersion() * PI / 180.f, 32, FColor::Emerald, false, .1f, (uint8)'/000', 1.0f);
-	}*/
-
 	return FMath::VRandCone(DirectionShoot, GetCurrentDispersion() * PI / 180.f);
 }
 
@@ -264,21 +256,29 @@ float ABaseWeapon::GetCurrentDispersion() const
 FVector ABaseWeapon::GetFireEndLocation() const
 {
 	bool bShootDirection = false;
-	FVector EndLocation = FVector(0.f);
-	FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
+	//FVector EndLocation = FVector(0.f);
+	//FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
+	//if (tmpV.Size() > 100.0f)
+	//{
+	//	EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation).GetSafeNormal() * -20000.0f);
+	//	//UE_LOG(LogTemp, Error, TEXT("True"));
+	//}
+	//else
+	//{
+	//	EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
+	//	UE_LOG(LogTemp, Error, TEXT("False"));
+	//}
+	//UE_LOG(LogTemp, Error, TEXT("EndLocation: %s"), *EndLocation.ToString());
+	// return EndLocation;
 
-	if (tmpV.Size() > 100.0f)
+	FVector FactEndLocation = FVector(0.0f);
+	if (Character)
 	{
-		EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") /*ShootLocation->GetComponentLocation()*/ + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") /*ShootLocation->GetComponentLocation()*/ - ShootEndLocation).GetSafeNormal() * -20000.0f);
-		//UE_LOG(LogTemp, Error, TEXT("True"));
+		//FHitResult HitResult;
+		//GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), (UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) + SkeletalMeshWeapon->GetSocketLocation("Ironsight"), ECollisionChannel::ECC_Visibility);
+		FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f);
 	}
-	else
-	{
-		EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
-		UE_LOG(LogTemp, Error, TEXT("False"));
-	}
-
-	return EndLocation;
+	return FactEndLocation;
 }
 
 bool ABaseWeapon::CheckWeaponCanFire()
