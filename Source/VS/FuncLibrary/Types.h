@@ -109,17 +109,20 @@ struct FWeaponInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	float ReloadTime = 1.8;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trace")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	float DistanceTrace = 2000.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	int32 MaxRound = 12;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	FWeaponDispersion DispersionWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	FProjectileInfo ProjectileSetting;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	UParticleSystem* EffectFireWeapon = nullptr;
 
 };
 
