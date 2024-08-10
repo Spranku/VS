@@ -105,8 +105,8 @@ void AVSCharacter::MovementTick(float DeltaTime)
 	//{
 
 
-	FString SEnum = UEnum::GetValueAsString(GetMovementState());
-	UE_LOG(LogTemp, Error, TEXT("MovementState - %s"), *SEnum);
+	///	FString SEnum = UEnum::GetValueAsString(GetMovementState());
+	///	UE_LOG(LogTemp, Error, TEXT("MovementState - %s"), *SEnum);
 
 	if (GetController() && GetController()->IsLocalPlayerController())
 	{
@@ -278,23 +278,44 @@ void AVSCharacter::StopCrouch()
 	UE_LOG(LogTemp, Warning, TEXT("StopCrouch"));
 }
 
+void AVSCharacter::TryReloadWeapon()
+{
+	if (/*CharHealthComponent && CharHealthComponent->GetIsAlive() && */CurrentWeapon && !CurrentWeapon->WeaponReloading)
+	{
+		TryReloadWeapon_OnServer();
+	}
+}
+
+void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
+{
+	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
+	{
+		CurrentWeapon->InitReload();
+	}
+}
+
 void AVSCharacter::InitReload()
 {
 	bIsReload = true;
 	TryReloadWeapon();
 }
 
-void AVSCharacter::TryReloadWeapon()
+void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim)
 {
-	if (CurrentWeapon)
+	if (Anim)
 	{
-		if (CurrentWeapon->GetWeaponRound() <= CurrentWeapon->WeaponSetting.MaxRound)
-		{
-			CurrentWeapon->InitReload();
-			UE_LOG(LogTemp, Warning, TEXT(" AVSCharacter::TryReloadWeapon - InitReload()"));
-		}
+		WeaponReloadStart_BP(Anim);
 	}
 }
+
+void AVSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim){}
+
+void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
+{
+	WeaponReloadEnd_BP(bIsSuccess);
+}
+
+void AVSCharacter::WeaponReloadEnd_BP_Implementation(bool bIsSuccess){}
 
 void AVSCharacter::InitAiming()
 {
@@ -374,7 +395,6 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::FireEvent - Current weapon = NULL"));
 	}
 }
-
 
 void AVSCharacter::MoveForward(float Value)
 {
@@ -555,6 +575,9 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
 		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
+
+		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));

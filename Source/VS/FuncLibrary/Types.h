@@ -124,6 +124,8 @@ struct FWeaponInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	UParticleSystem* EffectFireWeapon = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	UAnimMontage* AnimCharReload = nullptr;
 };
 
 USTRUCT(BlueprintType)

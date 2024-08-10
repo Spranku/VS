@@ -13,7 +13,7 @@ ABaseWeapon::ABaseWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SetReplicates(true);
+	///SetReplicates(true);
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
@@ -74,7 +74,7 @@ void ABaseWeapon::ReloadTick(float DeltaTime)
 {
 	if (WeaponReloading || GetWeaponRound() < 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("WeaponReloading || GetWeaponRound = true"));
+		/// UE_LOG(LogTemp, Warning, TEXT("WeaponReloading || GetWeaponRound = true"));
 
 		if (ReloadTimer < 0.0f)
 		{
@@ -186,20 +186,25 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	{ 
 		UE_LOG(LogTemp, Error, TEXT("Failed spawn"));
 	}
+
+	if (GetWeaponRound() <= 0 && !WeaponReloading)
+	{
+		if (CheckCanWeaponReload())
+			InitReload();
+	}
 }
 
 void ABaseWeapon::InitReload()
 {
 	WeaponReloading = true;
 	//ReloadTimer = 1.8f; 
-
 	ReloadTimer = WeaponSetting.ReloadTime;
-	UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::InitReload - Success"));
-	//if (WeaponSetting.AnimCharReload)
-	//{
-	//	OnWeaponReloadStart.Broadcast(WeaponSetting.AnimCharReload);
-	//	AnimWeaponStart_Multicast(WeaponSetting.AnimCharReload);
-	//}
+
+	if (WeaponSetting.AnimCharReload)
+	{
+		OnWeaponReloadStart.Broadcast(WeaponSetting.AnimCharReload);
+		AnimWeaponStart_Multicast(WeaponSetting.AnimCharReload);
+	}
 
 	//if (WeaponSetting.ClipDropMesh.DropMesh)
 	//{
@@ -213,8 +218,8 @@ void ABaseWeapon::FinishReload()
 	WeaponReloading = false;
 	WeaponInfo.Round = WeaponSetting.MaxRound;
 
-	//int8 AviableAmmoFromInventory = GetAviableAmmoForReload();
-	//int8 AmmoNeedTakeFromInv;
+	//int8 AviableAmmoFromInventory =  GetAviableAmmoForReload();
+	int8 AmmoNeedTakeFromInv;
 	//int8 NeedToReload = WeaponSetting.MaxRound - AdditionalWeaponInfo.Round;
 
 	//if (NeedToReload > AviableAmmoFromInventory)
@@ -227,9 +232,7 @@ void ABaseWeapon::FinishReload()
 	//	AdditionalWeaponInfo.Round += NeedToReload;
 	//	AmmoNeedTakeFromInv = NeedToReload;
 	//}
-
-
-	//OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTakeFromInv);
+	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTakeFromInv);
 }
 
 void ABaseWeapon::CancelReload()
@@ -330,6 +333,14 @@ void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 FProjectileInfo ABaseWeapon::GetProjectile()
 {
 	return WeaponSetting.ProjectileSetting;
+}
+
+void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimMontage)
+{
+	if (AnimMontage && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
+	{
+		SkeletalMeshWeapon->GetAnimInstance()->Montage_Play(AnimMontage);
+	}
 }
 
 void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMovementState)

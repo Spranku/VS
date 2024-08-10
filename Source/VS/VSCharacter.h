@@ -177,6 +177,9 @@ protected:
 	UFUNCTION()
 	void TryReloadWeapon();
 
+	UFUNCTION(Server,Unreliable)
+	void TryReloadWeapon_OnServer();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
 
@@ -223,6 +226,17 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UFUNCTION()
+		void WeaponReloadStart(UAnimMontage* Anim);
+
+	UFUNCTION(BlueprintNativeEvent)
+		void WeaponReloadStart_BP(UAnimMontage* Anim);
+
+	UFUNCTION()
+		void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
+
+	UFUNCTION(BlueprintNativeEvent)
+		void WeaponReloadEnd_BP(bool bIsSuccess);
 
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);

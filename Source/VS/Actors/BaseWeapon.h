@@ -12,6 +12,9 @@
 
 class AVSCharacter;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponReloadStart, UAnimMontage*, Anim);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadEnd, bool, bIsSuccess, int32, AmmoSafe);
+
 UCLASS()
 class VS_API ABaseWeapon : public AActor
 {
@@ -20,6 +23,9 @@ class VS_API ABaseWeapon : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABaseWeapon();
+
+	FOnWeaponReloadStart OnWeaponReloadStart;
+	FOnWeaponReloadEnd OnWeaponReloadEnd;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
@@ -109,7 +115,6 @@ public:
 
 	void ChangeDispersionByShoot();
 
-
 	float GetCurrentDispersion() const;
 
 	bool CheckWeaponCanFire();
@@ -131,6 +136,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Fire(FTransform ShootTo);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void AnimWeaponStart_Multicast(UAnimMontage* AnimMontage);
 
 	UFUNCTION(Server, Unreliable)
 	void UpdateStateWeapon_OnServer(EMovementState NewMovementState);
