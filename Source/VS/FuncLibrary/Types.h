@@ -125,7 +125,10 @@ struct FWeaponInfo
 	UParticleSystem* EffectFireWeapon = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
-	UAnimMontage* AnimCharReload = nullptr;
+	UAnimMontage* ThirdPersonReload = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	UAnimMontage* FirstPersonReload = nullptr;
 };
 
 USTRUCT(BlueprintType)

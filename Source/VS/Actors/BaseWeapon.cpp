@@ -200,10 +200,10 @@ void ABaseWeapon::InitReload()
 	//ReloadTimer = 1.8f; 
 	ReloadTimer = WeaponSetting.ReloadTime;
 
-	if (WeaponSetting.AnimCharReload)
+	if (WeaponSetting.ThirdPersonReload)
 	{
-		OnWeaponReloadStart.Broadcast(WeaponSetting.AnimCharReload);
-		AnimWeaponStart_Multicast(WeaponSetting.AnimCharReload);
+		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload);
+		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload);
 	}
 
 	//if (WeaponSetting.ClipDropMesh.DropMesh)
