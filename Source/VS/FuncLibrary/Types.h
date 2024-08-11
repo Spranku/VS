@@ -85,6 +85,21 @@ struct FProjectileInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
 	float ProjcetileMaxSpeed = 5000.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SleeveSettings")
+	TSubclassOf<class ABaseProjectile> Sleeve = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SleeveSettings")
+	class UStaticMesh* SleeveStaticMesh = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float SleeveLifeTime = 30.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float SleeveInitSpeed = 5000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSettings")
+	float SleeveMaxSpeed = 5000.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
 	TMap<TEnumAsByte<EPhysicalSurface>, UMaterialInterface*> HitDecals;
 

@@ -31,6 +31,9 @@ ABaseWeapon::ABaseWeapon()
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
 
+	SleeveLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("SleeveLocation"));
+	SleeveLocation->SetupAttachment(RootComponent);
+
 	bReplicates = true;
 }
 
@@ -163,13 +166,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	{
 		ThirdPersonAnim = WeaponSetting.ThirdPersonFireIronsight;
 		FirstPersonAnim = WeaponSetting.FirstPersonFireIronsight;
-		///UE_LOG(LogTemp, Error, TEXT("Ironsight"));
 	}
 	else
 	{
 		ThirdPersonAnim = WeaponSetting.ThirdPersonFireRelax;
 		FirstPersonAnim = WeaponSetting.FirstPersonFireRelax;
-		///UE_LOG(LogTemp, Error, TEXT("Relax"));
 	}
 	OnWeaponFireStart.Broadcast(ThirdPersonAnim,FirstPersonAnim);
 
@@ -192,6 +193,18 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 	FProjectileInfo ProjectileInfo;
 	ProjectileInfo = GetProjectile();
+
+	FVector SleeveSpawnLocation = SkeletalMeshWeapon->GetSocketLocation("sleeve");
+	FRotator SleeveSpawnRotation = SleeveLocation->GetComponentRotation();
+
+	FProjectileInfo SleeveInfo;
+	SleeveInfo = ProjectileInfo = GetProjectile();
+
+	ABaseProjectile* mySleeve = Cast<ABaseProjectile>(GetWorld()->SpawnActor(SleeveInfo.Sleeve, &SleeveSpawnLocation, &SleeveSpawnRotation, SpawnParams));
+	if (mySleeve)
+	{
+		mySleeve->InitSleeve(WeaponSetting.ProjectileSetting);
+	}
 
 	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation,&SpawnRotation, SpawnParams));
 	if (myProjectile)
@@ -356,7 +369,6 @@ void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThi
 	if (Character && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
 	{
 		SkeletalMeshWeapon->GetAnimInstance()->Montage_Play(AnimThirdPerson);
-		/// Character->GetMesh1P()->GetAnimInstance()->Montage_Play(AnimFirstPerson);
 		Character->PlayReloadMontage(AnimFirstPerson);
 	}
 }

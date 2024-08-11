@@ -41,6 +41,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UArrowComponent* ShootLocation = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
+	class UArrowComponent* SleeveLocation = nullptr;
+
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
 
