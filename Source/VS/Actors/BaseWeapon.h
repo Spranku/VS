@@ -143,14 +143,14 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Fire(FTransform ShootTo);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
-
 	UFUNCTION(Server, Unreliable)
 	void UpdateStateWeapon_OnServer(EMovementState NewMovementState);
 
 	UFUNCTION(Server, Unreliable)
 	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

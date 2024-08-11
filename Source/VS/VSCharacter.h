@@ -183,9 +183,6 @@ protected:
 	UFUNCTION(Server,Unreliable)
 	void TryReloadWeapon_OnServer();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PitchMulticast(float PitchRep);
-
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
 
@@ -201,11 +198,14 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void SetMovementState_OnServer(EMovementState NewState);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void SetMovementState_Multicast(EMovementState NewState);
-
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PitchMulticast(float PitchRep);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void SetMovementState_Multicast(EMovementState NewState);
 
 	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
 	
@@ -230,32 +230,24 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-	void PlayReloadMontage(UAnimMontage* AnimToPlay);
-
-	UFUNCTION()
 	void WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
-
-	UFUNCTION(BlueprintNativeEvent)
-	void WeaponReloadStart_BP(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION()
 	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
 
-	UFUNCTION(BlueprintNativeEvent)
-	void WeaponReloadEnd_BP(bool bIsSuccess);
-
 	UFUNCTION()
 	void WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
-
-	UFUNCTION(BlueprintNativeEvent)
-	void WeaponFireStart_BP(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);
 
+	UFUNCTION(NetMulticast,Unreliable)
+	void WeaponFireStart_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
 	UFUNCTION(NetMulticast, Reliable)
 	void M_LookUPSync(FRotator RotationSync);
-
-
 };
 

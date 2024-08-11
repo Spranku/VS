@@ -307,29 +307,26 @@ void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
 	if (Anim3P && Anim1P)
 	{
-		WeaponReloadStart_BP(Anim3P, Anim1P);
+		/// WeaponReloadStart_BP(Anim3P, Anim1P);
+		PlayReloadMontage_Multicast(Anim3P, Anim1P);
 	}
 }
 
-void AVSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim3P,UAnimMontage* Anim1P){}
-
-void AVSCharacter::PlayReloadMontage(UAnimMontage* AnimToPlay)
+void AVSCharacter::PlayReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
-	UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-	if (AnimInstance != nullptr)
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
 	{
-		AnimInstance->Montage_Play(AnimToPlay/*, 1.f*/);
-		UE_LOG(LogTemp, Error, TEXT("Success Montage play"));
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
 	}
-
-	//GetMesh1P()->GetAnimInstance()->Montage_Play(AnimToPlay);
-	UE_LOG(LogTemp, Error, TEXT("Success Montage play"));
 }
 
 void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
 {
 	bIsReload = false;
-	WeaponReloadEnd_BP(bIsSuccess);
+	/// WeaponReloadEnd_BP(bIsSuccess);
 }
 
 void AVSCharacter::WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
@@ -338,12 +335,24 @@ void AVSCharacter::WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 	///{
 	///	InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
 	///}
-	WeaponFireStart_BP(Anim3P,Anim1P);
+	/// WeaponFireStart_BP(Anim3P,Anim1P);
+	
+	if (Anim3P && Anim1P)
+	{	
+		WeaponFireStart_Multicast(Anim3P, Anim1P);
+	}
 }
 
-void AVSCharacter::WeaponFireStart_BP_Implementation(UAnimMontage* Anim3P, UAnimMontage* Anim1P){}
-
-void AVSCharacter::WeaponReloadEnd_BP_Implementation(bool bIsSuccess){}
+void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+{
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	{
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
+	}
+}
 
 void AVSCharacter::InitAiming()
 {
@@ -676,8 +685,4 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
 }
-
-
-
-
 
