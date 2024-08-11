@@ -156,6 +156,19 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 {
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
+	
+	UAnimMontage* AnimToPlay = nullptr;
+	if (WeaponAiming)
+	{
+		AnimToPlay = WeaponSetting.ThirdPersonFireIronsight;
+		///UE_LOG(LogTemp, Error, TEXT("Ironsight"));
+	}
+	else
+	{
+		AnimToPlay = WeaponSetting.ThirdPersonFireRelax;
+		///UE_LOG(LogTemp, Error, TEXT("Relax"));
+	}
+	OnWeaponFireStart.Broadcast(AnimToPlay);
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
 
@@ -354,12 +367,14 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 		CurrentDispersionMin = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMin;
 		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
 		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
+		WeaponAiming = true;
 		break;
 	case EMovementState::Run_State:
 		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMax;
 		CurrentDispersionMin = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMin;
 		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
 		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
+		WeaponAiming = false;
 		break;
 	default:
 		break;
@@ -379,6 +394,6 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
+	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
-	
 }

@@ -319,6 +319,17 @@ void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
 	WeaponReloadEnd_BP(bIsSuccess);
 }
 
+void AVSCharacter::WeaponFireStart(UAnimMontage* Anim)
+{
+	///if (InventoryComponent && CurrentWeapon)
+	///{
+	///	InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
+	///}
+	WeaponFireStart_BP(Anim);
+}
+
+void AVSCharacter::WeaponFireStart_BP_Implementation(UAnimMontage* Anim){}
+
 void AVSCharacter::WeaponReloadEnd_BP_Implementation(bool bIsSuccess){}
 
 void AVSCharacter::InitAiming()
@@ -582,6 +593,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 
 		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));

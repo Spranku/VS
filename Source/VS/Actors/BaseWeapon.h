@@ -14,6 +14,7 @@ class AVSCharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponReloadStart, UAnimMontage*, Anim);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadEnd, bool, bIsSuccess, int32, AmmoSafe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFireStart, UAnimMontage*, AnimFireChar);
 
 UCLASS()
 class VS_API ABaseWeapon : public AActor
@@ -26,6 +27,7 @@ public:
 
 	FOnWeaponReloadStart OnWeaponReloadStart;
 	FOnWeaponReloadEnd OnWeaponReloadEnd;
+	FOnWeaponFireStart OnWeaponFireStart;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
@@ -65,6 +67,9 @@ public:
 	UPROPERTY(Replicated)
 	FVector ShootEndLocation = FVector(0);
 
+	UPROPERTY(Replicated)
+	bool WeaponAiming = false;
+
 	float ServerPitch = 0.0f;
 
 	float FireTime = 0.0f;
@@ -72,8 +77,6 @@ public:
 	float DropClipTimer = -1.0f;
 
 	float DropShellTimer = -1.0f;
-
-	bool WeaponAiming = false;
 
 	bool BlockFire = false;
 

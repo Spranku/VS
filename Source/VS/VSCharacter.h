@@ -241,6 +241,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void WeaponReloadEnd_BP(bool bIsSuccess);
 
+	UFUNCTION()
+	void WeaponFireStart(UAnimMontage* Anim);
+	UFUNCTION(BlueprintNativeEvent)
+	void WeaponFireStart_BP(UAnimMontage* Anim);
+
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);
 

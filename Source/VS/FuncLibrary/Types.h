@@ -127,8 +127,14 @@ struct FWeaponInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	UAnimMontage* ThirdPersonReload = nullptr;
 
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	UAnimMontage* FirstPersonReload = nullptr;*/
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
-	UAnimMontage* FirstPersonReload = nullptr;
+	UAnimMontage* ThirdPersonFireIronsight = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	UAnimMontage* ThirdPersonFireRelax = nullptr;
 };
 
 USTRUCT(BlueprintType)
