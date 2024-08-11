@@ -106,6 +106,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bIsFire = false;
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	bool bIsCrouch = false;
 
@@ -227,16 +230,16 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-		void WeaponReloadStart(UAnimMontage* Anim);
+	void WeaponReloadStart(UAnimMontage* Anim);
 
 	UFUNCTION(BlueprintNativeEvent)
-		void WeaponReloadStart_BP(UAnimMontage* Anim);
+	void WeaponReloadStart_BP(UAnimMontage* Anim);
 
 	UFUNCTION()
-		void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
+	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
 
 	UFUNCTION(BlueprintNativeEvent)
-		void WeaponReloadEnd_BP(bool bIsSuccess);
+	void WeaponReloadEnd_BP(bool bIsSuccess);
 
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);

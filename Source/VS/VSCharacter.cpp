@@ -217,6 +217,7 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 
 void AVSCharacter::OnFire()
 {
+	bIsFire = true;
 	FireEvent(true);
 
 	// try and fire a projectile
@@ -263,6 +264,7 @@ void AVSCharacter::OnFire()
 
 void AVSCharacter::EndFire() /// For test
 {
+	bIsFire = false;
 	FireEvent(false);
 }
 
@@ -290,13 +292,14 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
 	{
+		bIsReload = true;
 		CurrentWeapon->InitReload();
 	}
 }
 
 void AVSCharacter::InitReload()
 {
-	bIsReload = true;
+	/// bIsReload = true;
 	TryReloadWeapon();
 }
 
@@ -312,6 +315,7 @@ void AVSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim){}
 
 void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
 {
+	bIsReload = false;
 	WeaponReloadEnd_BP(bIsSuccess);
 }
 
@@ -635,6 +639,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
 	DOREPLIFETIME(AVSCharacter, bIsReload);
+	DOREPLIFETIME(AVSCharacter, bIsFire);
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
