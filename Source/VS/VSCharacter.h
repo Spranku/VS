@@ -217,17 +217,19 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-	UFUNCTION(BlueprintCallable)
-	ABaseWeapon* GetCurrentWeapon();
-
-	UFUNCTION()
-	void InitWeapon();
+	void FireRecoil();
 
 	FVector GetForwardVectorFromCamera();
 
 	FVector GetLocationFromCamera();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	ABaseWeapon* GetCurrentWeapon();
+
+	UFUNCTION()
+	void InitWeapon();
 
 	UFUNCTION()
 	void WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
