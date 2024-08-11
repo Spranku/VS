@@ -73,8 +73,6 @@ public:
 	UPROPERTY(Replicated)
 	bool WeaponAiming = false;
 
-	float ServerPitch = 0.0f;
-
 	float FireTime = 0.0f;
 		
 	float DropClipTimer = -1.0f;
@@ -87,15 +85,17 @@ public:
 
 	bool DropShellFlag = false;
 
-
-	//UPROPERTY(Replicated)
 	bool ShouldReduseDispersion = false;
-	float CurrentDispersion = 0.0f;
-	float CurrentDispersionMax = 1.0f;
-	float CurrentDispersionMin = 0.1f;
-	float CurrentDispersionRecoil = 0.1f;
-	float CurrentDispersionReduction = 0.1f;
 
+	float CurrentDispersion = 0.0f;
+
+	float CurrentDispersionMax = 1.0f;
+
+	float CurrentDispersionMin = 0.1f;
+
+	float CurrentDispersionRecoil = 0.1f;
+
+	float CurrentDispersionReduction = 0.1f;
 
 protected:
 	// Called when the game starts or when spawned
