@@ -12,9 +12,9 @@
 
 class AVSCharacter;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponReloadStart, UAnimMontage*, Anim);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadStart, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadEnd, bool, bIsSuccess, int32, AmmoSafe);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFireStart, UAnimMontage*, AnimFireChar);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponFireStart, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P);
 
 UCLASS()
 class VS_API ABaseWeapon : public AActor
@@ -141,7 +141,7 @@ public:
 	void Fire(FTransform ShootTo);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void AnimWeaponStart_Multicast(UAnimMontage* AnimMontage);
+	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
 
 	UFUNCTION(Server, Unreliable)
 	void UpdateStateWeapon_OnServer(EMovementState NewMovementState);

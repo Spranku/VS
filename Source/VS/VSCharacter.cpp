@@ -303,15 +303,28 @@ void AVSCharacter::InitReload()
 	TryReloadWeapon();
 }
 
-void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim)
+void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
-	if (Anim)
+	if (Anim3P && Anim1P)
 	{
-		WeaponReloadStart_BP(Anim);
+		WeaponReloadStart_BP(Anim3P, Anim1P);
 	}
 }
 
-void AVSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim){}
+void AVSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim3P,UAnimMontage* Anim1P){}
+
+void AVSCharacter::PlayReloadMontage(UAnimMontage* AnimToPlay)
+{
+	UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->Montage_Play(AnimToPlay/*, 1.f*/);
+		UE_LOG(LogTemp, Error, TEXT("Success Montage play"));
+	}
+
+	//GetMesh1P()->GetAnimInstance()->Montage_Play(AnimToPlay);
+	UE_LOG(LogTemp, Error, TEXT("Success Montage play"));
+}
 
 void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
 {
@@ -319,16 +332,16 @@ void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
 	WeaponReloadEnd_BP(bIsSuccess);
 }
 
-void AVSCharacter::WeaponFireStart(UAnimMontage* Anim)
+void AVSCharacter::WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
 	///if (InventoryComponent && CurrentWeapon)
 	///{
 	///	InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
 	///}
-	WeaponFireStart_BP(Anim);
+	WeaponFireStart_BP(Anim3P,Anim1P);
 }
 
-void AVSCharacter::WeaponFireStart_BP_Implementation(UAnimMontage* Anim){}
+void AVSCharacter::WeaponFireStart_BP_Implementation(UAnimMontage* Anim3P, UAnimMontage* Anim1P){}
 
 void AVSCharacter::WeaponReloadEnd_BP_Implementation(bool bIsSuccess){}
 
@@ -663,6 +676,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
 }
+
 
 
 

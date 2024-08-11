@@ -157,18 +157,21 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
 	
-	UAnimMontage* AnimToPlay = nullptr;
+	UAnimMontage* ThirdPersonAnim = nullptr;
+	UAnimMontage* FirstPersonAnim = nullptr;
 	if (WeaponAiming)
 	{
-		AnimToPlay = WeaponSetting.ThirdPersonFireIronsight;
+		ThirdPersonAnim = WeaponSetting.ThirdPersonFireIronsight;
+		FirstPersonAnim = WeaponSetting.FirstPersonFireIronsight;
 		///UE_LOG(LogTemp, Error, TEXT("Ironsight"));
 	}
 	else
 	{
-		AnimToPlay = WeaponSetting.ThirdPersonFireRelax;
+		ThirdPersonAnim = WeaponSetting.ThirdPersonFireRelax;
+		FirstPersonAnim = WeaponSetting.FirstPersonFireRelax;
 		///UE_LOG(LogTemp, Error, TEXT("Relax"));
 	}
-	OnWeaponFireStart.Broadcast(AnimToPlay);
+	OnWeaponFireStart.Broadcast(ThirdPersonAnim,FirstPersonAnim);
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
 
@@ -215,8 +218,8 @@ void ABaseWeapon::InitReload()
 
 	if (WeaponSetting.ThirdPersonReload)
 	{
-		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload);
-		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload);
+		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
+		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
 	}
 
 	//if (WeaponSetting.ClipDropMesh.DropMesh)
@@ -348,11 +351,13 @@ FProjectileInfo ABaseWeapon::GetProjectile()
 	return WeaponSetting.ProjectileSetting;
 }
 
-void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimMontage)
+void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
 {
-	if (AnimMontage && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
+	if (Character && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
 	{
-		SkeletalMeshWeapon->GetAnimInstance()->Montage_Play(AnimMontage);
+		SkeletalMeshWeapon->GetAnimInstance()->Montage_Play(AnimThirdPerson);
+		/// Character->GetMesh1P()->GetAnimInstance()->Montage_Play(AnimFirstPerson);
+		Character->PlayReloadMontage(AnimFirstPerson);
 	}
 }
 

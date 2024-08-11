@@ -20,11 +20,11 @@ UCLASS(config=Game)
 class AVSCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
+public:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
-
+protected:
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* FP_Gun;
@@ -72,11 +72,11 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FireAnimation;
+	UAnimMontage* FirstPersonFireAnimation;
 
 	/** AnimMontage to play each time we reloading */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* ReloadAnimation;
+	UAnimMontage* FirstPersonReloadAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	TArray<UAnimMontage*> DeadsAnim;
@@ -230,10 +230,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-	void WeaponReloadStart(UAnimMontage* Anim);
+	void PlayReloadMontage(UAnimMontage* AnimToPlay);
+
+	UFUNCTION()
+	void WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION(BlueprintNativeEvent)
-	void WeaponReloadStart_BP(UAnimMontage* Anim);
+	void WeaponReloadStart_BP(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION()
 	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
@@ -242,9 +245,10 @@ public:
 	void WeaponReloadEnd_BP(bool bIsSuccess);
 
 	UFUNCTION()
-	void WeaponFireStart(UAnimMontage* Anim);
+	void WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+
 	UFUNCTION(BlueprintNativeEvent)
-	void WeaponFireStart_BP(UAnimMontage* Anim);
+	void WeaponFireStart_BP(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);
