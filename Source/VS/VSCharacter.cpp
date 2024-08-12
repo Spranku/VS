@@ -104,7 +104,6 @@ void AVSCharacter::MovementTick(float DeltaTime)
 	//if (CharHealthComponent && CharHealthComponent->GetIsAlive())
 	//{
 
-
 	///	FString SEnum = UEnum::GetValueAsString(GetMovementState());
 	///	UE_LOG(LogTemp, Error, TEXT("MovementState - %s"), *SEnum);
 
