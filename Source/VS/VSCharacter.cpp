@@ -50,7 +50,6 @@ AVSCharacter::AVSCharacter()
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
 	FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	//FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
@@ -83,8 +82,76 @@ void AVSCharacter::BeginPlay()
 void AVSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	MovementTick(DeltaTime);
+
+	/*if (CurrentWeapon && Controller)
+	{
+		LastWeaponRotationUpdateTime += DeltaTime;
+		if (LastWeaponRotationUpdateTime >= WeaponRotationUpdateInterval)
+		{
+			FRotator CameraRotation = Controller->GetControlRotation();
+			CurrentWeapon->SetWeaponRotation(CameraRotation);
+			LastWeaponRotationUpdateTime = 0.0f;
+		}
+
+		 ///FRotator CameraRotation = Controller->GetControlRotation(); 
+		 /// CurrentWeapon->SetWeaponRotation(CameraRotation);
+	}*/
+}
+
+void AVSCharacter::MovementTick(float DeltaTime)
+{
+	//if (CharHealthComponent && CharHealthComponent->GetIsAlive())
+	//{
 
 
+	///	FString SEnum = UEnum::GetValueAsString(GetMovementState());
+	///	UE_LOG(LogTemp, Error, TEXT("MovementState - %s"), *SEnum);
+
+	if (GetController() && GetController()->IsLocalPlayerController())
+	{
+		if (CurrentWeapon)
+		{
+			FVector Displacement = FVector(0);
+			bool bIsReduceDispersion = false;
+			switch (MovementState)
+			{
+			case EMovementState::Run_State:
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			case EMovementState::AimWalk_State:
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			default:
+				break;
+			}
+			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
+		}
+	}
+	else
+	{
+		if (CurrentWeapon)
+		{
+			FVector Displacement = FVector(0);
+			bool bIsReduceDispersion = false;
+			switch (MovementState)
+			{
+			case EMovementState::Run_State:
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				bIsReduceDispersion = true;
+				break;
+			case EMovementState::AimWalk_State:
+				bIsReduceDispersion = true;
+				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
+				break;
+			default:
+				break;
+			}
+			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
+		}
+	}
 }
 
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -150,6 +217,7 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 
 void AVSCharacter::OnFire()
 {
+	bIsFire = true;
 	FireEvent(true);
 
 	// try and fire a projectile
@@ -196,6 +264,7 @@ void AVSCharacter::OnFire()
 
 void AVSCharacter::EndFire() /// For test
 {
+	bIsFire = false;
 	FireEvent(false);
 }
 
@@ -211,21 +280,78 @@ void AVSCharacter::StopCrouch()
 	UE_LOG(LogTemp, Warning, TEXT("StopCrouch"));
 }
 
+void AVSCharacter::TryReloadWeapon()
+{
+	if (/*CharHealthComponent && CharHealthComponent->GetIsAlive() && */CurrentWeapon && !CurrentWeapon->WeaponReloading)
+	{
+		TryReloadWeapon_OnServer();
+	}
+}
+
+void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
+{
+	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
+	{
+		bIsReload = true;
+		CurrentWeapon->InitReload();
+	}
+}
+
 void AVSCharacter::InitReload()
 {
-	bIsReload = true;
+	/// bIsReload = true;
 	TryReloadWeapon();
 }
 
-void AVSCharacter::TryReloadWeapon()
+void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
-	if (CurrentWeapon)
+	if (Anim3P && Anim1P)
 	{
-		if (CurrentWeapon->GetWeaponRound() <= CurrentWeapon->WeaponSetting.MaxRound)
-		{
-			CurrentWeapon->InitReload();
-			UE_LOG(LogTemp, Warning, TEXT(" AVSCharacter::TryReloadWeapon - InitReload()"));
-		}
+		/// WeaponReloadStart_BP(Anim3P, Anim1P);
+		PlayReloadMontage_Multicast(Anim3P, Anim1P);
+	}
+}
+
+void AVSCharacter::PlayReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+{
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	{
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
+	}
+}
+
+void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
+{
+	bIsReload = false;
+	/// WeaponReloadEnd_BP(bIsSuccess);
+}
+
+void AVSCharacter::WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+{
+	///if (InventoryComponent && CurrentWeapon)
+	///{
+	///	InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
+	///}
+	/// WeaponFireStart_BP(Anim3P,Anim1P);
+	
+	if (Anim3P && Anim1P)
+	{	
+		WeaponFireStart_Multicast(Anim3P, Anim1P);
+	}
+}
+
+void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+{
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	{
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
+		FireRecoil(); /// Here ?
 	}
 }
 
@@ -300,7 +426,7 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring, Pitch_OnRep);
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
 	}
 	else
 	{
@@ -351,7 +477,25 @@ void AVSCharacter::LookUpAtRate(float Rate)
 			PitchOnServer(Pitch);
 			Pitch_OnRep = Pitch;
 		}
+
+		if (IsLocallyControlled())
+		{
+			FRotator Rotation = GetControlRotation();
+			if (HasAuthority())
+			{
+				M_LookUPSync(Rotation);
+			}
+			else
+			{
+				S_LookUPSync(Rotation);
+			}
+		}
 	}
+}
+
+EMovementState AVSCharacter::GetMovementState()
+{
+	return MovementState;
 }
 
 void AVSCharacter::PitchMulticast_Implementation(float PitchRep)
@@ -365,6 +509,24 @@ void AVSCharacter::PitchMulticast_Implementation(float PitchRep)
 void AVSCharacter::PitchOnServer_Implementation(float PitchRep)
 {
 	PitchMulticast(PitchRep);
+}
+
+void AVSCharacter::S_LookUPSync_Implementation(FRotator RotationSync)
+{
+	ControlRotationSynchronized = RotationSync;
+	if (!IsLocallyControlled())
+	{
+		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
+	}
+}
+
+void AVSCharacter::M_LookUPSync_Implementation(FRotator RotationSync)
+{
+	ControlRotationSynchronized = RotationSync;
+	if (!IsLocallyControlled())
+	{
+		FirstPersonCameraComponent->SetWorldRotation(ControlRotationSynchronized);
+	}
 }
 
 void AVSCharacter::ChangeMovementState()
@@ -393,15 +555,13 @@ void AVSCharacter::ChangeMovementState()
 	}
 
 	SetMovementState_OnServer(NewState);
-
 	CharacterUpdate();
 
-	////Weapon state update
-	//AWeaponDefault* myWeapon = GetCurrentWeapon();
-	//if (myWeapon)
-	//{
-	//	myWeapon->UpdateStateWeapon_OnServer(NewState);
-	//}
+	ABaseWeapon* myWeapon = GetCurrentWeapon();
+	if (myWeapon)
+	{
+		myWeapon->UpdateStateWeapon_OnServer(NewState);
+	}
 }
 
 void AVSCharacter::CharacterUpdate()
@@ -454,6 +614,10 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
 		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
+		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
+
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 	}
@@ -486,6 +650,30 @@ void AVSCharacter::InitWeapon()
 	TimerHandle.Invalidate();
 }
 
+void AVSCharacter::FireRecoil()
+{
+	float BaseRecoil = 0.25f;
+	float RecoilCoef = 2.0f;
+	float Multiplier = -1.0f;
+
+	float PitchRecoil = BaseRecoil * Multiplier;
+	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * Multiplier, PitchRecoil / RecoilCoef));
+
+	AddControllerPitchInput(PitchRecoil);
+	AddControllerYawInput(YawRecoil);
+}
+
+FVector AVSCharacter::GetForwardVectorFromCamera()
+{
+	CamForwardVector = Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator; 
+	return CamForwardVector.Vector();
+}
+
+FVector AVSCharacter::GetLocationFromCamera()
+{
+	return FirstPersonCameraComponent->GetComponentLocation();
+}
+
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
 {
 	return CurrentWeapon;
@@ -499,16 +687,16 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
 	DOREPLIFETIME(AVSCharacter, bIsReload);
+	DOREPLIFETIME(AVSCharacter, bIsFire);
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, AimYaw);
+	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
+
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
 }
-
-
-
 

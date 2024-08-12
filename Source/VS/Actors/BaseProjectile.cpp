@@ -83,6 +83,22 @@ void ABaseProjectile::InitProjectile(FProjectileInfo InitParam)
 	ProjectileSetting = InitParam;
 }
 
+void ABaseProjectile::InitSleeve(FProjectileInfo InitParam)
+{
+	this->SetLifeSpan(InitParam.SleeveLifeTime);
+
+	if (InitParam.SleeveStaticMesh)
+	{
+		InitVisualMeshProjectile_Multicast(InitParam.SleeveStaticMesh, InitParam.ProjectileStaticMeshOffset);
+	}
+	else
+	{
+		BulletMesh->DestroyComponent();
+	}
+	InitVelocity_Multicast(InitParam.SleeveInitSpeed, BulletProjectileMovement->MaxSpeed = InitParam.SleeveMaxSpeed);
+	ProjectileSetting = InitParam;
+}
+
 void ABaseProjectile::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (OtherActor && Hit.PhysMaterial.IsValid())

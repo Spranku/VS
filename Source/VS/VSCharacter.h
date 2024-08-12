@@ -20,11 +20,11 @@ UCLASS(config=Game)
 class AVSCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
+public:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
-
+protected:
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* FP_Gun;
@@ -33,11 +33,11 @@ class AVSCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
 
+public:
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
-public:
 	AVSCharacter();
 
 protected:
@@ -72,11 +72,11 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FireAnimation;
+	UAnimMontage* FirstPersonFireAnimation;
 
 	/** AnimMontage to play each time we reloading */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* ReloadAnimation;
+	UAnimMontage* FirstPersonReloadAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	TArray<UAnimMontage*> DeadsAnim;
@@ -106,6 +106,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bIsFire = false;
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	bool bIsCrouch = false;
 
@@ -128,6 +131,10 @@ public:
 	float AimYaw;
 
 	FTimerHandle TimerHandle;
+
+	FRotator CamForwardVector;
+
+	FRotator ControlRotationSynchronized;
 
 protected:
 
@@ -155,6 +162,8 @@ protected:
 
 	void FireEvent(bool bIsFiring);
 
+	void MovementTick(float DeltaTime);
+
 	void MoveForward(float Val);
 
 	void MoveRight(float Val);
@@ -163,14 +172,16 @@ protected:
 
 	void LookUpAtRate(float Rate);
 
+	EMovementState GetMovementState();
+
 	UFUNCTION()
 	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
 
 	UFUNCTION()
 	void TryReloadWeapon();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PitchMulticast(float PitchRep);
+	UFUNCTION(Server,Unreliable)
+	void TryReloadWeapon_OnServer();
 
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
@@ -187,11 +198,14 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void SetMovementState_OnServer(EMovementState NewState);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void SetMovementState_Multicast(EMovementState NewState);
-
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PitchMulticast(float PitchRep);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void SetMovementState_Multicast(EMovementState NewState);
 
 	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
 	
@@ -203,12 +217,39 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	void FireRecoil();
+
+	FVector GetForwardVectorFromCamera();
+
+	FVector GetLocationFromCamera();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UFUNCTION(BlueprintCallable)
 	ABaseWeapon* GetCurrentWeapon();
 
 	UFUNCTION()
 	void InitWeapon();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	UFUNCTION()
+	void WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+
+	UFUNCTION()
+	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
+
+	UFUNCTION()
+	void WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+
+	UFUNCTION(Server, Reliable)
+	void S_LookUPSync(FRotator RotationSync);
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void WeaponFireStart_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void M_LookUPSync(FRotator RotationSync);
 };
 

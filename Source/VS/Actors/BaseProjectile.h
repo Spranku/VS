@@ -50,6 +50,9 @@ public:
 	void InitProjectile(FProjectileInfo InitParam);
 
 	UFUNCTION()
+	void InitSleeve(FProjectileInfo InitParam);
+
+	UFUNCTION()
 	virtual void BulletCollisionSphereHit(class UPrimitiveComponent* HitComp,
 			AActor* OtherActor,
 			UPrimitiveComponent* OtherComp,

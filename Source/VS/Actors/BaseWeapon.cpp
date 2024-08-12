@@ -1,6 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BaseWeapon.h"
+#include "DrawDebugHelpers.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "/Projects/VS/Source/VS/VSCharacter.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -8,7 +13,7 @@ ABaseWeapon::ABaseWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SetReplicates(true);
+	///SetReplicates(true);
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
@@ -18,25 +23,41 @@ ABaseWeapon::ABaseWeapon()
 	SkeletalMeshWeapon->SetCollisionProfileName(TEXT("NoCollision"));
 	SkeletalMeshWeapon->SetupAttachment(RootComponent);
 
-	StaticMeshWeapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshWeapon"));
+	StaticMeshWeapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scope"));
 	StaticMeshWeapon->SetGenerateOverlapEvents(false);
 	StaticMeshWeapon->SetCollisionProfileName(TEXT("NoCollision"));
+	StaticMeshWeapon->SetupAttachment(SkeletalMeshWeapon);
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
+
+	SleeveLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("SleeveLocation"));
+	SleeveLocation->SetupAttachment(RootComponent);
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
 void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
+	if (MyChar)
+	{
+		Character = MyChar;
+		UE_LOG(LogTemp, Warning, TEXT("Success cast to Character"));	
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
+	}
 	
 	WeaponInit();
 
 	if (!CurrentOwner)
 	{
 		SkeletalMeshWeapon->SetVisibility(true);
-		//StaticMeshWeapon->SetVisibility(true);
 	}
 }
 
@@ -45,21 +66,19 @@ void ABaseWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (HasAuthority())
-	{
-		FireTick(DeltaTime);
-		ReloadTick(DeltaTime);
-		//DispersionTick(DeltaTime);
-		//ClipDropTick(DeltaTime);
-		//ShellDropTick(DeltaTime);
-	}
-
+	FireTick(DeltaTime);
+	ReloadTick(DeltaTime);
+	DispersionTick(DeltaTime);
+	//ClipDropTick(DeltaTime);
+	//ShellDropTick(DeltaTime);
 }
 
 void ABaseWeapon::ReloadTick(float DeltaTime)
 {
-	if (WeaponReloading)
+	if (WeaponReloading || GetWeaponRound() < 0)
 	{
+		/// UE_LOG(LogTemp, Warning, TEXT("WeaponReloading || GetWeaponRound = true"));
+
 		if (ReloadTimer < 0.0f)
 		{
 			FinishReload();
@@ -77,7 +96,20 @@ void ABaseWeapon::FireTick(float DeltaTime)
 	{
 		if (FireTime < 0.f)
 		{
-			Fire();
+			FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
+			FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f; /// 
+			FTransform ShootTo;
+			FHitResult HitResult;
+
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection + MuzzleLocation, ECollisionChannel::ECC_Visibility))
+			{
+				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
+			}
+			else
+			{
+				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
+			}
+			Fire(ShootTo);
 		}
 		else
 			FireTime -= DeltaTime;
@@ -123,78 +155,71 @@ void ABaseWeapon::WeaponInit()
 	}
 }
 
-void ABaseWeapon::Fire()
+void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 {
-	//UAnimMontage* AnimToPlay = nullptr;
-	//*if (WeaponAiming)
-	//	AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFireAim;
-	//else
-	//	AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFire;*/
-
-	//if (WeaponSetting.AnimWeaponInfo.AnimWeaponFire)
-	//{
-	//	AnimWeaponStart_Multicast(WeaponSetting.AnimWeaponInfo.AnimWeaponFire);
-	//}
-
-	//*if (WeaponSetting.ShellBullets.DropMesh)
-	//{
-	//	if (WeaponSetting.ShellBullets.DropMeshTime < 0.0f)
-	//	{
-	//		InitDropMesh_OnServer(WeaponSetting.ShellBullets.DropMesh,
-	//			WeaponSetting.ShellBullets.DropMeshOffset,
-	//			WeaponSetting.ShellBullets.DropMeshImpulseDir,
-	//			WeaponSetting.ShellBullets.DropMeshLifeTime,
-	//			WeaponSetting.ShellBullets.ImpulseRandomDispersion,
-	//			WeaponSetting.ShellBullets.PowerImpulse,
-	//			WeaponSetting.ShellBullets.CustomMass);
-	//	}
-	//	else
-	//	{
-	//		DropShellFlag = true;
-	//		DropShellTimer = WeaponSetting.ShellBullets.DropMeshTime;
-	//	}
-	//}
-	//
 	FireTime = WeaponSetting.RateOfFire;
-
 	WeaponInfo.Round = WeaponInfo.Round - 1;
-
-	//AdditionalWeaponInfo.Round = AdditionalWeaponInfo.Round - 1; \
-	//	ChangeDispersionByShoot();*/
-	//OnWeaponFireStart.Broadcast(AnimToPlay);
-	//FXWeaponFire_Multicast(WeaponSetting.EffectFireWeapon, WeaponSetting.SoundFireWeapon);
-	//int8 NumberProjectile = GetNumberProjectileByShot();
-
-	if (ShootLocation)
-	{
-		FVector SpawnLocation = ShootLocation->GetComponentLocation();
-		FRotator SpawnRotation = ShootLocation->GetComponentRotation();
-		//SpawnRotation.Pitch = ServerPitch; // TO DO FULL LOCATION ? 
-
-		FProjectileInfo ProjectileInfo;
-		ProjectileInfo = GetProjectile();
 	
-		if (ProjectileInfo.Projectile)
-		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			SpawnParams.Owner = GetOwner();
-			SpawnParams.Instigator = GetInstigator();
+	UAnimMontage* ThirdPersonAnim = nullptr;
+	UAnimMontage* FirstPersonAnim = nullptr;
+	if (WeaponAiming)
+	{
+		ThirdPersonAnim = WeaponSetting.ThirdPersonFireIronsight;
+		FirstPersonAnim = WeaponSetting.FirstPersonFireIronsight;
+	}
+	else
+	{
+		ThirdPersonAnim = WeaponSetting.ThirdPersonFireRelax;
+		FirstPersonAnim = WeaponSetting.FirstPersonFireRelax;
+	}
+	OnWeaponFireStart.Broadcast(ThirdPersonAnim,FirstPersonAnim);
 
-			ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation, &SpawnRotation, SpawnParams));
-			if (myProjectile)
-			{
-				myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
-			}
-			else
-			{
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
 
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT(" ABaseWeapon::Fire - (ProjectileInfo.Projectile = NULL;"));
-		}
+	ChangeDispersionByShoot();
+
+	FVector SpawnLocation = ShootTo.GetLocation();
+	FRotator SpawnRotation = ShootTo.GetRotation().Rotator();
+	FVector EndLocation = GetFireEndLocation();
+	FVector Dir = EndLocation - SpawnLocation;
+	Dir.Normalize();
+	FMatrix myMatrix(Dir, FVector(0, 0, 0), FVector(0, 0, 0),  FVector::ZeroVector);
+	SpawnRotation = myMatrix.Rotator(); 
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetInstigator();
+
+	FProjectileInfo ProjectileInfo;
+	ProjectileInfo = GetProjectile();
+
+	FVector SleeveSpawnLocation = SkeletalMeshWeapon->GetSocketLocation("sleeve");
+	FRotator SleeveSpawnRotation = SleeveLocation->GetComponentRotation();
+
+	FProjectileInfo SleeveInfo;
+	SleeveInfo = ProjectileInfo = GetProjectile();
+
+	ABaseProjectile* mySleeve = Cast<ABaseProjectile>(GetWorld()->SpawnActor(SleeveInfo.Sleeve, &SleeveSpawnLocation, &SleeveSpawnRotation, SpawnParams));
+	if (mySleeve)
+	{
+		mySleeve->InitSleeve(WeaponSetting.ProjectileSetting);
+	}
+
+	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation,&SpawnRotation, SpawnParams));
+	if (myProjectile)
+	{
+		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
+	}
+	else
+	{ 
+		UE_LOG(LogTemp, Error, TEXT("Failed spawn"));
+	}
+
+	if (GetWeaponRound() <= 0 && !WeaponReloading)
+	{
+		if (CheckCanWeaponReload())
+			InitReload();
 	}
 }
 
@@ -202,14 +227,13 @@ void ABaseWeapon::InitReload()
 {
 	WeaponReloading = true;
 	//ReloadTimer = 1.8f; 
-
 	ReloadTimer = WeaponSetting.ReloadTime;
-	UE_LOG(LogTemp, Warning, TEXT(" ABaseWeapon::InitReload - Success"));
-	//if (WeaponSetting.AnimCharReload)
-	//{
-	//	OnWeaponReloadStart.Broadcast(WeaponSetting.AnimCharReload);
-	//	AnimWeaponStart_Multicast(WeaponSetting.AnimCharReload);
-	//}
+
+	if (WeaponSetting.ThirdPersonReload)
+	{
+		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
+		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
+	}
 
 	//if (WeaponSetting.ClipDropMesh.DropMesh)
 	//{
@@ -223,8 +247,8 @@ void ABaseWeapon::FinishReload()
 	WeaponReloading = false;
 	WeaponInfo.Round = WeaponSetting.MaxRound;
 
-	//int8 AviableAmmoFromInventory = GetAviableAmmoForReload();
-	//int8 AmmoNeedTakeFromInv;
+	//int8 AviableAmmoFromInventory =  GetAviableAmmoForReload();
+	int8 AmmoNeedTakeFromInv;
 	//int8 NeedToReload = WeaponSetting.MaxRound - AdditionalWeaponInfo.Round;
 
 	//if (NeedToReload > AviableAmmoFromInventory)
@@ -237,9 +261,7 @@ void ABaseWeapon::FinishReload()
 	//	AdditionalWeaponInfo.Round += NeedToReload;
 	//	AmmoNeedTakeFromInv = NeedToReload;
 	//}
-
-
-	//OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTakeFromInv);
+	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTakeFromInv);
 }
 
 void ABaseWeapon::CancelReload()
@@ -249,6 +271,50 @@ void ABaseWeapon::CancelReload()
 		SkeletalMeshWeapon->GetAnimInstance()->StopAllMontages(0.15f);
 
 	OnWeaponReloadEnd.Broadcast(false, 0);*/
+}
+
+void ABaseWeapon::ChangeDispersionByShoot()
+{
+	CurrentDispersion = CurrentDispersion + CurrentDispersionRecoil;
+}
+
+FVector ABaseWeapon::ApplyDispersionToShoot(FVector DirectionShoot) const
+{
+	return FMath::VRandCone(DirectionShoot, GetCurrentDispersion() * PI / 180.f);
+}
+
+float ABaseWeapon::GetCurrentDispersion() const
+{
+	float Result = CurrentDispersion;
+	return Result;
+}
+
+FVector ABaseWeapon::GetFireEndLocation() const
+{
+	bool bShootDirection = false;
+	//FVector EndLocation = FVector(0.f);
+	//FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
+	//if (tmpV.Size() > 100.0f)
+	//{
+	//	EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation).GetSafeNormal() * -20000.0f);
+	//	//UE_LOG(LogTemp, Error, TEXT("True"));
+	//}
+	//else
+	//{
+	//	EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
+	//	UE_LOG(LogTemp, Error, TEXT("False"));
+	//}
+	//UE_LOG(LogTemp, Error, TEXT("EndLocation: %s"), *EndLocation.ToString());
+	// return EndLocation;
+
+	FVector FactEndLocation = FVector(0.0f);
+	if (Character)
+	{
+		//FHitResult HitResult;
+		//GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), (UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) + SkeletalMeshWeapon->GetSocketLocation("Ironsight"), ECollisionChannel::ECC_Visibility);
+		FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f);
+	}
+	return FactEndLocation;
 }
 
 bool ABaseWeapon::CheckWeaponCanFire()
@@ -280,12 +346,11 @@ int32 ABaseWeapon::GetWeaponRound()
 	return WeaponInfo.Round;
 }
 
-void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire, float Pitch)
+void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 {
 	if (CheckWeaponCanFire())
 	{
 		WeaponFiring = bIsFire;
-		ServerPitch = Pitch;
 	}
 	else
 	{
@@ -299,10 +364,52 @@ FProjectileInfo ABaseWeapon::GetProjectile()
 	return WeaponSetting.ProjectileSetting;
 }
 
+void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
+{
+	if (Character && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
+	{
+		Character->PlayReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
+	}
+}
+
+void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMovementState)
+{
+	/// BlockFire = false; for crouch
+
+	switch (NewMovementState)
+	{
+	case EMovementState::AimWalk_State:
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMax;
+		CurrentDispersionMin = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMin;
+		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
+		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
+		WeaponAiming = true;
+		break;
+	case EMovementState::Run_State:
+		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMax;
+		CurrentDispersionMin = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMin;
+		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
+		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
+		WeaponAiming = false;
+		break;
+	default:
+		break;
+	}
+	//ChangeDispersion();
+}
+
+void ABaseWeapon::UpdateWeaponByCharacterMovementStateOnServer_Implementation(FVector NewShootEndLocation, bool NewShouldReduceDispersion)
+{
+	ShootEndLocation = NewShootEndLocation;
+	ShouldReduseDispersion = NewShouldReduceDispersion;
+}
+
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
+	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
+	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
 }

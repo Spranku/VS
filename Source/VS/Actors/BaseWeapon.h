@@ -10,6 +10,12 @@
 #include "BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
+class AVSCharacter;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadStart, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadEnd, bool, bIsSuccess, int32, AmmoSafe);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponFireStart, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P);
+
 UCLASS()
 class VS_API ABaseWeapon : public AActor
 {
@@ -18,6 +24,10 @@ class VS_API ABaseWeapon : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABaseWeapon();
+
+	FOnWeaponReloadStart OnWeaponReloadStart;
+	FOnWeaponReloadEnd OnWeaponReloadEnd;
+	FOnWeaponFireStart OnWeaponFireStart;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
@@ -31,8 +41,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UArrowComponent* ShootLocation = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
+	class UArrowComponent* SleeveLocation = nullptr;
+
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
+
+	AVSCharacter* Character = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
+	bool ShowDebug = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponFiring = false;
@@ -49,11 +67,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
 
-	float ServerPitch = 0.0f;
+	UPROPERTY(Replicated)
+	FVector ShootEndLocation = FVector(0);
+
+	UPROPERTY(Replicated)
+	bool WeaponAiming = false;
 
 	float FireTime = 0.0f;
 		
-	bool WeaponAiming = false;
+	float DropClipTimer = -1.0f;
+
+	float DropShellTimer = -1.0f;
 
 	bool BlockFire = false;
 
@@ -61,16 +85,16 @@ public:
 
 	bool DropShellFlag = false;
 
-	float DropClipTimer = -1.0f;
-
-	float DropShellTimer = -1.0f;
-
-	//UPROPERTY(Replicated)
 	bool ShouldReduseDispersion = false;
+
 	float CurrentDispersion = 0.0f;
+
 	float CurrentDispersionMax = 1.0f;
+
 	float CurrentDispersionMin = 0.1f;
+
 	float CurrentDispersionRecoil = 0.1f;
+
 	float CurrentDispersionReduction = 0.1f;
 
 protected:
@@ -89,26 +113,44 @@ public:
 
 	void WeaponInit();
 
-	void Fire();
-
 	void InitReload();
 
 	void FinishReload();
 
 	void CancelReload();
 
+	void ChangeDispersionByShoot();
+
+	float GetCurrentDispersion() const;
+
 	bool CheckWeaponCanFire();
 
 	bool CheckCanWeaponReload();
 
+	FVector GetFireEndLocation() const;
+
+	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
+
 	UFUNCTION(BlueprintCallable)
 	int32 GetWeaponRound();
 
-	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void SetWeaponStateFire_OnServer(bool bIsFire, float Pitch);
-
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
+
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void SetWeaponStateFire_OnServer(bool bIsFire);
+
+	UFUNCTION(Server, Reliable)
+	void Fire(FTransform ShootTo);
+
+	UFUNCTION(Server, Unreliable)
+	void UpdateStateWeapon_OnServer(EMovementState NewMovementState);
+
+	UFUNCTION(Server, Unreliable)
+	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };
