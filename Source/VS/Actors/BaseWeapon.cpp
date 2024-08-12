@@ -213,7 +213,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	}
 	else
 	{ 
-		UE_LOG(LogTemp, Error, TEXT("Failed spawn"));
+		///	////////////////////HitScan LineTrace////////////////////// 
+		UE_LOG(LogTemp, Error, TEXT("HitScan LineTrace"));
+
+
+
 	}
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
