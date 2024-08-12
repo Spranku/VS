@@ -73,6 +73,9 @@ public:
 	UPROPERTY(Replicated)
 	bool WeaponAiming = false;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
+	bool bIsRailGun = false;
+
 	float FireTime = 0.0f;
 		
 	float DropClipTimer = -1.0f;

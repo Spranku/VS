@@ -619,6 +619,9 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
+
+		if (CurrentWeapon->bIsRailGun)
+			FP_Gun->SetRelativeRotation(FRotator(FP_Gun->GetComponentRotation().Pitch, -90.0f, FP_Gun->GetComponentRotation().Roll + 10.0f));
 	}
 
 	if (OldWeapon)
