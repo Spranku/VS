@@ -216,7 +216,31 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		///	////////////////////HitScan LineTrace////////////////////// 
 		UE_LOG(LogTemp, Error, TEXT("HitScan LineTrace"));
 
+		FHitResult Hit;
+		FVector TraceEnd = SpawnLocation + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f;
+		TArray<AActor*> Actors;
 
+		UKismetSystemLibrary::LineTraceSingle(GetWorld(),
+			ShootTo.GetLocation(),
+			ShootTo.GetLocation() + /*ShootDirection*/ UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f/* * WeaponSetting.DistanceTrace*/,
+			TraceTypeQuery4,
+			false,
+			Actors,
+			EDrawDebugTrace::ForDuration,
+			Hit,
+			true,
+			FLinearColor::Red,
+			FLinearColor::Green,
+			5.0f);
+
+		DrawDebugLine(GetWorld(),
+			/*ShootTo.GetLocation()*/ SkeletalMeshWeapon->GetSocketLocation("Ironsight"),
+			TraceEnd /*+ ShootLocation->GetForwardVector()*/ /** WeaponSetting.DistanceTrace*/,
+			FColor::Blue,
+			false,
+			5.0f,
+			(uint8)'\000',
+			0.5f);
 
 	}
 
