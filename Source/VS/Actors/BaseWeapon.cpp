@@ -383,7 +383,7 @@ bool ABaseWeapon::CheckCanWeaponReload()
 	return true;
 }
 
-int32 ABaseWeapon::GetWeaponRound()
+int32 ABaseWeapon::GetWeaponRound() const
 {
 	return WeaponInfo.Round;
 }
@@ -404,6 +404,11 @@ void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 FProjectileInfo ABaseWeapon::GetProjectile()
 {
 	return WeaponSetting.ProjectileSetting;
+}
+
+EWeaponType ABaseWeapon::GetWeaponType() const
+{
+	return WeaponSetting.WeaponType;
 }
 
 void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)

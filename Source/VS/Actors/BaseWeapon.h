@@ -135,7 +135,10 @@ public:
 	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetWeaponRound();
+	int32 GetWeaponRound() const;
+
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetWeaponType() const;
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
