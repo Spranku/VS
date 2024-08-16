@@ -216,8 +216,8 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		///	////////////////////HitScan LineTrace////////////////////// 
 		UE_LOG(LogTemp, Error, TEXT("HitScan LineTrace"));
 
-		FHitResult Hit;
-		FVector TraceEnd = SpawnLocation + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f;
+		FHitResult HitResult;
+		//FVector TraceEnd = SpawnLocation + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f;
 		TArray<AActor*> Actors;
 
 		UKismetSystemLibrary::LineTraceSingle(GetWorld(),
@@ -227,21 +227,20 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 			false,
 			Actors,
 			EDrawDebugTrace::ForDuration,
-			Hit,
+			HitResult,
 			true,
 			FLinearColor::Red,
 			FLinearColor::Green,
 			5.0f);
 
 		DrawDebugLine(GetWorld(),
-			/*ShootTo.GetLocation()*/ SkeletalMeshWeapon->GetSocketLocation("Ironsight"),
-			TraceEnd /*+ ShootLocation->GetForwardVector()*/ /** WeaponSetting.DistanceTrace*/,
+			ShootTo.GetLocation(),
+			ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
 			FColor::Blue,
 			false,
 			5.0f,
 			(uint8)'\000',
 			0.5f);
-
 	}
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
