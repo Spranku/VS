@@ -93,7 +93,6 @@ void AVSCharacter::Tick(float DeltaTime)
 			CurrentWeapon->SetWeaponRotation(CameraRotation);
 			LastWeaponRotationUpdateTime = 0.0f;
 		}
-
 		 ///FRotator CameraRotation = Controller->GetControlRotation(); 
 		 /// CurrentWeapon->SetWeaponRotation(CameraRotation);
 	}*/
