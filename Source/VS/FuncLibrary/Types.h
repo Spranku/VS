@@ -14,6 +14,19 @@ enum class EMovementState : uint8
 	Run_State UMETA(DisplayeName = "Run State")
 };
 
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	/*RifleType UMETA(DisplayName = "RifleType"),
+	ShootGunType UMETA(DisplayName = "ShootGunType"),
+	SniperRifle UMETA(DisplayName = "SniperRifle"),
+	GrenadeLauncher UMETA(DisplayName = "GrenadeLauncher"),
+	RocketLauncher UMETA(DisplayName = "RocketLauncher")*/
+
+	PrimaryWeapon UMETA(DisplayName = "PrimaryWeapon"),
+	SecondaryWeapon UMETA(DisplayName = "SecondaryWeapon")
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponDispersion
 {
@@ -129,6 +142,9 @@ struct FWeaponInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	int32 MaxRound = 12;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	EWeaponType WeaponType = EWeaponType::PrimaryWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	FWeaponDispersion DispersionWeapon;
