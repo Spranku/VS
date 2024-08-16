@@ -104,10 +104,26 @@ void ABaseWeapon::FireTick(float DeltaTime)
 			if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection + MuzzleLocation, ECollisionChannel::ECC_Visibility))
 			{
 				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
+				/*DrawDebugLine(GetWorld(),
+					ShootTo.GetLocation(),
+					ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+					FColor::Green,
+					false,
+					5.0f,
+					(uint8)'\000',
+					0.5f);*/
 			}
 			else
 			{
 				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
+				/*DrawDebugLine(GetWorld(),
+					ShootTo.GetLocation(),
+					ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+					FColor::Yellow,
+					false,
+					5.0f,
+					(uint8)'\000',
+					0.5f);*/
 			}
 			Fire(ShootTo);
 		}
@@ -217,12 +233,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		UE_LOG(LogTemp, Error, TEXT("HitScan LineTrace"));
 
 		FHitResult HitResult;
-		//FVector TraceEnd = SpawnLocation + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f;
 		TArray<AActor*> Actors;
 
 		UKismetSystemLibrary::LineTraceSingle(GetWorld(),
 			ShootTo.GetLocation(),
-			ShootTo.GetLocation() + /*ShootDirection*/ UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f/* * WeaponSetting.DistanceTrace*/,
+			ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
 			TraceTypeQuery4,
 			false,
 			Actors,
@@ -236,7 +251,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		DrawDebugLine(GetWorld(),
 			ShootTo.GetLocation(),
 			ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-			FColor::Blue,
+			FColor::Green,
 			false,
 			5.0f,
 			(uint8)'\000',
