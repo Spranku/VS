@@ -195,6 +195,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
+		UE_LOG(LogTemp, Error, TEXT("StartEquipAnim1"));
 		CurrentIndex = Index;
 		const ABaseWeapon* OldWeapon = CurrentWeapon;
 		CurrentWeapon = Weapons[Index];
@@ -609,7 +610,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
-		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true);
+		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true,true);
 		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
 		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
@@ -625,7 +626,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 
 	if (OldWeapon)
 	{
-		OldWeapon->SkeletalMeshWeapon->SetVisibility(false);
+		OldWeapon->SkeletalMeshWeapon->SetVisibility(false,true);
 	}
 }
 
