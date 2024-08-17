@@ -138,6 +138,9 @@ struct FWeaponInfo
 	float ReloadTime = 1.8;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	float ADS = 4.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	float DistanceTrace = 2000.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")

@@ -396,14 +396,14 @@ void AVSCharacter::StopAiming_OnServer_Implementation()
 
 void AVSCharacter::ChangeFoV(float In, float Out)
 {
-	if (Alpha >= 1.0f)
+	if (CurrentWeapon && CurrentWeapon->WeaponSetting.ADS && Alpha >= 1.0f)
 	{
 		Alpha = 0.0f;
 		GetWorld()->GetTimerManager().ClearTimer(AimTimerHandle);
 	}
 	else
 	{
-		Alpha += GetWorld()->DeltaTimeSeconds * 4.5f;
+		Alpha += GetWorld()->DeltaTimeSeconds * CurrentWeapon->WeaponSetting.ADS;
 		FirstPersonCameraComponent->SetFieldOfView(UKismetMathLibrary::Lerp(In, Out, Alpha));
 	}
 }
