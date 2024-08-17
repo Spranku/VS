@@ -130,13 +130,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float AimYaw;
 
-	FTimerHandle TimerHandle;
-
 	FRotator CamForwardVector;
 
 	FRotator ControlRotationSynchronized;
 
 protected:
+
+	FTimerHandle TimerHandle;
+
+	FTimerHandle AimTimerHandle;
+
+	FTimerDelegate AimTimerDelegate;
+
+	float Alpha = 0.0f;
 
 	void OnFire();
 
@@ -172,7 +178,12 @@ protected:
 
 	void LookUpAtRate(float Rate);
 
+	void InitAimTimeline(float From, float To);
+
 	EMovementState GetMovementState();
+
+	UFUNCTION()
+	void ChangeFoV(float In, float Out);
 
 	UFUNCTION()
 	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);

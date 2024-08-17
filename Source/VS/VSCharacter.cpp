@@ -356,6 +356,8 @@ void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdP
 
 void AVSCharacter::InitAiming()
 {
+	InitAimTimeline(90.0f, 60.0f);
+
 	if (HasAuthority())
 	{
 		bIsAiming = true;
@@ -374,6 +376,8 @@ void AVSCharacter::InitAiming_OnServer_Implementation()
 
 void AVSCharacter::StopAiming()
 {
+	InitAimTimeline(60.0f, 90.0f);
+
 	if (HasAuthority())
 	{
 		bIsAiming = false;
@@ -388,6 +392,26 @@ void AVSCharacter::StopAiming()
 void AVSCharacter::StopAiming_OnServer_Implementation()
 {
 	StopAiming();
+}
+
+void AVSCharacter::ChangeFoV(float In, float Out)
+{
+	if (Alpha >= 1.0f)
+	{
+		Alpha = 0.0f;
+		GetWorld()->GetTimerManager().ClearTimer(AimTimerHandle);
+	}
+	else
+	{
+		Alpha += GetWorld()->DeltaTimeSeconds * 4.5f;
+		FirstPersonCameraComponent->SetFieldOfView(UKismetMathLibrary::Lerp(In, Out, Alpha));
+	}
+}
+
+void AVSCharacter::InitAimTimeline(float From, float To)
+{
+	AimTimerDelegate.BindUFunction(this, "ChangeFoV", From, To);
+	GetWorld()->GetTimerManager().SetTimer(AimTimerHandle, AimTimerDelegate, GetWorld()->DeltaTimeSeconds, true);
 }
 
 void AVSCharacter::NextWeapon()
@@ -587,6 +611,7 @@ void AVSCharacter::CharacterUpdate()
 
 	GetCharacterMovement()->MaxWalkSpeed = ResSpeed;
 }
+
 
 void AVSCharacter::SetMovementState_OnServer_Implementation(EMovementState NewState)
 {
