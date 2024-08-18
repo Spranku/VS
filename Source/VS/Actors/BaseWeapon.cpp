@@ -4,7 +4,10 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Camera/CameraComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "/Projects/VS/Source/VS/VSCharacter.h"
 
 // Sets default values
@@ -28,12 +31,25 @@ ABaseWeapon::ABaseWeapon()
 	StaticMeshWeapon->SetCollisionProfileName(TEXT("NoCollision"));
 	StaticMeshWeapon->SetupAttachment(SkeletalMeshWeapon);
 
+	LenseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LenseMesh"));
+	LenseMesh->SetupAttachment(SkeletalMeshWeapon);
+	LenseMesh->SetCollisionProfileName(FName("NoCollision"), false);
+	LenseMesh->SetRelativeLocation(FVector(0.02f, -5.5f, 21.5f));
+	LenseMesh->SetRelativeRotation(FRotator(0.0f, -180.0f, 90.0f));
+
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
 
 	SleeveLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("SleeveLocation"));
 	SleeveLocation->SetupAttachment(RootComponent);
 
+	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
+	SceneCapture->SetupAttachment(SkeletalMeshWeapon);
+	SceneCapture->SetRelativeScale3D(FVector(0.1, 0.1, 0.1));
+	SceneCapture->SetRelativeRotation(FRotator(0.0, 90.0, 0.0));
+	SceneCapture->SetRelativeLocation(FVector(0.0, 95.0, 16.0));
+	SceneCapture->FOVAngle = 4.0f;
+	
 	bReplicates = true;
 }
 
@@ -60,7 +76,6 @@ void ABaseWeapon::BeginPlay()
 		SkeletalMeshWeapon->SetVisibility(true);
 	}
 }
-
 // Called every frame
 void ABaseWeapon::Tick(float DeltaTime)
 {
@@ -169,6 +184,19 @@ void ABaseWeapon::WeaponInit()
 	{
 		StaticMeshWeapon->DestroyComponent();
 	}
+
+	if (bIsRailGun)
+	{
+		SetMaterialLense_OnClient();
+	}
+}
+
+void ABaseWeapon::SetMaterialLense_OnClient_Implementation()
+{
+	UMaterialInstanceDynamic* DynMaterial = LenseMesh->CreateDynamicMaterialInstance(0, LenseMaterial, FName("None"));
+	TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, 1024, 1024, ETextureRenderTargetFormat::RTF_RGBA16f, FLinearColor::Black, false);
+	SceneCapture->TextureTarget = TextureTarget;
+	DynMaterial->SetTextureParameterValue(FName(TEXT("TextureScope")), SceneCapture->TextureTarget);
 }
 
 void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
@@ -460,3 +488,4 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
 }
+

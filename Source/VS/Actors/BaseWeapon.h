@@ -38,6 +38,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UStaticMeshComponent* StaticMeshWeapon = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Components)
+	class UStaticMeshComponent* LenseMesh = nullptr;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UArrowComponent* ShootLocation = nullptr;
 
@@ -47,7 +50,14 @@ public:
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
 
-	AVSCharacter* Character = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	UMaterialInstance* LenseMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	class UTextureRenderTarget2D* TextureTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	class USceneCaptureComponent2D* SceneCapture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool ShowDebug = false;
@@ -75,6 +85,8 @@ public:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
+
+	AVSCharacter* Character = nullptr;
 
 	float FireTime = 0.0f;
 		
@@ -154,6 +166,9 @@ public:
 
 	UFUNCTION(Server, Unreliable)
 	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
+
+	UFUNCTION(Client, Reliable)
+	void SetMaterialLense_OnClient();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
