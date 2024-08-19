@@ -67,7 +67,7 @@ void AVSCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AVSCharacter::InitWeapon, 1.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AVSCharacter::InitWeapon, 0.5f, false);
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
@@ -129,7 +129,9 @@ void AVSCharacter::MovementTick(float DeltaTime)
 			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
 		}
 	}
-	else
+	/// Do nothing?
+
+	/*else
 	{
 		if (CurrentWeapon)
 		{
@@ -148,9 +150,9 @@ void AVSCharacter::MovementTick(float DeltaTime)
 			default:
 				break;
 			}
-			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
+			///CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
 		}
-	}
+	}*/
 }
 
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -517,11 +519,6 @@ void AVSCharacter::LookUpAtRate(float Rate)
 	}
 }
 
-EMovementState AVSCharacter::GetMovementState()
-{
-	return MovementState;
-}
-
 void AVSCharacter::PitchMulticast_Implementation(float PitchRep)
 {
 	if (!IsLocallyControlled())
@@ -663,11 +660,6 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	if (OldWeapon)
 	{
 		OldWeapon->SkeletalMeshWeapon->SetVisibility(false,true);
-		/*if (CurrentWeapon->bIsRailGun)
-		{
-			FP_Gun->SetRelativeRotation(FRotator(0));
-		}*/
-
 	}
 }
 
@@ -678,6 +670,7 @@ void AVSCharacter::InitWeapon()
 		for (const TSubclassOf<ABaseWeapon>& WeaponClass : DefaultWeapons)
 		{
 			if (!WeaponClass) continue;
+
 			FActorSpawnParameters Params;
 			Params.Owner = this;
 			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
@@ -707,6 +700,11 @@ void AVSCharacter::FireRecoil()
 
 	AddControllerPitchInput(PitchRecoil);
 	AddControllerYawInput(YawRecoil);
+}
+
+EMovementState AVSCharacter::GetMovementState()
+{
+	return MovementState;
 }
 
 FVector AVSCharacter::GetForwardVectorFromCamera()
