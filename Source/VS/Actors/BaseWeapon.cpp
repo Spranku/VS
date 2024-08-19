@@ -73,7 +73,6 @@ void ABaseWeapon::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
 
-
 	WeaponInit();
 
 	if (!CurrentOwner)
@@ -205,6 +204,7 @@ void ABaseWeapon::SetMaterialLense_OnClient_Implementation()
 				SceneCapture->TextureTarget = TextureTarget;
 				DynMaterial->SetTextureParameterValue(FName(TEXT("TextureScope")), SceneCapture->TextureTarget);
 				///LenseMesh->SetMaterial(0, DynMaterial); Do nothing?
+				GetWorld()->GetTimerManager().ClearTimer(ScopeTimerHandle);
 			}
 			else
 			{
@@ -368,43 +368,10 @@ void ABaseWeapon::ChangeDispersionByShoot()
 	CurrentDispersion = CurrentDispersion + CurrentDispersionRecoil;
 }
 
-FVector ABaseWeapon::ApplyDispersionToShoot(FVector DirectionShoot) const
-{
-	return FMath::VRandCone(DirectionShoot, GetCurrentDispersion() * PI / 180.f);
-}
-
 float ABaseWeapon::GetCurrentDispersion() const
 {
 	float Result = CurrentDispersion;
 	return Result;
-}
-
-FVector ABaseWeapon::GetFireEndLocation() const
-{
-	bool bShootDirection = false;
-	//FVector EndLocation = FVector(0.f);
-	//FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
-	//if (tmpV.Size() > 100.0f)
-	//{
-	//	EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation).GetSafeNormal() * -20000.0f);
-	//	//UE_LOG(LogTemp, Error, TEXT("True"));
-	//}
-	//else
-	//{
-	//	EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
-	//	UE_LOG(LogTemp, Error, TEXT("False"));
-	//}
-	//UE_LOG(LogTemp, Error, TEXT("EndLocation: %s"), *EndLocation.ToString());
-	// return EndLocation;
-
-	FVector FactEndLocation = FVector(0.0f);
-	if (Character)
-	{
-		//FHitResult HitResult;
-		//GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), (UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) + SkeletalMeshWeapon->GetSocketLocation("Ironsight"), ECollisionChannel::ECC_Visibility);
-		FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f);
-	}
-	return FactEndLocation;
 }
 
 bool ABaseWeapon::CheckWeaponCanFire()
@@ -431,11 +398,6 @@ bool ABaseWeapon::CheckCanWeaponReload()
 	return true;
 }
 
-int32 ABaseWeapon::GetWeaponRound() const
-{
-	return WeaponInfo.Round;
-}
-
 void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 {
 	if (CheckWeaponCanFire())
@@ -449,31 +411,31 @@ void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
 	FireTime = 0.01f;
 }
 
-FProjectileInfo ABaseWeapon::GetProjectile()
-{
-	return WeaponSetting.ProjectileSetting;
-}
-
 void ABaseWeapon::InitAiming()
 {
 	if (bIsRailGun)
 	{
-		SetMaterialLense_OnClient();
+		ShowScopeTimeline(0.2f,true);
 	}
+}
+
+void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
+{
+	bIsAiming ? GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::SetMaterialLense_OnClient, Value, false) : GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::RemoveMaterialLense, Value, false);
 }
 
 void ABaseWeapon::CancelAiming_Implementation()
 {
 	if (bIsRailGun)
 	{
-		LenseMesh->SetMaterial(0, DefaultLenseMaterial);
-		SceneCapture->Deactivate();
+		ShowScopeTimeline(0.2f,false);
 	}
 }
 
-EWeaponType ABaseWeapon::GetWeaponType() const
+void ABaseWeapon::RemoveMaterialLense()
 {
-	return WeaponSetting.WeaponType;
+	LenseMesh->SetMaterial(0, DefaultLenseMaterial);
+	SceneCapture->Deactivate();
 }
 
 void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
@@ -520,6 +482,54 @@ void ABaseWeapon::UpdateWeaponByCharacterMovementStateOnServer_Implementation(FV
 	ShouldReduseDispersion = NewShouldReduceDispersion;
 }
 
+FVector ABaseWeapon::GetFireEndLocation() const
+{
+	bool bShootDirection = false;
+	//FVector EndLocation = FVector(0.f);
+	//FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
+	//if (tmpV.Size() > 100.0f)
+	//{
+	//	EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation).GetSafeNormal() * -20000.0f);
+	//	//UE_LOG(LogTemp, Error, TEXT("True"));
+	//}
+	//else
+	//{
+	//	EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
+	//	UE_LOG(LogTemp, Error, TEXT("False"));
+	//}
+	//UE_LOG(LogTemp, Error, TEXT("EndLocation: %s"), *EndLocation.ToString());
+	// return EndLocation;
+
+	FVector FactEndLocation = FVector(0.0f);
+	if (Character)
+	{
+		//FHitResult HitResult;
+		//GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), (UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) + SkeletalMeshWeapon->GetSocketLocation("Ironsight"), ECollisionChannel::ECC_Visibility);
+		FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f);
+	}
+	return FactEndLocation;
+}
+
+FVector ABaseWeapon::ApplyDispersionToShoot(FVector DirectionShoot) const
+{
+	return FMath::VRandCone(DirectionShoot, GetCurrentDispersion() * PI / 180.f);
+}
+
+int32 ABaseWeapon::GetWeaponRound() const
+{
+	return WeaponInfo.Round;
+}
+
+FProjectileInfo ABaseWeapon::GetProjectile()
+{
+	return WeaponSetting.ProjectileSetting;
+}
+
+EWeaponType ABaseWeapon::GetWeaponType() const
+{
+	return WeaponSetting.WeaponType;
+}
+
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -529,4 +539,5 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
 }
+
 

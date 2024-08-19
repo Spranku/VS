@@ -73,7 +73,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	FWeaponInfo WeaponSetting;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo WeaponInfo;
 
@@ -119,6 +118,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	FTimerHandle ScopeTimerHandle;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -139,11 +140,8 @@ public:
 
 	void InitAiming();
 
-	UFUNCTION(Client, Unreliable)
-	void CancelAiming();
-
 	void ChangeDispersionByShoot();
-
+	
 	float GetCurrentDispersion() const;
 
 	bool CheckWeaponCanFire();
@@ -153,6 +151,12 @@ public:
 	FVector GetFireEndLocation() const;
 
 	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
+
+	UFUNCTION()
+	void RemoveMaterialLense();
+
+	UFUNCTION()
+	void ShowScopeTimeline(float Value, bool bIsAiming);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetWeaponRound() const;
@@ -174,6 +178,9 @@ public:
 
 	UFUNCTION(Server, Unreliable)
 	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
+
+	UFUNCTION(Client, Unreliable)
+	void CancelAiming();
 
 	UFUNCTION(Client, Unreliable)
 	void SetMaterialLense_OnClient();
