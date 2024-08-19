@@ -540,7 +540,6 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
 		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
 		WeaponAiming = true;
-		UE_LOG(LogTemp, Error, TEXT("Now Aiming"));
 		InitAiming();
 		break;
 	case EMovementState::Run_State:
@@ -549,7 +548,6 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
 		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
 		WeaponAiming = false;
-		UE_LOG(LogTemp, Error, TEXT("Now Default"));
 		CancelAiming();
 		break;
 	default:

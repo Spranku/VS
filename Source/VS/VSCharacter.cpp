@@ -359,7 +359,14 @@ void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdP
 
 void AVSCharacter::InitAiming()
 {
-	InitAimTimeline(90.0f, 60.0f);
+	if (CurrentWeapon && CurrentWeapon->bIsRailGun)
+	{
+		InitAimTimeline(90.0f, 30.0f);
+	}
+	else
+	{
+		InitAimTimeline(90.0f, 60.0f);
+	}
 
 	if (HasAuthority())
 	{
@@ -379,7 +386,14 @@ void AVSCharacter::InitAiming_OnServer_Implementation()
 
 void AVSCharacter::StopAiming()
 {
-	InitAimTimeline(60.0f, 90.0f);
+	if (CurrentWeapon && CurrentWeapon->bIsRailGun)
+	{
+		InitAimTimeline(30.0f, 90.0f);
+	}
+	else
+	{
+		InitAimTimeline(60.0f, 90.0f);
+	}
 
 	if (HasAuthority())
 	{
