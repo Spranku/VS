@@ -50,13 +50,16 @@ public:
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
-	UMaterialInstance* LenseMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	UMaterialInstance* CustomLenseMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	UMaterialInstance* DefaultLenseMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	class UTextureRenderTarget2D* TextureTarget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	class USceneCaptureComponent2D* SceneCapture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
@@ -134,6 +137,11 @@ public:
 
 	void CancelReload();
 
+	void InitAiming();
+
+	UFUNCTION(Client, Unreliable)
+	void CancelAiming();
+
 	void ChangeDispersionByShoot();
 
 	float GetCurrentDispersion() const;
@@ -167,7 +175,7 @@ public:
 	UFUNCTION(Server, Unreliable)
 	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
 
-	UFUNCTION(Client, Reliable)
+	UFUNCTION(Client, Unreliable)
 	void SetMaterialLense_OnClient();
 
 	UFUNCTION(NetMulticast, Unreliable)

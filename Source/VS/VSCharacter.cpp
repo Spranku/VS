@@ -613,7 +613,6 @@ void AVSCharacter::CharacterUpdate()
 	GetCharacterMovement()->MaxWalkSpeed = ResSpeed;
 }
 
-
 void AVSCharacter::SetMovementState_OnServer_Implementation(EMovementState NewState)
 {
 	SetMovementState_Multicast(NewState);
@@ -636,23 +635,39 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
-		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true,true);
+		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
 		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
-		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
-		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
-
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
-		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 
 		if (CurrentWeapon->bIsRailGun)
+		{
+			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("SecondaryWeaponSocket"));
+
+		}
+		else
+		{
+			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
+		}
+
+		/*if (CurrentWeapon->bIsRailGun)
+		{
 			FP_Gun->SetRelativeRotation(FRotator(FP_Gun->GetComponentRotation().Pitch, -90.0f, FP_Gun->GetComponentRotation().Roll + 10.0f));
+			
+		}*/
+		/*CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);*/
 	}
 
 	if (OldWeapon)
 	{
 		OldWeapon->SkeletalMeshWeapon->SetVisibility(false,true);
+		/*if (CurrentWeapon->bIsRailGun)
+		{
+			FP_Gun->SetRelativeRotation(FRotator(0));
+		}*/
+
 	}
 }
 
@@ -670,6 +685,9 @@ void AVSCharacter::InitWeapon()
 			if (Index == CurrentIndex)
 			{
 				CurrentWeapon = Weapon3P;
+				CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+				CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
+				CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
 				OnRep_CurrentWeapon(nullptr);
 			}
 			//FP_Gun->bOnlyOwnerSee = true;

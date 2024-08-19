@@ -36,6 +36,7 @@ ABaseWeapon::ABaseWeapon()
 	LenseMesh->SetCollisionProfileName(FName("NoCollision"), false);
 	LenseMesh->SetRelativeLocation(FVector(0.02f, -5.5f, 21.5f));
 	LenseMesh->SetRelativeRotation(FRotator(0.0f, -180.0f, 90.0f));
+	LenseMesh->bOnlyOwnerSee = true;
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
 	ShootLocation->SetupAttachment(RootComponent);
@@ -49,6 +50,7 @@ ABaseWeapon::ABaseWeapon()
 	SceneCapture->SetRelativeRotation(FRotator(0.0, 90.0, 0.0));
 	SceneCapture->SetRelativeLocation(FVector(0.0, 95.0, 16.0));
 	SceneCapture->FOVAngle = 4.0f;
+	SceneCapture->Deactivate();
 	
 	bReplicates = true;
 }
@@ -57,6 +59,8 @@ ABaseWeapon::ABaseWeapon()
 void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+
+	DefaultLenseMaterial ? LenseMesh->SetMaterial(0, DefaultLenseMaterial) : 0;
 
 	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
 	if (MyChar)
@@ -68,7 +72,8 @@ void ABaseWeapon::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
-	
+
+
 	WeaponInit();
 
 	if (!CurrentOwner)
@@ -184,19 +189,34 @@ void ABaseWeapon::WeaponInit()
 	{
 		StaticMeshWeapon->DestroyComponent();
 	}
-
-	if (bIsRailGun)
-	{
-		SetMaterialLense_OnClient();
-	}
 }
 
 void ABaseWeapon::SetMaterialLense_OnClient_Implementation()
 {
-	UMaterialInstanceDynamic* DynMaterial = LenseMesh->CreateDynamicMaterialInstance(0, LenseMaterial, FName("None"));
-	TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, 1024, 1024, ETextureRenderTargetFormat::RTF_RGBA16f, FLinearColor::Black, false);
-	SceneCapture->TextureTarget = TextureTarget;
-	DynMaterial->SetTextureParameterValue(FName(TEXT("TextureScope")), SceneCapture->TextureTarget);
+	if (DefaultLenseMaterial && CustomLenseMaterial)
+	{
+		SceneCapture->Activate();
+		UMaterialInstanceDynamic* DynMaterial = LenseMesh->CreateDynamicMaterialInstance(0, CustomLenseMaterial, FName("None"));
+		if (DynMaterial)
+		{
+			TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, 1024, 1024, ETextureRenderTargetFormat::RTF_RGBA16f, FLinearColor::Black, false);
+			if (TextureTarget)
+			{
+				SceneCapture->TextureTarget = TextureTarget;
+				DynMaterial->SetTextureParameterValue(FName(TEXT("TextureScope")), SceneCapture->TextureTarget);
+				///LenseMesh->SetMaterial(0, DynMaterial); Do nothing?
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::SetMaterialLense_OnClient_Implementation - drop material"));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::SetMaterialLense_OnClient_Implementation - drop material"));
+	}
+	
 }
 
 void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
@@ -434,6 +454,23 @@ FProjectileInfo ABaseWeapon::GetProjectile()
 	return WeaponSetting.ProjectileSetting;
 }
 
+void ABaseWeapon::InitAiming()
+{
+	if (bIsRailGun)
+	{
+		SetMaterialLense_OnClient();
+	}
+}
+
+void ABaseWeapon::CancelAiming_Implementation()
+{
+	if (bIsRailGun)
+	{
+		LenseMesh->SetMaterial(0, DefaultLenseMaterial);
+		SceneCapture->Deactivate();
+	}
+}
+
 EWeaponType ABaseWeapon::GetWeaponType() const
 {
 	return WeaponSetting.WeaponType;
@@ -459,6 +496,8 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
 		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimReduction;
 		WeaponAiming = true;
+		UE_LOG(LogTemp, Error, TEXT("Now Aiming"));
+		InitAiming();
 		break;
 	case EMovementState::Run_State:
 		CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMax;
@@ -466,6 +505,8 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 		CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
 		CurrentDispersionReduction = WeaponSetting.DispersionWeapon.Run_StateDispersionAimReduction;
 		WeaponAiming = false;
+		UE_LOG(LogTemp, Error, TEXT("Now Default"));
+		CancelAiming();
 		break;
 	default:
 		break;
