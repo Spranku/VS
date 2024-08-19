@@ -188,5 +188,11 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void TraceFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

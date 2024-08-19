@@ -304,6 +304,66 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 			5.0f,
 			(uint8)'\000',
 			0.5f);
+
+		if (HitResult.GetActor() && HitResult.PhysMaterial.IsValid())
+		{
+			EPhysicalSurface mySurfaceType = UGameplayStatics::GetSurfaceType(HitResult);
+
+			if (WeaponSetting.ProjectileSetting.HitDecals.Contains(mySurfaceType))
+			{
+				UMaterialInterface* myMaterial = WeaponSetting.ProjectileSetting.HitDecals[mySurfaceType];
+
+				if (myMaterial && HitResult.GetComponent())
+				{
+					UGameplayStatics::SpawnDecalAttached(myMaterial,
+						FVector(20.0f),
+						HitResult.GetComponent(),
+						NAME_None,
+						HitResult.ImpactPoint,
+						HitResult.ImpactNormal.Rotation(),
+						EAttachLocation::KeepWorldPosition,
+						5.0f);
+				}
+			}
+			if (WeaponSetting.ProjectileSetting.HitFXs.Contains(mySurfaceType))
+			{
+				TraceFX_Multicast(WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType], HitResult);
+
+				/*UParticleSystem* myParticle = WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType];
+				if (myParticle)
+				{
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+						myParticle,
+						FTransform(Hit.ImpactNormal.Rotation(),
+						Hit.ImpactPoint,
+						FVector(1.0f)));
+				}*/
+			}
+
+			if (WeaponSetting.ProjectileSetting.HitSound)
+			{
+				TraceSound_Multicast(WeaponSetting.ProjectileSetting.HitSound, HitResult);
+
+				/*UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+					WeaponSetting.ProjectileSetting.HitSound,
+					Hit.ImpactNormal);*/
+
+			}
+
+			UGameplayStatics::ApplyPointDamage(HitResult.GetActor(),
+										       WeaponSetting.ProjectileSetting.ProjectileDamage,
+											   HitResult.TraceStart,
+				                               HitResult,
+				                               GetInstigatorController(),
+				                               this,
+				                               NULL);
+
+			UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() and HitResult.PhysMaterial Is Success Valid!!!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
+		}
 	}
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
@@ -422,6 +482,28 @@ void ABaseWeapon::InitAiming()
 void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
 {
 	bIsAiming ? GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::SetMaterialLense_OnClient, Value, false) : GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::RemoveMaterialLense, Value, false);
+}
+
+void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FxTemplate, FHitResult HitResult)
+{
+	if (FxTemplate)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+												 FxTemplate,
+												 FTransform(HitResult.ImpactNormal.Rotation(),
+												 HitResult.ImpactPoint,
+												 FVector(1.0f)));
+	}
+}
+
+void ABaseWeapon::TraceSound_Multicast_Implementation(USoundBase* HitSound, FHitResult HitResult)
+{
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+										      WeaponSetting.ProjectileSetting.HitSound,
+										      HitResult.ImpactNormal);
+	}
 }
 
 void ABaseWeapon::CancelAiming_Implementation()
