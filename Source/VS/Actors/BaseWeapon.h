@@ -130,6 +130,8 @@ protected:
 
 	FTimerHandle ScopeTimerHandle;
 
+	FTimerHandle FireTimerHande;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -163,6 +165,9 @@ public:
 	FVector GetFireEndLocation() const;
 
 	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
+
+	UFUNCTION()
+	void CheckRateOfFire();
 
 	UFUNCTION()
 	void RemoveMaterialLense();

@@ -282,87 +282,97 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		///	////////////////////HitScan LineTrace////////////////////// 
 		UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
 
-		FHitResult HitResult;
-		TArray<AActor*> Actors;
-
-		UKismetSystemLibrary::LineTraceSingle(GetWorld(),
-			ShootTo.GetLocation(),
-			ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-			TraceTypeQuery4,
-			false,
-			Actors,
-			EDrawDebugTrace::ForDuration,
-			HitResult,
-			true,
-			FLinearColor::Red,
-			FLinearColor::Green,
-			5.0f);
-
-		DrawDebugLine(GetWorld(),
-			ShootTo.GetLocation(),
-			ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-			FColor::Green,
-			false,
-			5.0f,
-			(uint8)'\000',
-			0.5f);
-
-		if (HitResult.GetActor() && HitResult.PhysMaterial.IsValid())
+		if (!BlockFire)
 		{
-			EPhysicalSurface mySurfaceType = UGameplayStatics::GetSurfaceType(HitResult);
+			FHitResult HitResult;
+			TArray<AActor*> Actors;
 
-			if (WeaponSetting.ProjectileSetting.HitDecals.Contains(mySurfaceType))
+			UKismetSystemLibrary::LineTraceSingle(GetWorld(),
+				ShootTo.GetLocation(),
+				ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+				TraceTypeQuery4,
+				false,
+				Actors,
+				EDrawDebugTrace::ForDuration,
+				HitResult,
+				true,
+				FLinearColor::Red,
+				FLinearColor::Green,
+				5.0f);
+
+			DrawDebugLine(GetWorld(),
+				ShootTo.GetLocation(),
+				ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+				FColor::Green,
+				false,
+				5.0f,
+				(uint8)'\000',
+				0.5f);
+
+			BlockFire = true;
+			GetWorld()->GetTimerManager().SetTimer(FireTimerHande, this, &ABaseWeapon::CheckRateOfFire, WeaponSetting.RateOfFire, false);
+
+			if (HitResult.GetActor() && HitResult.PhysMaterial.IsValid())
 			{
-				UMaterialInterface* myMaterial = WeaponSetting.ProjectileSetting.HitDecals[mySurfaceType];
+				EPhysicalSurface mySurfaceType = UGameplayStatics::GetSurfaceType(HitResult);
 
-				if (myMaterial && HitResult.GetComponent())
+				if (WeaponSetting.ProjectileSetting.HitDecals.Contains(mySurfaceType))
 				{
-					UGameplayStatics::SpawnDecalAttached(myMaterial,
-						FVector(20.0f),
-						HitResult.GetComponent(),
-						NAME_None,
-						HitResult.ImpactPoint,
-						HitResult.ImpactNormal.Rotation(),
-						EAttachLocation::KeepWorldPosition,
-						5.0f);
+					UMaterialInterface* myMaterial = WeaponSetting.ProjectileSetting.HitDecals[mySurfaceType];
+
+					if (myMaterial && HitResult.GetComponent())
+					{
+						UGameplayStatics::SpawnDecalAttached(myMaterial,
+							FVector(20.0f),
+							HitResult.GetComponent(),
+							NAME_None,
+							HitResult.ImpactPoint,
+							HitResult.ImpactNormal.Rotation(),
+							EAttachLocation::KeepWorldPosition,
+							5.0f);
+					}
 				}
-			}
-			if (WeaponSetting.ProjectileSetting.HitFXs.Contains(mySurfaceType))
-			{
-				TraceFX_Multicast(WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType], HitResult);
-
-				/*UParticleSystem* myParticle = WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType];
-				if (myParticle)
+				if (WeaponSetting.ProjectileSetting.HitFXs.Contains(mySurfaceType))
 				{
-					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
-						myParticle,
-						FTransform(Hit.ImpactNormal.Rotation(),
-						Hit.ImpactPoint,
-						FVector(1.0f)));
-				}*/
-			}
+					TraceFX_Multicast(WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType], HitResult);
 
-			if (WeaponSetting.ProjectileSetting.HitSound)
+					/*UParticleSystem* myParticle = WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType];
+					if (myParticle)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+							myParticle,
+							FTransform(Hit.ImpactNormal.Rotation(),
+							Hit.ImpactPoint,
+							FVector(1.0f)));
+					}*/
+				}
+
+				if (WeaponSetting.ProjectileSetting.HitSound)
+				{
+					TraceSound_Multicast(WeaponSetting.ProjectileSetting.HitSound, HitResult);
+
+					/*UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+						WeaponSetting.ProjectileSetting.HitSound,
+						Hit.ImpactNormal);*/
+
+				}
+
+				UGameplayStatics::ApplyPointDamage(HitResult.GetActor(),
+					WeaponSetting.ProjectileSetting.ProjectileDamage,
+					HitResult.TraceStart,
+					HitResult,
+					GetInstigatorController(),
+					this,
+					NULL);
+			}
+			else
 			{
-				TraceSound_Multicast(WeaponSetting.ProjectileSetting.HitSound, HitResult);
-
-				/*UGameplayStatics::PlaySoundAtLocation(GetWorld(),
-					WeaponSetting.ProjectileSetting.HitSound,
-					Hit.ImpactNormal);*/
-
+				UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
 			}
-
-			UGameplayStatics::ApplyPointDamage(HitResult.GetActor(),
-										       WeaponSetting.ProjectileSetting.ProjectileDamage,
-											   HitResult.TraceStart,
-				                               HitResult,
-				                               GetInstigatorController(),
-				                               this,
-				                               NULL);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
+			UE_LOG(LogTemp, Warning, TEXT("FireTime "));
 		}
 	}
 
@@ -439,7 +449,7 @@ float ABaseWeapon::GetCurrentDispersion() const
 
 bool ABaseWeapon::CheckWeaponCanFire()
 {
-	return  true /*!BlockFire*/;
+	return  /*true*/ !BlockFire;
 }
 
 bool ABaseWeapon::CheckCanWeaponReload()
@@ -531,6 +541,11 @@ void ABaseWeapon::CancelAiming_Implementation()
 	{
 		ShowScopeTimeline(0.2f,false);
 	}
+}
+
+void ABaseWeapon::CheckRateOfFire()
+{
+	BlockFire = false;
 }
 
 void ABaseWeapon::RemoveMaterialLense()
