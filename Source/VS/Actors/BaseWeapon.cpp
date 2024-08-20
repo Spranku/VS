@@ -264,6 +264,8 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	FProjectileInfo SleeveInfo;
 	SleeveInfo = ProjectileInfo = GetProjectile();
 
+	FireSpread();
+
 	ABaseProjectile* mySleeve = Cast<ABaseProjectile>(GetWorld()->SpawnActor(SleeveInfo.Sleeve, &SleeveSpawnLocation, &SleeveSpawnRotation, SpawnParams));
 	if (mySleeve)
 	{
@@ -278,7 +280,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	else
 	{ 
 		///	////////////////////HitScan LineTrace////////////////////// 
-		UE_LOG(LogTemp, Error, TEXT("HitScan LineTrace"));
+		UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
 
 		FHitResult HitResult;
 		TArray<AActor*> Actors;
@@ -374,7 +376,6 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 void ABaseWeapon::InitReload()
 {
 	WeaponReloading = true;
-	//ReloadTimer = 1.8f; 
 	ReloadTimer = WeaponSetting.ReloadTime;
 
 	if (WeaponSetting.ThirdPersonReload)
@@ -481,6 +482,22 @@ void ABaseWeapon::InitAiming()
 	}
 }
 
+void ABaseWeapon::FireSpread()
+{
+	/*float*/ BaseRecoil = 0.25f;
+	/*float*/ RecoilCoef = 2.0f;
+	/*float*/ MultiplierSpread = -1.0f;
+
+	float PitchRecoil = BaseRecoil * MultiplierSpread;
+	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * MultiplierSpread, PitchRecoil / RecoilCoef));
+
+	if (Character)
+	{
+		Character->AddControllerPitchInput(PitchRecoil);
+		Character->AddControllerYawInput(YawRecoil);
+	}
+}
+
 void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
 {
 	bIsAiming ? GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::SetMaterialLense_OnClient, Value, false) : GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::RemoveMaterialLense, Value, false);
@@ -567,28 +584,9 @@ void ABaseWeapon::UpdateWeaponByCharacterMovementStateOnServer_Implementation(FV
 FVector ABaseWeapon::GetFireEndLocation() const
 {
 	bool bShootDirection = false;
-	//FVector EndLocation = FVector(0.f);
-	//FVector tmpV = (SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation);
-	//if (tmpV.Size() > 100.0f)
-	//{
-	//	EndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot((SkeletalMeshWeapon->GetSocketLocation("Ironsight") - ShootEndLocation).GetSafeNormal() * -20000.0f);
-	//	//UE_LOG(LogTemp, Error, TEXT("True"));
-	//}
-	//else
-	//{
-	//	EndLocation = /*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ ShootLocation->GetComponentLocation() + ApplyDispersionToShoot(/*SkeletalMeshWeapon->GetSocketLocation("Ironsight")*/ShootLocation->GetForwardVector()) * 20000.0f;
-	//	UE_LOG(LogTemp, Error, TEXT("False"));
-	//}
-	//UE_LOG(LogTemp, Error, TEXT("EndLocation: %s"), *EndLocation.ToString());
-	// return EndLocation;
-
 	FVector FactEndLocation = FVector(0.0f);
-	if (Character)
-	{
-		//FHitResult HitResult;
-		//GetWorld()->LineTraceSingleByChannel(HitResult, SkeletalMeshWeapon->GetSocketLocation("Ironsight"), (UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) + SkeletalMeshWeapon->GetSocketLocation("Ironsight"), ECollisionChannel::ECC_Visibility);
-		FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f);
-	}
+	Character ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) : void(0);
+
 	return FactEndLocation;
 }
 

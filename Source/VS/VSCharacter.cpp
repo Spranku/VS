@@ -361,7 +361,7 @@ void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdP
 	{
 		AnimInstance3P->Montage_Play(ThirdPersonAnim);
 		AnimInstance1P->Montage_Play(FirstPersonAnim);
-		FireRecoil(); /// Here ?
+		///FireRecoil(); /// Here ?
 	}
 }
 
@@ -699,29 +699,25 @@ void AVSCharacter::InitWeapon()
 			if (Index == CurrentIndex)
 			{
 				CurrentWeapon = Weapon3P;
-				/*CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
-				CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);  Not Working Reload for SecondaryWeapon
-				CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);*/
 				OnRep_CurrentWeapon(nullptr);
 			}
-			//FP_Gun->bOnlyOwnerSee = true;
 		}
 	}
 	TimerHandle.Invalidate();
 }
 
-void AVSCharacter::FireRecoil()
-{
-	float BaseRecoil = 0.25f;
-	float RecoilCoef = 2.0f;
-	float Multiplier = -1.0f;
-
-	float PitchRecoil = BaseRecoil * Multiplier;
-	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * Multiplier, PitchRecoil / RecoilCoef));
-
-	AddControllerPitchInput(PitchRecoil);
-	AddControllerYawInput(YawRecoil);
-}
+//void AVSCharacter::FireRecoil()
+//{
+//	float BaseRecoil = 0.25f;
+//	float RecoilCoef = 2.0f;
+//	float Multiplier = -1.0f;
+//
+//	float PitchRecoil = BaseRecoil * Multiplier;
+//	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * Multiplier, PitchRecoil / RecoilCoef));
+//
+//	AddControllerPitchInput(PitchRecoil);
+//	AddControllerYawInput(YawRecoil);
+//}
 
 EMovementState AVSCharacter::GetMovementState()
 {

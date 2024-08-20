@@ -51,12 +51,6 @@ public:
 	class AVSCharacter* CurrentOwner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
-	UMaterialInstance* CustomLenseMaterial;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
-	UMaterialInstance* DefaultLenseMaterial;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	class UTextureRenderTarget2D* TextureTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
@@ -71,22 +65,38 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponReloading = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
-	FWeaponInfo WeaponSetting;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FAdditionalWeaponInfo WeaponInfo;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
-	float ReloadTimer = 0.0f;
-
-	UPROPERTY(Replicated)
-	FVector ShootEndLocation = FVector(0);
-
 	UPROPERTY(Replicated)
 	bool WeaponAiming = false;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
+	float ReloadTimer = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	float BaseRecoil = 0.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	float RecoilCoef = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	float MultiplierSpread = -1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
+	FWeaponInfo WeaponSetting;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FAdditionalWeaponInfo WeaponInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	UMaterialInstance* CustomLenseMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	UMaterialInstance* DefaultLenseMaterial;
+
+	UPROPERTY(Replicated)
+	FVector ShootEndLocation = FVector(0);
 
 	AVSCharacter* Character = nullptr;
 
@@ -139,6 +149,8 @@ public:
 	void CancelReload();
 
 	void InitAiming();
+
+	void FireSpread();
 
 	void ChangeDispersionByShoot();
 	

@@ -228,7 +228,7 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-	void FireRecoil();
+	///void FireRecoil();
 
 	FVector GetForwardVectorFromCamera();
 
