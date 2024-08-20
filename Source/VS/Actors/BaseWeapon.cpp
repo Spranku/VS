@@ -494,9 +494,9 @@ void ABaseWeapon::InitAiming()
 
 void ABaseWeapon::FireSpread()
 {
-	/*float*/ BaseRecoil = 0.25f;
-	/*float*/ RecoilCoef = 2.0f;
-	/*float*/ MultiplierSpread = -1.0f;
+	///BaseRecoil = 0.25f;
+	///RecoilCoef = 2.0f;
+	///MultiplierSpread = -1.0f;
 
 	float PitchRecoil = BaseRecoil * MultiplierSpread;
 	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * MultiplierSpread, PitchRecoil / RecoilCoef));
