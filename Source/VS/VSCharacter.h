@@ -118,6 +118,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,Replicated)
 	bool bIsAiming = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bIsJumping = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float Direction;
 
@@ -222,13 +225,15 @@ protected:
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
+	virtual void Jump() override;
+
+	virtual void StopJumping() override;
+
 public:
 	
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
-	///void FireRecoil();
 
 	FVector GetForwardVectorFromCamera();
 

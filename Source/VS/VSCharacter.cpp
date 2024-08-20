@@ -161,8 +161,8 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	check(PlayerInputComponent);
 
 	// Bind jump events
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVSCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AVSCharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AVSCharacter::InitCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AVSCharacter::StopCrouch);
@@ -190,6 +190,18 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 	PlayerInputComponent->BindAction(FName("NextWeapon"), EInputEvent::IE_Pressed, this, &AVSCharacter::NextWeapon);
 	PlayerInputComponent->BindAction(FName("LastWeapon"), EInputEvent::IE_Pressed, this, &AVSCharacter::LastWeapon);
+}
+
+void AVSCharacter::Jump()
+{
+	bIsJumping = true;
+	Super::Jump();
+}
+
+void AVSCharacter::StopJumping()
+{
+	bIsJumping = false;
+	Super::StopJumping();
 }
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
@@ -367,6 +379,7 @@ void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdP
 
 void AVSCharacter::InitAiming()
 {
+
 	if (CurrentWeapon && CurrentWeapon->bIsRailGun)
 	{
 		InitAimTimeline(90.0f, 30.0f);
@@ -375,7 +388,6 @@ void AVSCharacter::InitAiming()
 	{
 		InitAimTimeline(90.0f, 60.0f);
 	}
-
 	if (HasAuthority())
 	{
 		bIsAiming = true;
