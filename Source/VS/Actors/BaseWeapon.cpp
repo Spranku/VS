@@ -357,8 +357,6 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 				                               GetInstigatorController(),
 				                               this,
 				                               NULL);
-
-			UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() and HitResult.PhysMaterial Is Success Valid!!!"));
 		}
 		else
 		{
@@ -383,6 +381,10 @@ void ABaseWeapon::InitReload()
 	{
 		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
 		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::InitReload() - WeaponSetting.ThirdPersonReload = false"));
 	}
 
 	//if (WeaponSetting.ClipDropMesh.DropMesh)

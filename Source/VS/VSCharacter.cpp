@@ -312,6 +312,10 @@ void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 		/// WeaponReloadStart_BP(Anim3P, Anim1P);
 		PlayReloadMontage_Multicast(Anim3P, Anim1P);
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::WeaponReloadStart - Anim3P && Anim1P = 0"));
+	}
 }
 
 void AVSCharacter::PlayReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
@@ -322,6 +326,10 @@ void AVSCharacter::PlayReloadMontage_Multicast_Implementation(UAnimMontage* Thir
 	{
 		AnimInstance3P->Montage_Play(ThirdPersonAnim);
 		AnimInstance1P->Montage_Play(FirstPersonAnim);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::PlayReloadMontage_Multicast_Implementation - AnimInstance3P = nullptr && AnimInstance1P = nullptr"));
 	}
 }
 
@@ -661,14 +669,13 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 		}
 
-		/*if (CurrentWeapon->bIsRailGun)
-		{
-			FP_Gun->SetRelativeRotation(FRotator(FP_Gun->GetComponentRotation().Pitch, -90.0f, FP_Gun->GetComponentRotation().Roll + 10.0f));
-			
-		}*/
-		/*CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
+		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::WeaponFireStart);
+
+		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);*/
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
 	}
 
 	if (OldWeapon)
@@ -692,9 +699,9 @@ void AVSCharacter::InitWeapon()
 			if (Index == CurrentIndex)
 			{
 				CurrentWeapon = Weapon3P;
-				CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
-				CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-				CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
+				/*CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+				CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);  Not Working Reload for SecondaryWeapon
+				CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);*/
 				OnRep_CurrentWeapon(nullptr);
 			}
 			//FP_Gun->bOnlyOwnerSee = true;
