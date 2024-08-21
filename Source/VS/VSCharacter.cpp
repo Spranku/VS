@@ -67,7 +67,7 @@ void AVSCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AVSCharacter::InitWeapon, 0.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(InitWeaponTimerHandle, this, &AVSCharacter::InitWeapon, 0.5f, false);
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
@@ -206,20 +206,34 @@ void AVSCharacter::StopJumping()
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
+	/*
+	* TODO CANFIRE = FALSE!
+	*/
+
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		UE_LOG(LogTemp, Error, TEXT("StartEquipAnim1"));
-		CurrentIndex = Index;
-		const ABaseWeapon* OldWeapon = CurrentWeapon;
-		CurrentWeapon = Weapons[Index];
-		OnRep_CurrentWeapon(OldWeapon);
+		WeaponEquipAnimStart(ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
+		///CurrentIndex = Index;
+		///const ABaseWeapon* OldWeapon = CurrentWeapon;
+		///CurrentWeapon = Weapons[Index];
+		///OnRep_CurrentWeapon(OldWeapon);
+		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
+		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 1.0f, false);
 	}
 	else if (!HasAuthority())
 	{
 		SetCurrentWeapon_OnServer(Weapons[Index]);
 	}
+}
+
+void AVSCharacter::ChangingWeapon(int32 Index)
+{
+	CurrentIndex = Index;
+	const ABaseWeapon* OldWeapon = CurrentWeapon;
+	CurrentWeapon = Weapons[Index];
+	OnRep_CurrentWeapon(OldWeapon);
 }
 
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
@@ -317,12 +331,12 @@ void AVSCharacter::InitReload()
 	TryReloadWeapon();
 }
 
-void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
 	if (Anim3P && Anim1P)
 	{
 		/// WeaponReloadStart_BP(Anim3P, Anim1P);
-		PlayReloadMontage_Multicast(Anim3P, Anim1P);
+		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
 	}
 	else
 	{
@@ -330,7 +344,7 @@ void AVSCharacter::WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 	}
 }
 
-void AVSCharacter::PlayReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
 	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
 	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
@@ -351,7 +365,7 @@ void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
 	/// WeaponReloadEnd_BP(bIsSuccess);
 }
 
-void AVSCharacter::WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
 	///if (InventoryComponent && CurrentWeapon)
 	///{
@@ -361,11 +375,30 @@ void AVSCharacter::WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 	
 	if (Anim3P && Anim1P)
 	{	
-		WeaponFireStart_Multicast(Anim3P, Anim1P);
+		PlayWeaponFireMontage_Multicast(Anim3P, Anim1P);
 	}
 }
 
-void AVSCharacter::WeaponFireStart_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+void AVSCharacter::WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+{
+	if (Anim3P && Anim1P)
+	{
+		PlayWeaponEquipMontage_Multicast(Anim3P, Anim1P);
+	}
+}
+
+void AVSCharacter::PlayWeaponEquipMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+{
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	{
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
+	}
+}
+
+void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
 	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
 	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
@@ -457,7 +490,6 @@ void AVSCharacter::NextWeapon()
 
 	if (HasAuthority())
 	{
-		
 		EquipWeapon_OnServer(Index);
 	}
 	else
@@ -479,6 +511,7 @@ void AVSCharacter::LastWeapon()
 		EquipWeapon_OnServer(Index);
 	}
 }
+
 
 void AVSCharacter::FireEvent(bool bIsFiring)
 {
@@ -681,19 +714,21 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 		}
 
-		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::WeaponReloadAnimStart);
 		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::WeaponFireStart);
+		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::WeaponFireAnimStart);
 
-		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadStart);
+		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadAnimStart);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireStart);
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireAnimStart);
 	}
 
 	if (OldWeapon)
 	{
 		OldWeapon->SkeletalMeshWeapon->SetVisibility(false,true);
 	}
+
+	GetWorld()->GetTimerManager().ClearTimer(EquipTimerHandle);
 }
 
 void AVSCharacter::InitWeapon()
@@ -715,7 +750,7 @@ void AVSCharacter::InitWeapon()
 			}
 		}
 	}
-	TimerHandle.Invalidate();
+	InitWeaponTimerHandle.Invalidate();
 }
 
 //void AVSCharacter::FireRecoil()

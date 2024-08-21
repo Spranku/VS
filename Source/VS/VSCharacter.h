@@ -72,11 +72,11 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FirstPersonFireAnimation;
+	UAnimMontage* FirstPersonEquipWeaponAnimation;
 
 	/** AnimMontage to play each time we reloading */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FirstPersonReloadAnimation;
+	UAnimMontage* ThirdPersonEquipAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	TArray<UAnimMontage*> DeadsAnim;
@@ -139,7 +139,11 @@ public:
 
 protected:
 
-	FTimerHandle TimerHandle;
+	FTimerHandle InitWeaponTimerHandle;
+
+	FTimerHandle EquipTimerHandle;
+
+	FTimerDelegate EquipTimerDelegate;
 
 	FTimerHandle AimTimerHandle;
 
@@ -165,6 +169,7 @@ protected:
 
 	void LastWeapon();
 
+
 	void ChangeMovementState();
 
 	void CharacterUpdate();
@@ -184,6 +189,9 @@ protected:
 	void InitAimTimeline(float From, float To);
 
 	EMovementState GetMovementState();
+
+	UFUNCTION()
+	void ChangingWeapon(int32 Index);
 
 	UFUNCTION()
 	void ChangeFoV(float In, float Out);
@@ -248,24 +256,31 @@ public:
 	void InitWeapon();
 
 	UFUNCTION()
-	void WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION()
 	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
 
 	UFUNCTION()
-	void WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+
+	UFUNCTION()
+	void WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);
 
-	UFUNCTION(NetMulticast,Unreliable)
-	void WeaponFireStart_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-	 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PlayReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-
 	UFUNCTION(NetMulticast, Reliable)
 	void M_LookUPSync(FRotator RotationSync);
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayWeaponEquipMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
 };
 

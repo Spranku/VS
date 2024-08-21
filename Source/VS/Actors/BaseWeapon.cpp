@@ -558,7 +558,7 @@ void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThi
 {
 	if (Character && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
 	{
-		Character->PlayReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
+		Character->PlayWeaponReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
 	}
 }
 
