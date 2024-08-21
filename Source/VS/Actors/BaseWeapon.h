@@ -210,6 +210,9 @@ public:
 	void TraceFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
 
 	UFUNCTION(NetMulticast, Unreliable)
+	void FireWeaponFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
+
+	UFUNCTION(NetMulticast, Unreliable)
 	void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

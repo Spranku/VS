@@ -332,6 +332,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 							5.0f);
 					}
 				}
+				 /// TODO Ternar operator
 				if (WeaponSetting.ProjectileSetting.HitFXs.Contains(mySurfaceType))
 				{
 					TraceFX_Multicast(WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType], HitResult);
@@ -345,6 +346,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 							Hit.ImpactPoint,
 							FVector(1.0f)));
 					}*/
+				}
+
+				if (WeaponSetting.EffectFireWeapon)
+				{
+					FireWeaponFX_Multicast(WeaponSetting.EffectFireWeapon, HitResult);
 				}
 
 				if (WeaponSetting.ProjectileSetting.HitSound)
@@ -513,14 +519,26 @@ void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
 	bIsAiming ? GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::SetMaterialLense_OnClient, Value, false) : GetWorld()->GetTimerManager().SetTimer(ScopeTimerHandle, this, &ABaseWeapon::RemoveMaterialLense, Value, false);
 }
 
-void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FxTemplate, FHitResult HitResult)
+void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
 {
-	if (FxTemplate)
+	if (FX)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
-												 FxTemplate,
+												 FX,
 												 FTransform(HitResult.ImpactNormal.Rotation(),
 												 HitResult.ImpactPoint,
+												 FVector(1.0f)));
+	}
+}
+
+void ABaseWeapon::FireWeaponFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
+{
+	if (FX)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+												 FX,
+												 FTransform(HitResult.ImpactNormal.Rotation(),
+												 HitResult.TraceStart,
 												 FVector(1.0f)));
 	}
 }
