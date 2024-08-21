@@ -206,10 +206,6 @@ void AVSCharacter::StopJumping()
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
-	/*
-	* TODO CANFIRE = FALSE!
-	*/
-
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
 
 	if (IsLocallyControlled() || HasAuthority())
@@ -219,8 +215,10 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 		///const ABaseWeapon* OldWeapon = CurrentWeapon;
 		///CurrentWeapon = Weapons[Index];
 		///OnRep_CurrentWeapon(OldWeapon);
+		
+		CurrentWeapon->BlockFire = true;
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
-		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 1.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 1.5f, false);
 	}
 	else if (!HasAuthority())
 	{
@@ -230,10 +228,12 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 void AVSCharacter::ChangingWeapon(int32 Index)
 {
+	GetWorld()->GetTimerManager().ClearTimer(EquipTimerHandle);
 	CurrentIndex = Index;
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
 	CurrentWeapon = Weapons[Index];
 	OnRep_CurrentWeapon(OldWeapon);
+	CurrentWeapon->BlockFire = false;
 }
 
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)

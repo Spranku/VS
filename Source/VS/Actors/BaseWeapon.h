@@ -152,8 +152,6 @@ public:
 
 	void InitAiming();
 
-	void FireSpread();
-
 	void ChangeDispersionByShoot();
 	
 	float GetCurrentDispersion() const;
@@ -201,6 +199,9 @@ public:
 
 	UFUNCTION(Client, Unreliable)
 	void SetMaterialLense_OnClient();
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void FireSpread();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);

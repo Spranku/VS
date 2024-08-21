@@ -492,7 +492,7 @@ void ABaseWeapon::InitAiming()
 	}
 }
 
-void ABaseWeapon::FireSpread()
+void ABaseWeapon::FireSpread_Implementation()
 {
 	///BaseRecoil = 0.25f;
 	///RecoilCoef = 2.0f;
