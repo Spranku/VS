@@ -38,6 +38,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UStaticMeshComponent* StaticMeshWeapon = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Components)
+	class UStaticMeshComponent* LenseMesh = nullptr;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAcess = "true"), Category = Components)
 	class UArrowComponent* ShootLocation = nullptr;
 
@@ -47,7 +50,11 @@ public:
 	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "State")
 	class AVSCharacter* CurrentOwner;
 
-	AVSCharacter* Character = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	class UTextureRenderTarget2D* TextureTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	class USceneCaptureComponent2D* SceneCapture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool ShowDebug = false;
@@ -58,20 +65,40 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponReloading = false;
 
+	UPROPERTY(Replicated)
+	bool WeaponAiming = false;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
+	bool bIsRailGun = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
+	float ReloadTimer = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	float BaseRecoil = 0.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	float RecoilCoef = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	float MultiplierSpread = -1.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	FWeaponInfo WeaponSetting;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo WeaponInfo;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
-	float ReloadTimer = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	UMaterialInstance* CustomLenseMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
+	UMaterialInstance* DefaultLenseMaterial;
 
 	UPROPERTY(Replicated)
 	FVector ShootEndLocation = FVector(0);
 
-	UPROPERTY(Replicated)
-	bool WeaponAiming = false;
+	AVSCharacter* Character = nullptr;
 
 	float FireTime = 0.0f;
 		
@@ -101,6 +128,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	FTimerHandle ScopeTimerHandle;
+
+	FTimerHandle FireTimerHande;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -119,8 +150,10 @@ public:
 
 	void CancelReload();
 
-	void ChangeDispersionByShoot();
+	void InitAiming();
 
+	void ChangeDispersionByShoot();
+	
 	float GetCurrentDispersion() const;
 
 	bool CheckWeaponCanFire();
@@ -131,8 +164,20 @@ public:
 
 	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
 
+	UFUNCTION()
+	void CheckRateOfFire();
+
+	UFUNCTION()
+	void RemoveMaterialLense();
+
+	UFUNCTION()
+	void ShowScopeTimeline(float Value, bool bIsAiming);
+
 	UFUNCTION(BlueprintCallable)
-	int32 GetWeaponRound();
+	int32 GetWeaponRound() const;
+
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetWeaponType() const;
 
 	UFUNCTION()
 	FProjectileInfo GetProjectile();
@@ -149,8 +194,26 @@ public:
 	UFUNCTION(Server, Unreliable)
 	void UpdateWeaponByCharacterMovementStateOnServer(FVector NewShootEndLocation, bool NewShouldReduceDispersion);
 
+	UFUNCTION(Client, Unreliable)
+	void CancelAiming();
+
+	UFUNCTION(Client, Unreliable)
+	void SetMaterialLense_OnClient();
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void FireSpread();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void TraceFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void FireWeaponFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

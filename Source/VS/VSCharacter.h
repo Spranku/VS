@@ -72,11 +72,11 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FirstPersonFireAnimation;
+	UAnimMontage* FirstPersonEquipWeaponAnimation;
 
 	/** AnimMontage to play each time we reloading */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FirstPersonReloadAnimation;
+	UAnimMontage* ThirdPersonEquipAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	TArray<UAnimMontage*> DeadsAnim;
@@ -118,6 +118,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,Replicated)
 	bool bIsAiming = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bIsJumping = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float Direction;
 
@@ -130,13 +133,25 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float AimYaw;
 
-	FTimerHandle TimerHandle;
-
 	FRotator CamForwardVector;
 
 	FRotator ControlRotationSynchronized;
 
 protected:
+
+	FTimerHandle InitWeaponTimerHandle;
+
+	FTimerHandle EquipTimerHandle;
+
+	FTimerDelegate EquipTimerDelegate;
+
+	FTimerHandle AimTimerHandle;
+
+	FTimerDelegate AimTimerDelegate;
+
+	float Alpha = 0.0f;
+	
+	bool bCanAiming = true;
 
 	void OnFire();
 
@@ -156,6 +171,7 @@ protected:
 
 	void LastWeapon();
 
+
 	void ChangeMovementState();
 
 	void CharacterUpdate();
@@ -172,7 +188,12 @@ protected:
 
 	void LookUpAtRate(float Rate);
 
+	void InitAimTimeline(float From, float To);
+
 	EMovementState GetMovementState();
+
+	UFUNCTION()
+	void ChangeFoV(float In, float Out);
 
 	UFUNCTION()
 	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
@@ -201,6 +222,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
 
+	UFUNCTION(Client,Unreliable)
+	void BlockActionDuringEquip_OnClient();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
 
@@ -211,13 +235,15 @@ protected:
 	
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
+	virtual void Jump() override;
+
+	virtual void StopJumping() override;
+
 public:
 	
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
-	void FireRecoil();
 
 	FVector GetForwardVectorFromCamera();
 
@@ -232,24 +258,34 @@ public:
 	void InitWeapon();
 
 	UFUNCTION()
-	void WeaponReloadStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION()
 	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
 
 	UFUNCTION()
-	void WeaponFireStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+
+	UFUNCTION()
+	void WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION(Server, Reliable)
 	void S_LookUPSync(FRotator RotationSync);
 
-	UFUNCTION(NetMulticast,Unreliable)
-	void WeaponFireStart_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-	 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PlayReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-
 	UFUNCTION(NetMulticast, Reliable)
 	void M_LookUPSync(FRotator RotationSync);
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void ChangingWeapon(int32 Index);
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayWeaponEquipMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
 };
 
