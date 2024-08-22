@@ -327,7 +327,7 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 
 void AVSCharacter::InitReload()
 {
-	/// bIsReload = true;
+	bIsAiming ? StopAiming() : void(0);
 	TryReloadWeapon();
 }
 
@@ -439,13 +439,16 @@ void AVSCharacter::InitAiming_OnServer_Implementation()
 
 void AVSCharacter::StopAiming()
 {
-	if (CurrentWeapon && CurrentWeapon->bIsRailGun)
+	if (bIsAiming)
 	{
-		InitAimTimeline(30.0f, 90.0f);
-	}
-	else
-	{
-		InitAimTimeline(60.0f, 90.0f);
+		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
+		{
+			InitAimTimeline(30.0f, 90.0f);
+		}
+		else
+		{
+			InitAimTimeline(60.0f, 90.0f);
+		}
 	}
 
 	if (HasAuthority())
@@ -511,7 +514,6 @@ void AVSCharacter::LastWeapon()
 		EquipWeapon_OnServer(Index);
 	}
 }
-
 
 void AVSCharacter::FireEvent(bool bIsFiring)
 {
