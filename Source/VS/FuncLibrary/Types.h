@@ -17,12 +17,6 @@ enum class EMovementState : uint8
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
-	/*RifleType UMETA(DisplayName = "RifleType"),
-	ShootGunType UMETA(DisplayName = "ShootGunType"),
-	SniperRifle UMETA(DisplayName = "SniperRifle"),
-	GrenadeLauncher UMETA(DisplayName = "GrenadeLauncher"),
-	RocketLauncher UMETA(DisplayName = "RocketLauncher")*/
-
 	PrimaryWeapon UMETA(DisplayName = "PrimaryWeapon"),
 	SecondaryWeapon UMETA(DisplayName = "SecondaryWeapon")
 };
