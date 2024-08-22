@@ -150,6 +150,8 @@ protected:
 	FTimerDelegate AimTimerDelegate;
 
 	float Alpha = 0.0f;
+	
+	bool bCanAiming = true;
 
 	void OnFire();
 
@@ -191,9 +193,6 @@ protected:
 	EMovementState GetMovementState();
 
 	UFUNCTION()
-	void ChangingWeapon(int32 Index);
-
-	UFUNCTION()
 	void ChangeFoV(float In, float Out);
 
 	UFUNCTION()
@@ -222,6 +221,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
+
+	UFUNCTION(Client,Unreliable)
+	void BlockActionDuringEquip_OnClient();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
@@ -272,6 +274,9 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void M_LookUPSync(FRotator RotationSync);
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void ChangingWeapon(int32 Index);
 
 	UFUNCTION(NetMulticast,Unreliable)
 	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
