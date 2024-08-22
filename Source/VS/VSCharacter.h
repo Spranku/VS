@@ -286,6 +286,5 @@ public:
 	 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-
 };
 
