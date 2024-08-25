@@ -120,7 +120,7 @@ void ABaseWeapon::FireTick(float DeltaTime)
 			FTransform ShootTo;
 			FHitResult HitResult;
 
-			if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection + MuzzleLocation, ECollisionChannel::ECC_Visibility))
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection + MuzzleLocation, ECollisionChannel::ECC_Camera))
 			{
 				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
 				/*DrawDebugLine(GetWorld(),
@@ -288,26 +288,26 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 			TArray<AActor*> Actors;
 
 			UKismetSystemLibrary::LineTraceSingle(GetWorld(),
-				ShootTo.GetLocation(),
-				ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-				TraceTypeQuery4,
-				false,
-				Actors,
-				EDrawDebugTrace::ForDuration,
-				HitResult,
-				true,
-				FLinearColor::Red,
-				FLinearColor::Green,
-				5.0f);
+												  ShootTo.GetLocation(),
+												  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+												  TraceTypeQuery1,
+												  false,
+												  Actors,
+												  EDrawDebugTrace::ForDuration,
+												  HitResult,
+												  true,
+												  FLinearColor::Red,
+												  FLinearColor::Green,
+												  5.0f);
 
 			DrawDebugLine(GetWorld(),
-				ShootTo.GetLocation(),
-				ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-				FColor::Green,
-				false,
-				5.0f,
-				(uint8)'\000',
-				0.5f);
+						  ShootTo.GetLocation(),
+						  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+						  FColor::Green,
+						  false,
+						  5.0f,
+						  (uint8)'\000',
+						  0.5f);
 
 			BlockFire = true;
 			GetWorld()->GetTimerManager().SetTimer(FireTimerHande, this, &ABaseWeapon::CheckRateOfFire, WeaponSetting.RateOfFire, false);
@@ -364,12 +364,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 				}
 
 				UGameplayStatics::ApplyPointDamage(HitResult.GetActor(),
-					WeaponSetting.ProjectileSetting.ProjectileDamage,
-					HitResult.TraceStart,
-					HitResult,
-					GetInstigatorController(),
-					this,
-					NULL);
+												   WeaponSetting.WeaponDamage,
+												   HitResult.TraceStart,
+												   HitResult,
+												   GetInstigatorController(),
+												   this,
+												   NULL);
 			}
 			else
 			{

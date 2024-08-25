@@ -129,7 +129,7 @@ void ABaseProjectile::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, AAc
 			SpawnHitSound_Multicast(ProjectileSetting.HitSound, Hit);
 		}
 
-		//UType::AddEffecttBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfaceType);
+		///	UType::AddEffecttBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfaceType);
 	}
 
 	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);
@@ -146,6 +146,7 @@ void ABaseProjectile::BulletCollisionSphereEndOverlap(UPrimitiveComponent* Overl
 
 void ABaseProjectile::ImpactProjectile()
 {
+	this->Destroy();
 }
 
 void ABaseProjectile::InitVisualMeshProjectile_Multicast_Implementation(UStaticMesh* newMesh, FTransform MeshRelative)

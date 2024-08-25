@@ -7,6 +7,7 @@
 #include "Actors/BaseWeapon.h"
 #include "FuncLibrary/Types.h"
 #include "Actors/BaseWeapon.h"
+#include "VSCharacterHealthComponent.h"
 #include "VSCharacter.generated.h"
 
 class UInputComponent;
@@ -32,6 +33,9 @@ protected:
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UVSCharacterHealthComponent* CharacterHealthComponent;
 
 public:
 	/** First person camera */
@@ -249,7 +253,21 @@ public:
 
 	FVector GetLocationFromCamera();
 
+	virtual float TakeDamage(float DamageAmount,
+							 struct FDamageEvent const& DamageEvent,
+							 class AController* EventInstigator,
+							 AActor* DamageCauser) override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool GetIsAlive();
+
+	UFUNCTION(BlueprintCallable)
+	void CharDead();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void CharDead_BP();
 
 	UFUNCTION(BlueprintCallable)
 	ABaseWeapon* GetCurrentWeapon();
@@ -286,5 +304,8 @@ public:
 	 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 };
 

@@ -59,6 +59,9 @@ AVSCharacter::AVSCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
+	CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
+	CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
+
 	bReplicates = true;
 }
 
@@ -205,6 +208,53 @@ void AVSCharacter::StopJumping()
 	bIsJumping = false;
 	bCanAiming = true;
 	Super::StopJumping();
+}
+
+void AVSCharacter::CharDead()
+{
+	UE_LOG(LogTemp, Warning, TEXT("CharDead!"));
+	CharDead_BP();
+
+	//if (HasAuthority())
+	//{
+	//	float TimeAnim = 0.0f;
+
+	//	int32 rnd = FMath::RandHelper(DeadsAnim.Num());
+	//	if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
+	//	{
+	//		TimeAnim = DeadsAnim[rnd]->GetPlayLength();
+	//		//GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
+	//		///	PlayAnim_Multicast(DeadsAnim[rnd]);
+	//		PlayDeadMontage_Multicast(DeadsAnim[rnd], DeadsAnim[rnd]);
+	//	}
+	//	//bIsAlive = false;
+
+	//	if (GetController())
+	//	{
+	//		GetController()->UnPossess();
+	//	}
+	//	///	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATPSCharacter::EnableRagdoll_Multicast, TimeAnim, false);
+
+	//	SetLifeSpan(20.0f);
+
+	///*	if (GetCurrentWeapon())
+	//	{
+	//		GetCurrentWeapon()->SetLifeSpan(20.0f);
+	//	}*/
+	//}
+	//else
+	//{
+	//	///	AttackCharEvent(false);
+	//}
+
+	//if (GetCapsuleComponent())
+	//{
+	//	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	//}
+}
+
+void AVSCharacter::CharDead_BP_Implementation()
+{
 }
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
@@ -422,6 +472,17 @@ void AVSCharacter::PlayWeaponEquipMontage_Multicast_Implementation(UAnimMontage*
 	}
 }
 
+void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+{
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	{
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
+	}
+}
+
 void AVSCharacter::InitAiming()
 {
 	if (bCanAiming)
@@ -528,7 +589,6 @@ void AVSCharacter::LastWeapon()
 		EquipWeapon_OnServer(Index);
 	}
 }
-
 
 void AVSCharacter::FireEvent(bool bIsFiring)
 {
@@ -786,6 +846,27 @@ FVector AVSCharacter::GetLocationFromCamera()
 	return FirstPersonCameraComponent->GetComponentLocation();
 }
 
+float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive())
+	{
+		//CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
+		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount);
+	}
+
+	//if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
+	//{
+	//	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(DamageCauser);
+	//	if (myProjectile)
+	//	{
+	//		UType::AddEffecttBySurfaceType(this, NAME_None, myProjectile->ProjectileSetting.Effect, GetSurfaceType()); // To Do Name none - bone for radial damage
+	//	}
+	//}
+
+	return ActualDamage;
+}
+
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
 {
 	return CurrentWeapon;
@@ -810,5 +891,15 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
+}
+
+bool AVSCharacter::GetIsAlive()
+{
+	bool result = false;
+	if (CharacterHealthComponent)
+	{
+		result = CharacterHealthComponent->GetIsAlive();
+	}
+	return result;
 }
 
