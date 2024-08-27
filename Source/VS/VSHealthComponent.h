@@ -7,7 +7,7 @@
 #include "VSHealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChange, float, Health, float, Damage);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDead);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead,AController*,DamageInstigator);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -29,7 +29,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	///UPROPERTY(Replicated)
+	UPROPERTY(Replicated)
 	float Health = 100.0f;
 
 	UPROPERTY(Replicated)
@@ -52,10 +52,10 @@ public:
 	bool GetIsAlive();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Health")
-	virtual void ChangeHealthValue_OnServer(float ChangeValue);
+	virtual void ChangeHealthValue_OnServer(float ChangeValue, AController* DamageInstigator);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void DeadEvent_Multicast();
+	void DeadEvent_Multicast(AController* DamageInstigator);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void OnHealthChangeEvent_Multicast(float newHealth, float value);

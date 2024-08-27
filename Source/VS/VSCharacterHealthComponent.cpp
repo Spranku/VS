@@ -3,7 +3,7 @@
 
 #include "VSCharacterHealthComponent.h"
 
-void UVSCharacterHealthComponent::ChangeHealthValue_OnServer(float ChangeValue)
+void UVSCharacterHealthComponent::ChangeHealthValue_OnServer(float ChangeValue, AController* DamageInstigator)
 {
 	float CurrentDamage = ChangeValue * CoefDamage;
 
@@ -18,7 +18,7 @@ void UVSCharacterHealthComponent::ChangeHealthValue_OnServer(float ChangeValue)
 	}
 	else
 	{
-		Super::ChangeHealthValue_OnServer(ChangeValue);
+		Super::ChangeHealthValue_OnServer(ChangeValue, DamageInstigator);
 	}
 }
 

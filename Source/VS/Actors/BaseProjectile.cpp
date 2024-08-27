@@ -3,6 +3,7 @@
 
 #include "BaseProjectile.h"
 #include <Kismet/GameplayStatics.h> 
+#include "Perception/AISense_Damage.h"
 #include <PhysicalMaterials/PhysicalMaterial.h>
 #include "/Projects/VS/Source/VS/FuncLibrary/Types.h"
 
@@ -132,7 +133,18 @@ void ABaseProjectile::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, AAc
 		///	UType::AddEffecttBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfaceType);
 	}
 
+
+	/*if (GetInstigatorController())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Have controller"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Error: don`t have controller"));
+	}*/
+
 	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);
+	UAISense_Damage::ReportDamageEvent(GetWorld(), Hit.GetActor(), GetInstigator(), ProjectileSetting.ProjectileDamage, Hit.Location, Hit.Location);
 	ImpactProjectile();
 }
 

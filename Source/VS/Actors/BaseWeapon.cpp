@@ -62,16 +62,18 @@ void ABaseWeapon::BeginPlay()
 
 	DefaultLenseMaterial ? LenseMesh->SetMaterial(0, DefaultLenseMaterial) : 0;
 
-	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
-	if (MyChar)
-	{
-		Character = MyChar;
-		UE_LOG(LogTemp, Warning, TEXT("Success cast to Character"));	
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
-	}
+	//AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
+	//if (MyChar)
+	//{
+	//	/*Character*/ CurrentOwner = MyChar;
+	//	/*CurrentOwner = Character;*/
+	//	
+	//	UE_LOG(LogTemp, Warning, TEXT("Success cast to Character"));	
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
+	//}
 
 	WeaponInit();
 
@@ -80,6 +82,22 @@ void ABaseWeapon::BeginPlay()
 		SkeletalMeshWeapon->SetVisibility(true);
 	}
 }
+
+void ABaseWeapon::OwnerInit()
+{
+	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
+	if (MyChar)
+	{
+		CurrentOwner = MyChar;
+		CurrentOwner->SetInstigator(CurrentOwner);
+		UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::OwnerInit - success SetOwner and SetInstigator"));	
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
+	}
+}
+
 // Called every frame
 void ABaseWeapon::Tick(float DeltaTime)
 {
@@ -116,7 +134,7 @@ void ABaseWeapon::FireTick(float DeltaTime)
 		if (FireTime < 0.f)
 		{
 			FVector MuzzleLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight");
-			FVector ShootDirection = Character->GetForwardVectorFromCamera() * 10000.0f; /// 
+			FVector ShootDirection = CurrentOwner->GetForwardVectorFromCamera() * 10000.0f; /// 
 			FTransform ShootTo;
 			FHitResult HitResult;
 
@@ -253,7 +271,19 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
+	UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Owner: %s"), *GetOwner()->GetName());
 	SpawnParams.Instigator = GetInstigator();
+	UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Instigator: %s"), (GetInstigator() ? *GetInstigator()->GetName() : TEXT("None")));
+
+	AController* Controller = GetInstigatorController();
+	if (Controller)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Instigator Controller: %s"), *Controller->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - No Instigator Controller found."));
+	}
 
 	FProjectileInfo ProjectileInfo;
 	ProjectileInfo = GetProjectile();
@@ -275,6 +305,14 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation,&SpawnRotation, SpawnParams));
 	if (myProjectile)
 	{
+		if (SpawnParams.Instigator)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Success have controller"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Don`t have controller"));
+		}
 		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
 	}
 	else
@@ -289,7 +327,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 			UKismetSystemLibrary::LineTraceSingle(GetWorld(),
 												  ShootTo.GetLocation(),
-												  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+												  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(/*Character*/CurrentOwner->GetController()->GetControlRotation()) * 20000.0f,
 												  TraceTypeQuery1,
 												  false,
 												  Actors,
@@ -302,7 +340,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 			DrawDebugLine(GetWorld(),
 						  ShootTo.GetLocation(),
-						  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
+						  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(/*Character*/CurrentOwner->GetController()->GetControlRotation()) * 20000.0f,
 						  FColor::Green,
 						  false,
 						  5.0f,
@@ -507,10 +545,10 @@ void ABaseWeapon::FireSpread_Implementation()
 	float PitchRecoil = BaseRecoil * MultiplierSpread;
 	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * MultiplierSpread, PitchRecoil / RecoilCoef));
 
-	if (Character)
+	if (/*Character*/CurrentOwner)
 	{
-		Character->AddControllerPitchInput(PitchRecoil);
-		Character->AddControllerYawInput(YawRecoil);
+		/*Character*/CurrentOwner->AddControllerPitchInput(PitchRecoil);
+		/*Character*/CurrentOwner->AddControllerYawInput(YawRecoil);
 	}
 }
 
@@ -574,9 +612,9 @@ void ABaseWeapon::RemoveMaterialLense()
 
 void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
 {
-	if (Character && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
+	if (/*Character*/ CurrentOwner && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
 	{
-		Character->PlayWeaponReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
+		/*Character*/CurrentOwner->PlayWeaponReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
 	}
 }
 
@@ -618,7 +656,7 @@ FVector ABaseWeapon::GetFireEndLocation() const
 {
 	bool bShootDirection = false;
 	FVector FactEndLocation = FVector(0.0f);
-	Character ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f) : void(0);
+	/*Character*/CurrentOwner ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(/*Character*/CurrentOwner->GetController()->GetControlRotation()) * 20000.0f) : void(0);
 
 	return FactEndLocation;
 }

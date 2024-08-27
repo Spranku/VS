@@ -17,13 +17,14 @@ UVSHealthComponent::UVSHealthComponent()
 void UVSHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void UVSHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
+
+
 
 void UVSHealthComponent::SetCurrentHealth(float NewHealth)
 {
@@ -40,26 +41,35 @@ bool UVSHealthComponent::GetIsAlive()
 	return bIsAlive;
 }
 
-void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeValue)
+void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeValue, AController* DamageInstigator)
 {
 	if (bIsAlive)
 	{
-		ChangeValue = ChangeValue * CoefDamage;
+		ChangeValue *= CoefDamage;
 		Health += ChangeValue;
-		//OnHealthChange.Broadcast(Health, ChangeValue);
+		///	OnHealthChange.Broadcast(Health, ChangeValue);
+
 		OnHealthChangeEvent_Multicast(Health, ChangeValue);
+		/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue_OnServer"));
 
 		if (Health > 100.0f)
 		{
 			Health = 100.0f;
+
+			/// UE_LOG(LogTemp, Warning, TEXT("UVSHealthComponent::ChangeHealthValue_OnServer - Health > 100, SetCurrentHealth() = 100"));
 		}
 		else
 		{
 			if (Health < 0.0f)
 			{
 				bIsAlive = false;
+
 				//OnDead.Broadcast();
-				DeadEvent_Multicast();
+
+				DeadEvent_Multicast(DamageInstigator);
+				Health = 0.0f;
+
+				/// UE_LOG(LogTemp, Error, TEXT("UVSHealthComponent::ChangeHealthValue_OnServer - Health < 0.0f, bIsAlive = false, DeadEvent_Multicast()"));
 			}
 		}
 	}
@@ -68,18 +78,20 @@ void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeV
 void UVSHealthComponent::OnHealthChangeEvent_Multicast_Implementation(float newHealth, float value)
 {
 	OnHealthChange.Broadcast(newHealth, value);
+	/// UE_LOG(LogTemp, Warning, TEXT("OnHealthChangeEvent_Multicast"));
 }
 
-void UVSHealthComponent::DeadEvent_Multicast_Implementation()
+void UVSHealthComponent::DeadEvent_Multicast_Implementation(AController* DamageInstigator)
 {
-	OnDead.Broadcast();
+	OnDead.Broadcast(DamageInstigator);
+	/// UE_LOG(LogTemp, Warning, TEXT("DeadEvent_Multicast"));
 }
 
 void UVSHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	///DOREPLIFETIME(UVSHealthComponent, Health);
+	DOREPLIFETIME(UVSHealthComponent, Health);
 	DOREPLIFETIME(UVSHealthComponent, bIsAlive);
 }
 

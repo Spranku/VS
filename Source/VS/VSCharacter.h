@@ -175,7 +175,6 @@ protected:
 
 	void LastWeapon();
 
-
 	void ChangeMovementState();
 
 	void CharacterUpdate();
@@ -264,10 +263,10 @@ public:
 	bool GetIsAlive();
 
 	UFUNCTION(BlueprintCallable)
-	void CharDead();
+	void CharDead(AController* DamageInstigator);
 
 	UFUNCTION(BlueprintNativeEvent)
-	void CharDead_BP();
+	void CharDead_BP(AController* DamageInstigator);
 
 	UFUNCTION(BlueprintCallable)
 	ABaseWeapon* GetCurrentWeapon();

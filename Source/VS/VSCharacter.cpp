@@ -210,10 +210,10 @@ void AVSCharacter::StopJumping()
 	Super::StopJumping();
 }
 
-void AVSCharacter::CharDead()
+void AVSCharacter::CharDead(AController* DamageInstigator)
 {
 	UE_LOG(LogTemp, Warning, TEXT("CharDead!"));
-	CharDead_BP();
+	CharDead_BP(DamageInstigator);
 
 	//if (HasAuthority())
 	//{
@@ -253,7 +253,7 @@ void AVSCharacter::CharDead()
 	//}
 }
 
-void AVSCharacter::CharDead_BP_Implementation()
+void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator)
 {
 }
 
@@ -773,7 +773,8 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
 			CurrentWeapon->AttachToComponent(/*GetMesh()*/ Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
-			CurrentWeapon->CurrentOwner = this;
+			CurrentWeapon->OwnerInit();
+			//CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
@@ -818,6 +819,14 @@ void AVSCharacter::InitWeapon()
 
 			FActorSpawnParameters Params;
 			Params.Owner = this;
+
+			AController* myPC = GetController();
+			APawn* Pawn = myPC ? myPC->GetPawn() : nullptr;
+			if (Pawn)
+			{
+				Params.Instigator = Pawn;
+			}
+
 			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
 			const int32 Index = Weapons.Add(Weapon3P);
 			if (Index == CurrentIndex)
@@ -848,11 +857,18 @@ FVector AVSCharacter::GetLocationFromCamera()
 
 float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	/// UE_LOG(LogTemp, Warning, TEXT("TakeDamagde"));
+
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive())
 	{
+		/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue in Character"));
+
 		//CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
-		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount);
+
+		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount,EventInstigator);
+
+		/// UE_LOG(LogTemp, Warning, TEXT("DamageAmount: - %f"), DamageAmount);
 	}
 
 	//if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
