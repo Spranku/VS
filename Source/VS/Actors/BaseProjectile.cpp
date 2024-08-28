@@ -136,12 +136,16 @@ void ABaseProjectile::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, AAc
 
 	/*if (GetInstigatorController())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Have controller"));
+		UE_LOG(LogTemp, Warning, TEXT("---ABaseProjectile::BulletCollisionSphereHit - Success GetInstigatorController()---"));
+		FString Name = GetInstigatorController()->GetName();
+		///UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *GetInstigatorController() - &gt; GetName());
+		UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *Name);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Error: don`t have controller"));
+		UE_LOG(LogTemp, Error, TEXT("---ABaseProjectile::BulletCollisionSphereHit - Failed GetInstigatorController()---"));
 	}*/
+	
 
 	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);
 	UAISense_Damage::ReportDamageEvent(GetWorld(), Hit.GetActor(), GetInstigator(), ProjectileSetting.ProjectileDamage, Hit.Location, Hit.Location);

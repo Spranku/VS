@@ -34,6 +34,9 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	TSubclassOf<UVSCharacterHealthComponent> CharacterHealthComponentClass;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UVSCharacterHealthComponent* CharacterHealthComponent;
 

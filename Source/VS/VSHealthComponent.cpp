@@ -24,8 +24,6 @@ void UVSHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-
-
 void UVSHealthComponent::SetCurrentHealth(float NewHealth)
 {
 	Health = NewHealth;
@@ -43,35 +41,34 @@ bool UVSHealthComponent::GetIsAlive()
 
 void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeValue, AController* DamageInstigator)
 {
-	if (bIsAlive)
+	if (GetOwner()->HasAuthority())
 	{
-		ChangeValue *= CoefDamage;
-		Health += ChangeValue;
-		///	OnHealthChange.Broadcast(Health, ChangeValue);
-
-		OnHealthChangeEvent_Multicast(Health, ChangeValue);
-		/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue_OnServer"));
-
-		if (Health > 100.0f)
+		//UE_LOG(LogTemp, Warning, TEXT("Server is changing health: %f"), ChangeValue);
+		if (bIsAlive)
 		{
-			Health = 100.0f;
-
-			/// UE_LOG(LogTemp, Warning, TEXT("UVSHealthComponent::ChangeHealthValue_OnServer - Health > 100, SetCurrentHealth() = 100"));
-		}
-		else
-		{
-			if (Health < 0.0f)
+			ChangeValue *= CoefDamage;
+			Health += ChangeValue;
+			//	OnHealthChange.Broadcast(Health, ChangeValue);
+			OnHealthChangeEvent_Multicast(Health, ChangeValue);
+			if (Health > 100.0f)
 			{
-				bIsAlive = false;
-
-				//OnDead.Broadcast();
-
-				DeadEvent_Multicast(DamageInstigator);
-				Health = 0.0f;
-
-				/// UE_LOG(LogTemp, Error, TEXT("UVSHealthComponent::ChangeHealthValue_OnServer - Health < 0.0f, bIsAlive = false, DeadEvent_Multicast()"));
+				Health = 100.0f;
+			}
+			else
+			{
+				if (Health < 0.0f)
+				{
+					bIsAlive = false;
+					//OnDead.Broadcast();
+					DeadEvent_Multicast(DamageInstigator);
+					Health = 0.0f;
+				}
 			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client attempted to change health: %f"), ChangeValue);
 	}
 }
 

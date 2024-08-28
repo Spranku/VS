@@ -44,15 +44,21 @@ void UVSCharacterHealthComponent::ChangeShieldValue(float ChangeValue)
 		}
 	}
 
+	/* Get World = nullptr. Why: ? */
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_CoolDownShieldTimer,
-											   this,
-											   &UVSCharacterHealthComponent::CoolDownShieldEnd,
-											   CoolDownShieldRecoveryTime,
-											   false);
+			this,
+			&UVSCharacterHealthComponent::CoolDownShieldEnd,
+			CoolDownShieldRecoveryTime,
+			false);
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecoveryRateTimer);
+		UE_LOG(LogTemp, Warning, TEXT("UVSCharacterHealthComponent::ChangeShieldValue - Have GetWorld()"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("UVSCharacterHealthComponent::ChangeShieldValue - GetWorld()= NULL"));
 	}
 }
 

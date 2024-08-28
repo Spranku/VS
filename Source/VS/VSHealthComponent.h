@@ -55,9 +55,9 @@ public:
 	virtual void ChangeHealthValue_OnServer(float ChangeValue, AController* DamageInstigator);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void DeadEvent_Multicast(AController* DamageInstigator);
+	void OnHealthChangeEvent_Multicast(float newHealth, float value);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void OnHealthChangeEvent_Multicast(float newHealth, float value);
+	void DeadEvent_Multicast(AController* DamageInstigator);
 
 };

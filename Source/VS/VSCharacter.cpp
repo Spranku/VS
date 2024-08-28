@@ -59,8 +59,8 @@ AVSCharacter::AVSCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
-	CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
-	CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
+	//CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
+	//CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
 
 	bReplicates = true;
 }
@@ -69,6 +69,26 @@ void AVSCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	if (CharacterHealthComponentClass)
+	{
+		CharacterHealthComponent = NewObject<UVSCharacterHealthComponent>(this, CharacterHealthComponentClass);
+		CharacterHealthComponent->RegisterComponent();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Don`t have CharacterHealthComponentClass"));
+	}
+
+	if (CharacterHealthComponent)
+	{
+		FString OwnerName = CharacterHealthComponent->GetOwner() ? CharacterHealthComponent->GetOwner()->GetName() : TEXT("None");
+		UE_LOG(LogTemp, Warning, TEXT("Owner Name in BeginPlay: %s"), *OwnerName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Don`t have CharacterHealthComponent"));
+	}
 
 	GetWorld()->GetTimerManager().SetTimer(InitWeaponTimerHandle, this, &AVSCharacter::InitWeapon, 0.5f, false);
 
@@ -822,10 +842,7 @@ void AVSCharacter::InitWeapon()
 
 			AController* myPC = GetController();
 			APawn* Pawn = myPC ? myPC->GetPawn() : nullptr;
-			if (Pawn)
-			{
-				Params.Instigator = Pawn;
-			}
+			Pawn ? Params.Instigator = Pawn : void(0);
 
 			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
 			const int32 Index = Weapons.Add(Weapon3P);
@@ -859,16 +876,17 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	/// UE_LOG(LogTemp, Warning, TEXT("TakeDamagde"));
 
+	
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive())
 	{
-		/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue in Character"));
+			/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue in Character"));
 
-		//CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
+			///CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
 
-		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount,EventInstigator);
-
-		/// UE_LOG(LogTemp, Warning, TEXT("DamageAmount: - %f"), DamageAmount);
+		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount, EventInstigator);
+		
+			/// UE_LOG(LogTemp, Warning, TEXT("DamageAmount: - %f"), DamageAmount);	
 	}
 
 	//if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
