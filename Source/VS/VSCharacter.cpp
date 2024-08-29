@@ -59,8 +59,8 @@ AVSCharacter::AVSCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
-	//CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
-	//CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
+	CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
+	CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
 
 	bReplicates = true;
 }
@@ -70,20 +70,10 @@ void AVSCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	if (CharacterHealthComponentClass)
-	{
-		CharacterHealthComponent = NewObject<UVSCharacterHealthComponent>(this, CharacterHealthComponentClass);
-		CharacterHealthComponent->RegisterComponent();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Don`t have CharacterHealthComponentClass"));
-	}
-
 	if (CharacterHealthComponent)
 	{
 		FString OwnerName = CharacterHealthComponent->GetOwner() ? CharacterHealthComponent->GetOwner()->GetName() : TEXT("None");
-		UE_LOG(LogTemp, Warning, TEXT("Owner Name in BeginPlay: %s"), *OwnerName);
+		///UE_LOG(LogTemp, Warning, TEXT("Owner Name in BeginPlay: %s"), *OwnerName);
 	}
 	else
 	{
@@ -273,9 +263,7 @@ void AVSCharacter::CharDead(AController* DamageInstigator)
 	//}
 }
 
-void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator)
-{
-}
+void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator){}
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
