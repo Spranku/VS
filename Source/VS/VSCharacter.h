@@ -204,6 +204,11 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
 
+	UFUNCTION()
+	void TryReloadWeapon();
+
+	UFUNCTION(Server,Unreliable)
+	void TryReloadWeapon_OnServer();
 
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
@@ -241,11 +246,6 @@ protected:
 	virtual void StopJumping() override;
 
 public:
-	UFUNCTION()
-	void TryReloadWeapon();
-
-	UFUNCTION(Server,Unreliable)
-	void TryReloadWeapon_OnServer();
 	
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 

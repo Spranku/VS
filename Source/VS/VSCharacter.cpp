@@ -225,6 +225,8 @@ void AVSCharacter::CharDead(AController* DamageInstigator)
 	UE_LOG(LogTemp, Warning, TEXT("CharDead!"));
 	CharDead_BP(DamageInstigator);
 
+	/// TODO Right
+
 	//if (HasAuthority())
 	//{
 	//	float TimeAnim = 0.0f;
@@ -529,7 +531,7 @@ void AVSCharacter::StopAiming()
 		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
 		{
 			InitAimTimeline(30.0f, 90.0f);
-			UE_LOG(LogTemp, Error, TEXT("StopAiming"));
+			///UE_LOG(LogTemp, Error, TEXT("StopAiming"));
 		}
 		else
 		{

@@ -54,11 +54,11 @@ void UVSCharacterHealthComponent::ChangeShieldValue(float ChangeValue)
 			false);
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecoveryRateTimer);
-		UE_LOG(LogTemp, Warning, TEXT("UVSCharacterHealthComponent::ChangeShieldValue - Have GetWorld()"));
+		///UE_LOG(LogTemp, Warning, TEXT("UVSCharacterHealthComponent::ChangeShieldValue - Have GetWorld()"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("UVSCharacterHealthComponent::ChangeShieldValue - GetWorld()= NULL"));
+	///	UE_LOG(LogTemp, Error, TEXT("UVSCharacterHealthComponent::ChangeShieldValue - GetWorld()= NULL"));
 	}
 }
 
