@@ -389,14 +389,16 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
 	{
 		bIsReload = true;
+		//bCanAiming = false;
 		CurrentWeapon->InitReload();
 	}
 }
 
 void AVSCharacter::InitReload()
 {
-	bCanAiming = false;
+	UE_LOG(LogTemp, Error, TEXT("InitReload"));
 	bIsAiming ? StopAiming() : void(0);
+	bCanAiming = false;
 	TryReloadWeapon();
 }
 
@@ -527,6 +529,7 @@ void AVSCharacter::StopAiming()
 		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
 		{
 			InitAimTimeline(30.0f, 90.0f);
+			UE_LOG(LogTemp, Error, TEXT("StopAiming"));
 		}
 		else
 		{

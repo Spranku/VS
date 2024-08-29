@@ -422,8 +422,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
 	{
-		if (CheckCanWeaponReload())
+		UE_LOG(LogTemp, Error, TEXT("Round 0"));
+		if (CurrentOwner && CheckCanWeaponReload())
+		{
+			CurrentOwner->StopAiming_OnServer_Implementation();
 			InitReload();
+		}
 	}
 }
 
