@@ -235,19 +235,11 @@ void AVSCharacter::CharDead(AController* DamageInstigator)
 			TimeAnim = DeadsAnim[rnd]->GetPlayLength();
 			PlayDeadMontage_Multicast(DeadsAnim[rnd], DeadsAnim[rnd]);
 		}
-		/// CharacterHealthComponent->bIsAlive = false;
 
 		GetController() ? GetController()->UnPossess() : void(0);
 		GetWorldTimerManager().SetTimer(RagDollTimerHandle, this, &AVSCharacter::EnableRagdoll_Multicast, (TimeAnim - 1.0f), false);
-
-		UE_LOG(LogTemp, Warning, TEXT("The TimeAnim value is: %f"), TimeAnim);
-
 		SetLifeSpan(5.0f);
-
-		if (GetCurrentWeapon())
-		{
-			GetCurrentWeapon()->SetLifeSpan(5.0f);
-		}
+		GetCurrentWeapon() ? GetCurrentWeapon()->SetLifeSpan(5.0f) : void(0);
 	}
 	else
 	{

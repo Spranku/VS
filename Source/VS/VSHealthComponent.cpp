@@ -59,6 +59,7 @@ void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeV
 				if (Health < 0.0f)
 				{
 					bIsAlive = false;
+					UE_LOG(LogTemp, Error, TEXT("The boolean value is %s"), (bIsAlive ? TEXT("true") : TEXT("false")));
 					//OnDead.Broadcast();
 					DeadEvent_Multicast(DamageInstigator);
 					Health = 0.0f;
