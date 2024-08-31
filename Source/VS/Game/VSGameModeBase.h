@@ -16,4 +16,6 @@ class VS_API AVSGameModeBase : public AGameMode
 	
 public:
 	AVSGameModeBase();
+
+	void PlayerCharacterDead();
 };

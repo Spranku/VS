@@ -46,10 +46,10 @@ public:
 	void SetCurrentHealth(float NewHealth);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetCurrentHealth();
+	float GetCurrentHealth() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	bool GetIsAlive();
+	bool GetIsAlive() const;
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Health")
 	virtual void ChangeHealthValue_OnServer(float ChangeValue, AController* DamageInstigator);

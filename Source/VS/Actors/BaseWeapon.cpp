@@ -271,20 +271,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
-	UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Owner: %s"), *GetOwner()->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Owner: %s"), *GetOwner()->GetName());
 	SpawnParams.Instigator = GetInstigator();
-	UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Instigator: %s"), (GetInstigator() ? *GetInstigator()->GetName() : TEXT("None")));
+	//UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Instigator: %s"), (GetInstigator() ? *GetInstigator()->GetName() : TEXT("None")));
 
 	AController* Controller = GetInstigatorController();
-	if (Controller)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Instigator Controller: %s"), *Controller->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - No Instigator Controller found."));
-	}
-
+	
 	FProjectileInfo ProjectileInfo;
 	ProjectileInfo = GetProjectile();
 
@@ -305,14 +297,6 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(GetWorld()->SpawnActor(ProjectileInfo.Projectile, &SpawnLocation,&SpawnRotation, SpawnParams));
 	if (myProjectile)
 	{
-		if (SpawnParams.Instigator)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::Fire_Implementation - Success have controller"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Don`t have controller"));
-		}
 		myProjectile->InitProjectile(WeaponSetting.ProjectileSetting);
 	}
 	else

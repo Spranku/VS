@@ -156,6 +156,8 @@ protected:
 
 	FTimerDelegate AimTimerDelegate;
 
+	FTimerHandle RagDollTimerHandle;
+
 	float Alpha = 0.0f;
 	
 	bool bCanAiming = true;
@@ -294,6 +296,9 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void M_LookUPSync(FRotator RotationSync);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void EnableRagdoll_Multicast();
 
 	UFUNCTION(NetMulticast,Unreliable)
 	void ChangingWeapon(int32 Index);

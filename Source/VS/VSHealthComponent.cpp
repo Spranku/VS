@@ -29,12 +29,12 @@ void UVSHealthComponent::SetCurrentHealth(float NewHealth)
 	Health = NewHealth;
 }
 
-float UVSHealthComponent::GetCurrentHealth()
+float UVSHealthComponent::GetCurrentHealth() const
 {
 	return Health;
 }
 
-bool UVSHealthComponent::GetIsAlive()
+bool UVSHealthComponent::GetIsAlive() const
 {
 	return bIsAlive;
 }

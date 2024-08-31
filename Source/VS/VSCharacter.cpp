@@ -225,44 +225,37 @@ void AVSCharacter::CharDead(AController* DamageInstigator)
 	UE_LOG(LogTemp, Warning, TEXT("CharDead!"));
 	CharDead_BP(DamageInstigator);
 
-	/// TODO Right
+	if (HasAuthority())
+	{
+		float TimeAnim = 0.0f;
 
-	//if (HasAuthority())
-	//{
-	//	float TimeAnim = 0.0f;
+		int32 rnd = FMath::RandHelper(DeadsAnim.Num());
+		if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
+		{
+			TimeAnim = DeadsAnim[rnd]->GetPlayLength();
+			PlayDeadMontage_Multicast(DeadsAnim[rnd], DeadsAnim[rnd]);
+		}
+		/// CharacterHealthComponent->bIsAlive = false;
 
-	//	int32 rnd = FMath::RandHelper(DeadsAnim.Num());
-	//	if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
-	//	{
-	//		TimeAnim = DeadsAnim[rnd]->GetPlayLength();
-	//		//GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
-	//		///	PlayAnim_Multicast(DeadsAnim[rnd]);
-	//		PlayDeadMontage_Multicast(DeadsAnim[rnd], DeadsAnim[rnd]);
-	//	}
-	//	//bIsAlive = false;
+		GetController() ? GetController()->UnPossess() : void(0);
+		GetWorldTimerManager().SetTimer(RagDollTimerHandle, this, &AVSCharacter::EnableRagdoll_Multicast, (TimeAnim - 1.0f), false);
 
-	//	if (GetController())
-	//	{
-	//		GetController()->UnPossess();
-	//	}
-	//	///	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATPSCharacter::EnableRagdoll_Multicast, TimeAnim, false);
+		UE_LOG(LogTemp, Warning, TEXT("The TimeAnim value is: %f"), TimeAnim);
 
-	//	SetLifeSpan(20.0f);
+		SetLifeSpan(5.0f);
 
-	///*	if (GetCurrentWeapon())
-	//	{
-	//		GetCurrentWeapon()->SetLifeSpan(20.0f);
-	//	}*/
-	//}
-	//else
-	//{
-	//	///	AttackCharEvent(false);
-	//}
+		if (GetCurrentWeapon())
+		{
+			GetCurrentWeapon()->SetLifeSpan(5.0f);
+		}
+	}
+	else
+	{
+		FireEvent(false);
+		UE_LOG(LogTemp, Error, TEXT("HasAuthority() = false: FireEvent()"));
+	}
 
-	//if (GetCapsuleComponent())
-	//{
-	//	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	//}
+	GetCapsuleComponent() ? GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore) : void(0);
 }
 
 void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator){}
@@ -443,6 +436,17 @@ void AVSCharacter::WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim
 	if (Anim3P && Anim1P)
 	{
 		PlayWeaponEquipMontage_Multicast(Anim3P, Anim1P);
+	}
+}
+
+void AVSCharacter::EnableRagdoll_Multicast_Implementation()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+		GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Block);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		GetMesh()->SetSimulatePhysics(true);
 	}
 }
 
