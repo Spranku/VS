@@ -26,7 +26,7 @@ public:
 
 protected:
 
-	float Shield = 100.0f;
+	float Shield = 100.0f; /// TODO: Refactoring to health
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shield")

@@ -30,7 +30,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(Replicated)
-	float Health = 100.0f;
+	float Health = 1.0f; /// TODO: Refactoring to soul
 
 	UPROPERTY(Replicated)
 	bool bIsAlive = true;

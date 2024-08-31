@@ -50,9 +50,9 @@ void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeV
 			Health += ChangeValue;
 			//	OnHealthChange.Broadcast(Health, ChangeValue);
 			OnHealthChangeEvent_Multicast(Health, ChangeValue);
-			if (Health > 100.0f)
+			if (Health > 1.0f)
 			{
-				Health = 100.0f;
+				Health = 1.0f;
 			}
 			else
 			{
