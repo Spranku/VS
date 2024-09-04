@@ -7,6 +7,7 @@
 #include "Actors/BaseWeapon.h"
 #include "FuncLibrary/Types.h"
 #include "Actors/BaseWeapon.h"
+#include "VSCharacterHealthComponent.h"
 #include "VSCharacter.generated.h"
 
 class UInputComponent;
@@ -32,6 +33,12 @@ protected:
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
+
+	/*UPROPERTY(EditDefaultsOnly, Category = "Components")
+	TSubclassOf<UVSCharacterHealthComponent> CharacterHealthComponentClass;*/
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UVSCharacterHealthComponent* CharacterHealthComponent;
 
 public:
 	/** First person camera */
@@ -149,6 +156,8 @@ protected:
 
 	FTimerDelegate AimTimerDelegate;
 
+	FTimerHandle RagDollTimerHandle;
+
 	float Alpha = 0.0f;
 	
 	bool bCanAiming = true;
@@ -170,7 +179,6 @@ protected:
 	void NextWeapon();
 
 	void LastWeapon();
-
 
 	void ChangeMovementState();
 
@@ -249,7 +257,21 @@ public:
 
 	FVector GetLocationFromCamera();
 
+	virtual float TakeDamage(float DamageAmount,
+							 struct FDamageEvent const& DamageEvent,
+							 class AController* EventInstigator,
+							 AActor* DamageCauser) override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool GetIsAlive();
+
+	UFUNCTION(BlueprintCallable)
+	void CharDead(AController* DamageInstigator);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void CharDead_BP(AController* DamageInstigator);
 
 	UFUNCTION(BlueprintCallable)
 	ABaseWeapon* GetCurrentWeapon();
@@ -275,6 +297,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void M_LookUPSync(FRotator RotationSync);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void EnableRagdoll_Multicast();
+
 	UFUNCTION(NetMulticast,Unreliable)
 	void ChangingWeapon(int32 Index);
 
@@ -287,5 +312,7 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 };
 

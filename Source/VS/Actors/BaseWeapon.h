@@ -98,8 +98,6 @@ public:
 	UPROPERTY(Replicated)
 	FVector ShootEndLocation = FVector(0);
 
-	AVSCharacter* Character = nullptr;
-
 	float FireTime = 0.0f;
 		
 	float DropClipTimer = -1.0f;
@@ -142,6 +140,8 @@ public:
 
 	void DispersionTick(float DeltaTime);
 
+	void OwnerInit();
+
 	void WeaponInit();
 
 	void InitReload();
@@ -151,6 +151,8 @@ public:
 	void CancelReload();
 
 	void InitAiming();
+
+	void SetOwningPawn(AVSCharacter* NewOwner);
 
 	void ChangeDispersionByShoot();
 	

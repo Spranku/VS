@@ -23,3 +23,7 @@ AVSGameModeBase::AVSGameModeBase() : Super()
 	HUDClass = AVSHUD::StaticClass();
 	//Blueprint'/Game/Blueprints/Core/BP_Character.BP_Character'
 }
+
+void AVSGameModeBase::PlayerCharacterDead()
+{
+}

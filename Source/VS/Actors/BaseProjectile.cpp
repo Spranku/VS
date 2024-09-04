@@ -3,6 +3,7 @@
 
 #include "BaseProjectile.h"
 #include <Kismet/GameplayStatics.h> 
+#include "Perception/AISense_Damage.h"
 #include <PhysicalMaterials/PhysicalMaterial.h>
 #include "/Projects/VS/Source/VS/FuncLibrary/Types.h"
 
@@ -129,10 +130,25 @@ void ABaseProjectile::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, AAc
 			SpawnHitSound_Multicast(ProjectileSetting.HitSound, Hit);
 		}
 
-		//UType::AddEffecttBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfaceType);
+		///	UType::AddEffecttBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfaceType);
 	}
 
+
+	/*if (GetInstigatorController())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("---ABaseProjectile::BulletCollisionSphereHit - Success GetInstigatorController()---"));
+		FString Name = GetInstigatorController()->GetName();
+		///UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *GetInstigatorController() - &gt; GetName());
+		UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *Name);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("---ABaseProjectile::BulletCollisionSphereHit - Failed GetInstigatorController()---"));
+	}*/
+	
+
 	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);
+	UAISense_Damage::ReportDamageEvent(GetWorld(), Hit.GetActor(), GetInstigator(), ProjectileSetting.ProjectileDamage, Hit.Location, Hit.Location);
 	ImpactProjectile();
 }
 
@@ -146,6 +162,7 @@ void ABaseProjectile::BulletCollisionSphereEndOverlap(UPrimitiveComponent* Overl
 
 void ABaseProjectile::ImpactProjectile()
 {
+	this->Destroy();
 }
 
 void ABaseProjectile::InitVisualMeshProjectile_Multicast_Implementation(UStaticMesh* newMesh, FTransform MeshRelative)

@@ -59,6 +59,9 @@ AVSCharacter::AVSCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
+	CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
+	CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
+
 	bReplicates = true;
 }
 
@@ -66,6 +69,16 @@ void AVSCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	if (CharacterHealthComponent)
+	{
+		FString OwnerName = CharacterHealthComponent->GetOwner() ? CharacterHealthComponent->GetOwner()->GetName() : TEXT("None");
+		///UE_LOG(LogTemp, Warning, TEXT("Owner Name in BeginPlay: %s"), *OwnerName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Don`t have CharacterHealthComponent"));
+	}
 
 	GetWorld()->GetTimerManager().SetTimer(InitWeaponTimerHandle, this, &AVSCharacter::InitWeapon, 0.5f, false);
 
@@ -207,6 +220,38 @@ void AVSCharacter::StopJumping()
 	Super::StopJumping();
 }
 
+void AVSCharacter::CharDead(AController* DamageInstigator)
+{
+	UE_LOG(LogTemp, Warning, TEXT("CharDead!"));
+	CharDead_BP(DamageInstigator);
+
+	if (HasAuthority())
+	{
+		float TimeAnim = 0.0f;
+
+		int32 rnd = FMath::RandHelper(DeadsAnim.Num());
+		if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
+		{
+			TimeAnim = DeadsAnim[rnd]->GetPlayLength();
+			PlayDeadMontage_Multicast(DeadsAnim[rnd], DeadsAnim[rnd]);
+		}
+
+		GetController() ? GetController()->UnPossess() : void(0);
+		GetWorldTimerManager().SetTimer(RagDollTimerHandle, this, &AVSCharacter::EnableRagdoll_Multicast, (TimeAnim - 1.0f), false);
+		SetLifeSpan(5.0f);
+		GetCurrentWeapon() ? GetCurrentWeapon()->SetLifeSpan(5.0f) : void(0);
+	}
+	else
+	{
+		FireEvent(false);
+		UE_LOG(LogTemp, Error, TEXT("HasAuthority() = false: FireEvent()"));
+	}
+
+	GetCapsuleComponent() ? GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore) : void(0);
+}
+
+void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator){}
+
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
@@ -331,14 +376,16 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
 	{
 		bIsReload = true;
+		//bCanAiming = false;
 		CurrentWeapon->InitReload();
 	}
 }
 
 void AVSCharacter::InitReload()
 {
-	bCanAiming = false;
+	UE_LOG(LogTemp, Error, TEXT("InitReload"));
 	bIsAiming ? StopAiming() : void(0);
+	bCanAiming = false;
 	TryReloadWeapon();
 }
 
@@ -384,6 +431,17 @@ void AVSCharacter::WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim
 	}
 }
 
+void AVSCharacter::EnableRagdoll_Multicast_Implementation()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+		GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Block);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		GetMesh()->SetSimulatePhysics(true);
+	}
+}
+
 void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
 	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
@@ -412,6 +470,17 @@ void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* 
 }
 
 void AVSCharacter::PlayWeaponEquipMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+{
+	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
+	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
+	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	{
+		AnimInstance3P->Montage_Play(ThirdPersonAnim);
+		AnimInstance1P->Montage_Play(FirstPersonAnim);
+	}
+}
+
+void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
 	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
 	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
@@ -458,6 +527,7 @@ void AVSCharacter::StopAiming()
 		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
 		{
 			InitAimTimeline(30.0f, 90.0f);
+			///UE_LOG(LogTemp, Error, TEXT("StopAiming"));
 		}
 		else
 		{
@@ -528,7 +598,6 @@ void AVSCharacter::LastWeapon()
 		EquipWeapon_OnServer(Index);
 	}
 }
-
 
 void AVSCharacter::FireEvent(bool bIsFiring)
 {
@@ -713,7 +782,8 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
 			CurrentWeapon->AttachToComponent(/*GetMesh()*/ Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
-			CurrentWeapon->CurrentOwner = this;
+			CurrentWeapon->OwnerInit();
+			//CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
@@ -758,6 +828,11 @@ void AVSCharacter::InitWeapon()
 
 			FActorSpawnParameters Params;
 			Params.Owner = this;
+
+			AController* myPC = GetController();
+			APawn* Pawn = myPC ? myPC->GetPawn() : nullptr;
+			Pawn ? Params.Instigator = Pawn : void(0);
+
 			ABaseWeapon* Weapon3P = GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass, Params);
 			const int32 Index = Weapons.Add(Weapon3P);
 			if (Index == CurrentIndex)
@@ -786,6 +861,35 @@ FVector AVSCharacter::GetLocationFromCamera()
 	return FirstPersonCameraComponent->GetComponentLocation();
 }
 
+float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	/// UE_LOG(LogTemp, Warning, TEXT("TakeDamagde"));
+
+	
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive())
+	{
+			/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue in Character"));
+
+			///CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
+
+		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount, EventInstigator);
+		
+			/// UE_LOG(LogTemp, Warning, TEXT("DamageAmount: - %f"), DamageAmount);	
+	}
+
+	//if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
+	//{
+	//	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(DamageCauser);
+	//	if (myProjectile)
+	//	{
+	//		UType::AddEffecttBySurfaceType(this, NAME_None, myProjectile->ProjectileSetting.Effect, GetSurfaceType()); // To Do Name none - bone for radial damage
+	//	}
+	//}
+
+	return ActualDamage;
+}
+
 ABaseWeapon* AVSCharacter::GetCurrentWeapon()
 {
 	return CurrentWeapon;
@@ -810,5 +914,15 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
+}
+
+bool AVSCharacter::GetIsAlive()
+{
+	bool result = false;
+	if (CharacterHealthComponent)
+	{
+		result = CharacterHealthComponent->GetIsAlive();
+	}
+	return result;
 }
 
