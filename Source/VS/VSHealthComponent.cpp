@@ -76,13 +76,11 @@ void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeV
 void UVSHealthComponent::OnHealthChangeEvent_Multicast_Implementation(float newHealth, float value)
 {
 	OnHealthChange.Broadcast(newHealth, value);
-	/// UE_LOG(LogTemp, Warning, TEXT("OnHealthChangeEvent_Multicast"));
 }
 
 void UVSHealthComponent::DeadEvent_Multicast_Implementation(AController* DamageInstigator)
 {
 	OnDead.Broadcast(DamageInstigator);
-	/// UE_LOG(LogTemp, Warning, TEXT("DeadEvent_Multicast"));
 }
 
 void UVSHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
