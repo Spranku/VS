@@ -25,12 +25,15 @@ public:
 	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite, Category = "Health")
 	FOnDead OnDead;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float MaxSouls = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health", Replicated)
+	float /*Health*/ Souls = 1.0f; /// TODO: Refactoring to soul
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
-	UPROPERTY(Replicated)
-	float Health = 1.0f; /// TODO: Refactoring to soul
 
 	UPROPERTY(Replicated)
 	bool bIsAlive = true;

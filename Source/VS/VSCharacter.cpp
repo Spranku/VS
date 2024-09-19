@@ -865,7 +865,6 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	/// UE_LOG(LogTemp, Warning, TEXT("TakeDamagde"));
 
-	
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive())
 	{
