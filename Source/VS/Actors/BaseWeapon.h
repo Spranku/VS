@@ -215,6 +215,9 @@ public:
 	void FireWeaponFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
 
 	UFUNCTION(NetMulticast, Unreliable)
+	void FireWeaponSocketFX_Multicast(UParticleSystem* newFX, FTransform SocketTransform);
+
+	UFUNCTION(NetMulticast, Unreliable)
 	void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

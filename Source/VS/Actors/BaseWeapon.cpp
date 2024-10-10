@@ -241,7 +241,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 {
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
-	
+
 	UAnimMontage* ThirdPersonAnim = nullptr;
 	UAnimMontage* FirstPersonAnim = nullptr;
 	if (WeaponAiming)
@@ -256,7 +256,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	}
 	OnWeaponFireStart.Broadcast(ThirdPersonAnim,FirstPersonAnim);
 
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
+	if (WeaponSetting.EffectFireWeapon)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
+		FireWeaponSocketFX_Multicast(WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
+	}
 
 	ChangeDispersionByShoot();
 
@@ -372,7 +376,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 				if (WeaponSetting.EffectFireWeapon)
 				{
+					UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Success EffectFireWeapon"));
 					FireWeaponFX_Multicast(WeaponSetting.EffectFireWeapon, HitResult);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - WeaponSetting.EffectFireWeapon = NULL"));
 				}
 
 				if (WeaponSetting.ProjectileSetting.HitSound)
@@ -547,6 +556,7 @@ void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
 
 void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
 {
+	UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::TraceFX_Multicast_Implementation"));
 	if (FX)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
@@ -555,6 +565,15 @@ void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResu
 												 HitResult.ImpactPoint,
 												 FVector(1.0f)));
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("TraceFX = NULL"));
+	}
+}
+
+void ABaseWeapon::FireWeaponSocketFX_Multicast_Implementation(UParticleSystem* newFX, FTransform SocketTransform)
+{
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), newFX, SocketTransform);
 }
 
 void ABaseWeapon::FireWeaponFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
