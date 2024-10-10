@@ -261,12 +261,13 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 	{
 		WeaponEquipAnimStart(ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
 		BlockActionDuringEquip_OnClient();
-
+	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
 		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 1.5f, false);
 	}
 	else if (!HasAuthority())
 	{
+		//CurrentWeapon->OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo); /// HERE?
 		SetCurrentWeapon_OnServer(Weapons[Index]);
 	}
 }
@@ -295,6 +296,7 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 {
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
 	CurrentWeapon = NewWeapon;
+
 	OnRep_CurrentWeapon(OldWeapon);
 }
 
@@ -573,10 +575,11 @@ void AVSCharacter::InitAimTimeline(float From, float To)
 void AVSCharacter::NextWeapon()
 {
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
-
+	
 	if (HasAuthority())
 	{
 		EquipWeapon_OnServer(Index);
+		
 	}
 	else
 	{
@@ -587,7 +590,7 @@ void AVSCharacter::NextWeapon()
 void AVSCharacter::LastWeapon()
 {
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
-
+	
 	if (HasAuthority())
 	{
 		EquipWeapon_OnServer(Index);
@@ -777,6 +780,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 {
 	if (CurrentWeapon)
 	{
+		OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo); /// HERE?
 		if (!CurrentWeapon->CurrentOwner)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
@@ -793,7 +797,6 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		if (CurrentWeapon->bIsRailGun)
 		{
 			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("SecondaryWeaponSocket"));
-
 		}
 		else
 		{

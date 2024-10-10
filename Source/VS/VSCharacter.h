@@ -17,6 +17,8 @@ class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSwitchWeapon, EWeaponType, WeaponType, FAdditionalWeaponInfo, WeaponAdditionalInfo);
+
 UCLASS(config=Game)
 class AVSCharacter : public ACharacter
 {
@@ -25,6 +27,9 @@ public:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
+
+	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	FOnSwitchWeapon OnSwitchWeapon;
 protected:
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
