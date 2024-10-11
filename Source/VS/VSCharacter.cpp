@@ -891,7 +891,7 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return ActualDamage;
 }
 
-ABaseWeapon* AVSCharacter::GetCurrentWeapon()
+ABaseWeapon* AVSCharacter::GetCurrentWeapon() const
 {
 	return CurrentWeapon;
 }

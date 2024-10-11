@@ -695,6 +695,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
+	DOREPLIFETIME(ABaseWeapon, WeaponInfo);
 }
 
 

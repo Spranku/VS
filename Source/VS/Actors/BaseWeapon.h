@@ -90,14 +90,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	FWeaponInfo WeaponSetting;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
-	FAdditionalWeaponInfo WeaponInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	UMaterialInstance* CustomLenseMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	UMaterialInstance* DefaultLenseMaterial;
+
+	UPROPERTY(EditAnywhere,Replicated, BlueprintReadWrite, Category = "Weapon Info")
+	FAdditionalWeaponInfo WeaponInfo;
 
 	UPROPERTY(Replicated)
 	FVector ShootEndLocation = FVector(0);

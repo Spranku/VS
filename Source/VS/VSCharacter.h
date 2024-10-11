@@ -279,7 +279,7 @@ public:
 	void CharDead_BP(AController* DamageInstigator);
 
 	UFUNCTION(BlueprintCallable)
-	ABaseWeapon* GetCurrentWeapon();
+	ABaseWeapon* GetCurrentWeapon() const;
 
 	UFUNCTION()
 	void InitWeapon();
