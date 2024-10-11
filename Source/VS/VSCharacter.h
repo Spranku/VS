@@ -17,7 +17,7 @@ class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSwitchWeapon, EWeaponType, WeaponType, FAdditionalWeaponInfo, WeaponAdditionalInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSwitchWeapon, EWeaponType, WeaponType, FAdditionalWeaponInfo, WeaponAdditionalInfo, ABaseWeapon*,CurrentWeapon);
 
 UCLASS(config=Game)
 class AVSCharacter : public ACharacter

@@ -780,7 +780,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 {
 	if (CurrentWeapon)
 	{
-		OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo); /// HERE!
+		OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo,CurrentWeapon); /// HERE!
 		if (!CurrentWeapon->CurrentOwner)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
@@ -790,7 +790,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
-		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
+		///CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 
