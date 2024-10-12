@@ -90,9 +90,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* ThirdPersonEquipAnimation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
-	TArray<UAnimMontage*> DeadsAnim;
-
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
@@ -102,6 +99,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FCharacterSpeed MovementInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	TArray<UAnimMontage*> DeadsAnim;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Class")
 	TArray<TSubclassOf<class ABaseWeapon>> DefaultWeapons;
@@ -162,6 +162,8 @@ protected:
 	FTimerDelegate AimTimerDelegate;
 
 	FTimerHandle RagDollTimerHandle;
+
+	int BackpackAmmo = 1;
 
 	float Alpha = 0.0f;
 	
@@ -268,6 +270,12 @@ public:
 							 AActor* DamageCauser) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	void SaveAmmoToBackPack(int AmmoToAdd);
+
+	UFUNCTION(BlueprintCallable)
+	int GetAmmoFromBackpack() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool GetIsAlive();

@@ -917,6 +917,16 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
 }
 
+void  AVSCharacter::SaveAmmoToBackPack(int AmmoToAdd)
+{
+	BackpackAmmo += AmmoToAdd;
+}
+
+int AVSCharacter::GetAmmoFromBackpack() const
+{
+	return BackpackAmmo;
+}
+
 bool AVSCharacter::GetIsAlive()
 {
 	bool result = false;
