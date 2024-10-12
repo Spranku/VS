@@ -417,7 +417,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		UE_LOG(LogTemp, Error, TEXT("Round 0"));
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
-			CurrentOwner->StopAiming_OnServer_Implementation();
+			///CurrentOwner->StopAiming_OnServer_Implementation(); /// Now on client work success, but not on server 
 			InitReload();
 		}
 	}
