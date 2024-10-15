@@ -95,7 +95,7 @@ void ABaseWeapon::OwnerInit()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
-}
+}     /// Refactoring to InitOwnerCharacter
 
 // Called every frame
 void ABaseWeapon::Tick(float DeltaTime)
@@ -448,10 +448,40 @@ void ABaseWeapon::InitReload()
 void ABaseWeapon::FinishReload()
 {
 	WeaponReloading = false;
-	WeaponInfo.Round = WeaponSetting.MaxRound;
+	int32 AmmoNeedTake = WeaponSetting.MaxRound - WeaponInfo.Round; 
+
+	if (CurrentOwner->GetAmmoFromBackpack() >= AmmoNeedTake)
+	{
+		int NewAmmoForBackpack = CurrentOwner->GetAmmoFromBackpack() - AmmoNeedTake;
+		UE_LOG(LogTemp, Error, TEXT("Ammo to save in Backpack: %d"), NewAmmoForBackpack);
+
+		CurrentOwner->SaveAmmoToBackPack(NewAmmoForBackpack);
+		UE_LOG(LogTemp, Error, TEXT("Now Ammo from backpack: %d"), CurrentOwner->GetAmmoFromBackpack());
+
+		WeaponInfo.Round = WeaponInfo.Round + AmmoNeedTake;
+		UE_LOG(LogTemp, Warning, TEXT("Current Round: %d"), WeaponInfo.Round);
+	}
+	else
+	{
+		int NewAmmoForBackpack = CurrentOwner->GetAmmoFromBackpack() - AmmoNeedTake;
+		if (NewAmmoForBackpack <= 0)
+		{
+			WeaponInfo.Round = WeaponInfo.Round + CurrentOwner->GetAmmoFromBackpack();
+			UE_LOG(LogTemp, Warning, TEXT("Current Round: %d"), WeaponInfo.Round);
+
+			NewAmmoForBackpack = 0;
+			CurrentOwner->SaveAmmoToBackPack(NewAmmoForBackpack);
+				UE_LOG(LogTemp, Error, TEXT("Now Ammo from backpack: %d"), CurrentOwner->GetAmmoFromBackpack());
+		}
+	}
+	
+
+	//WeaponInfo.Round = WeaponSetting.MaxRound;
+
+	//UE_LOG(LogTemp, Error, TEXT("The WeaponInfo.Round value is: %d"), WeaponInfo.Round);
 
 	//int8 AviableAmmoFromInventory =  GetAviableAmmoForReload();
-	int8 AmmoNeedTakeFromInv;
+
 	//int8 NeedToReload = WeaponSetting.MaxRound - AdditionalWeaponInfo.Round;
 
 	//if (NeedToReload > AviableAmmoFromInventory)
@@ -464,7 +494,8 @@ void ABaseWeapon::FinishReload()
 	//	AdditionalWeaponInfo.Round += NeedToReload;
 	//	AmmoNeedTakeFromInv = NeedToReload;
 	//}
-	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTakeFromInv);
+
+	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTake);
 }
 
 void ABaseWeapon::CancelReload()
@@ -474,6 +505,8 @@ void ABaseWeapon::CancelReload()
 		SkeletalMeshWeapon->GetAnimInstance()->StopAllMontages(0.15f);
 
 	OnWeaponReloadEnd.Broadcast(false, 0);*/
+
+	OnWeaponReloadEnd.Broadcast(false, 0);
 }
 
 void ABaseWeapon::ChangeDispersionByShoot()
@@ -508,7 +541,20 @@ bool ABaseWeapon::CheckCanWeaponReload()
 		}
 	}
 	return result;*/
-	return true;
+	if (CurrentOwner)
+	{
+		if (CurrentOwner->GetAmmoFromBackpack() > 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+			CancelReload();
+		}
+	}
+	return false;
+	CancelReload();
 }
 
 void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)

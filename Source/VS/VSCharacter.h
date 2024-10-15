@@ -18,6 +18,8 @@ class UAnimMontage;
 class USoundBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSwitchWeapon, EWeaponType, WeaponType, FAdditionalWeaponInfo, WeaponAdditionalInfo, ABaseWeapon*,CurrentWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoChange, EWeaponType, TypeAmmo, int , Cout);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponAdditionalInfoChange, EWeaponType, TypeWeapon, FAdditionalWeaponInfo, AdditionalInfo);
 
 UCLASS(config=Game)
 class AVSCharacter : public ACharacter
@@ -29,7 +31,13 @@ public:
 	USkeletalMeshComponent* Mesh1P;
 
 	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	FOnAmmoChange OnAmmoChange;
+
+	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
 	FOnSwitchWeapon OnSwitchWeapon;
+
+	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	FOnWeaponAdditionalInfoChange OnWeaponAdditionalInfoChange;
 protected:
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
@@ -271,6 +279,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void WeaponChangeAmmo(EWeaponType TypeWeapon, int32 AmmTaken);
+
 	UFUNCTION(BlueprintCallable)
 	void SaveAmmoToBackPack(int AmmoToAdd);
 
@@ -296,7 +306,7 @@ public:
 	void WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION()
-	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
+	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake);
 
 	UFUNCTION()
 	void WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);

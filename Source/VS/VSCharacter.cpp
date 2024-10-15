@@ -286,6 +286,7 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 	CurrentIndex = Index;
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
 	CurrentWeapon = Weapons[Index];
+	OnAmmoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->GetWeaponRound()); /// HERE???
 	OnRep_CurrentWeapon(OldWeapon);
 
 	CurrentWeapon->BlockFire = false;
@@ -374,7 +375,7 @@ void AVSCharacter::TryReloadWeapon()
 
 void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
-	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
+	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
 	{
 		bIsReload = true;
 		//bCanAiming = false;
@@ -384,20 +385,79 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 
 void AVSCharacter::InitReload()
 {
-	UE_LOG(LogTemp, Error, TEXT("InitReload"));
+	UE_LOG(LogTemp, Error, TEXT("AVSCharacter::InitReload"));
 	bIsAiming ? StopAiming() : void(0);
 	bCanAiming = false;
 	TryReloadWeapon();
 }
 
-void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
+void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake)
 {
+	if (CurrentWeapon)
+	{
+		///WeaponChangeAmmo(CurrentWeapon->GetWeaponType(), AmmoTake); RETURN?
+		OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo);
+		UE_LOG(LogTemp, Warning, TEXT("AVSCharacter::WeaponReloadEnd - OnWeaponAdditionalInfoChange.Broadcast"));
+	}
 	bIsReload = false;
 	bCanAiming = true;
 	/// WeaponReloadEnd_BP(bIsSuccess);
 }
 
-void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::WeaponChangeAmmo(EWeaponType TypeWeapon, int32 AmmoTaken)
+{
+	/*bool bIsFind = false;
+	int8 i = 0;
+	while (i < 2 && !bIsFind)
+	{
+		if (CurrentWeapon->GetWeaponType() == TypeWeapon)
+		{
+			CurrentWeapon->WeaponInfo.Round += AmmoTaken;
+			if (CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound)
+			{
+				CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound;
+			}
+			OnAmmoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo.Round);
+
+			bIsFind = true;
+		}
+		i++;
+	}*/
+	/// Without while
+
+	if (CurrentWeapon->GetWeaponType() == EWeaponType::PrimaryWeapon)
+	{
+		//UE_LOG(LogTemp, Warning,TEXT("AVSCharacter::WeaponChangeAmmo - EWeaponType::PrimaryWeapon"));
+		//UE_LOG(LogTemp, Error, TEXT("The WeaponInfo.Round value is: %d"), CurrentWeapon->WeaponInfo.Round); /// Why don`t changing?
+		//UE_LOG(LogTemp, Error, TEXT("The AmmoTaken value is: %d"), AmmoTaken);
+		CurrentWeapon->WeaponInfo.Round += AmmoTaken;
+		//UE_LOG(LogTemp, Error, TEXT("The WeaponSetting.MaxRound value is: %d"), AmmoTaken);
+		//UE_LOG(LogTemp, Error, TEXT("The BackpackAmmo value is: %d"), BackpackAmmo);
+
+		if (CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound)
+		{
+			CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound;
+		}
+		OnAmmoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo.Round);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,TEXT("AVSCharacter::WeaponChangeAmmo - EWeaponType::SecondaryWeapon"));
+		UE_LOG(LogTemp, Error, TEXT("The WeaponInfo.Round value is: %d"), CurrentWeapon-GetCurrentWeapon());
+		UE_LOG(LogTemp, Error, TEXT("The AmmoTaken value is: %d"), AmmoTaken);
+		CurrentWeapon->WeaponInfo.Round += AmmoTaken;
+		UE_LOG(LogTemp, Error, TEXT("The WeaponInfo.Round + AmmoTaken value is: %d"), CurrentWeapon->WeaponInfo.Round);
+
+		BackpackAmmo -= AmmoTaken;
+		if (CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound)
+		{
+			CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound;
+		}
+		OnAmmoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo.Round);
+	}
+}
+
+void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P) /// Refactoring to Start play Reload weapon animation
 {
 	if (Anim3P && Anim1P)
 	{
@@ -412,17 +472,16 @@ void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Ani
 
 void AVSCharacter::WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
-	///if (InventoryComponent && CurrentWeapon)
-	///{
-	///	InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
-	///}
-	/// WeaponFireStart_BP(Anim3P,Anim1P);
+	if (CurrentWeapon)
+	{
+		OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo);
+	}
 	
 	if (Anim3P && Anim1P)
 	{	
 		PlayWeaponFireMontage_Multicast(Anim3P, Anim1P);
 	}
-}
+}  /// Refactoring to Start play fire weapon  animation
 
 void AVSCharacter::WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
@@ -781,6 +840,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	if (CurrentWeapon)
 	{
 		OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo,CurrentWeapon); /// HERE!
+		
 		if (!CurrentWeapon->CurrentOwner)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
@@ -919,7 +979,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 void  AVSCharacter::SaveAmmoToBackPack(int AmmoToAdd)
 {
-	BackpackAmmo += AmmoToAdd;
+	BackpackAmmo = AmmoToAdd;
 }
 
 int AVSCharacter::GetAmmoFromBackpack() const
