@@ -445,34 +445,33 @@ void ABaseWeapon::InitReload()
 	//}
 }
 
+int ABaseWeapon::GetAmmoFromBackpack() const
+{
+	return AmmoBackpack;
+}
+
+void ABaseWeapon::SetAmmoToBackpack( int NewAmmo)
+{
+	///AmmoBackpack = NewAmmo;
+	AmmoBackpack = AmmoBackpack + NewAmmo;
+}
+
 void ABaseWeapon::FinishReload()
 {
 	WeaponReloading = false;
 	int32 AmmoNeedTake = WeaponSetting.MaxRound - WeaponInfo.Round; 
 
-	if (CurrentOwner->GetAmmoFromBackpack() >= AmmoNeedTake)
+	if (GetAmmoFromBackpack() >= AmmoNeedTake)
 	{
-		int NewAmmoForBackpack = CurrentOwner->GetAmmoFromBackpack() - AmmoNeedTake;
-		UE_LOG(LogTemp, Error, TEXT("Ammo to save in Backpack: %d"), NewAmmoForBackpack);
-
-		CurrentOwner->SaveAmmoToBackPack(NewAmmoForBackpack);
-		UE_LOG(LogTemp, Error, TEXT("Now Ammo from backpack: %d"), CurrentOwner->GetAmmoFromBackpack());
-
+		int NewAmmoForBackpack = GetAmmoFromBackpack() - AmmoNeedTake;
+		SetAmmoToBackpack(-AmmoNeedTake);
 		WeaponInfo.Round = WeaponInfo.Round + AmmoNeedTake;
-		UE_LOG(LogTemp, Warning, TEXT("Current Round: %d"), WeaponInfo.Round);
 	}
 	else
 	{
-		int NewAmmoForBackpack = CurrentOwner->GetAmmoFromBackpack() - AmmoNeedTake;
-		if (NewAmmoForBackpack <= 0)
-		{
-			WeaponInfo.Round = WeaponInfo.Round + CurrentOwner->GetAmmoFromBackpack();
-			UE_LOG(LogTemp, Warning, TEXT("Current Round: %d"), WeaponInfo.Round);
 
-			NewAmmoForBackpack = 0;
-			CurrentOwner->SaveAmmoToBackPack(NewAmmoForBackpack);
-				UE_LOG(LogTemp, Error, TEXT("Now Ammo from backpack: %d"), CurrentOwner->GetAmmoFromBackpack());
-		}
+		WeaponInfo.Round = WeaponInfo.Round + GetAmmoFromBackpack();
+		SetAmmoToBackpack(-GetAmmoFromBackpack());
 	}
 	
 

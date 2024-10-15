@@ -134,9 +134,18 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	int GetAmmoFromBackpack() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetAmmoToBackpack(int NewAmmo);
+
 	FTimerHandle ScopeTimerHandle;
 
 	FTimerHandle FireTimerHande;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo");
+	int AmmoBackpack;
 
 public:	
 	// Called every frame
