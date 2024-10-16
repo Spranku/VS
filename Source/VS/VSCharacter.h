@@ -317,11 +317,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void EnableRagdoll_Multicast();
 
-	UFUNCTION(NetMulticast,Unreliable)
-	void ChangingWeapon(int32 Index);
+	UFUNCTION(NetMulticast,Reliable)
+	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
 	UFUNCTION(NetMulticast,Unreliable)
-	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	void ChangingWeapon(int32 Index);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponEquipMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);

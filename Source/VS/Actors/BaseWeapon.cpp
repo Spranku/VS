@@ -469,12 +469,11 @@ void ABaseWeapon::FinishReload()
 	}
 	else
 	{
-
 		WeaponInfo.Round = WeaponInfo.Round + GetAmmoFromBackpack();
 		ChangeAmmoCountInBackpack(-GetAmmoFromBackpack());
 	}
 	
-	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTake);
+	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTake); // DO notwhing?
 }
 
 void ABaseWeapon::CancelReload()

@@ -408,7 +408,6 @@ void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake)
 	{
 		///WeaponChangeAmmo(CurrentWeapon->GetWeaponType(), AmmoTake); RETURN?
 		OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo);
-		UE_LOG(LogTemp, Warning, TEXT("AVSCharacter::WeaponReloadEnd - OnWeaponAdditionalInfoChange.Broadcast"));
 	}
 	bIsReload = false;
 	bCanAiming = true;
@@ -481,12 +480,14 @@ void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Ani
 	}
 }
 
+
+
 void AVSCharacter::WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
-	if (CurrentWeapon)
-	{
-		OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo);
-	}
+	//if (CurrentWeapon)
+	//{
+		//OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo);
+	//}
 	
 	if (Anim3P && Anim1P)
 	{	
@@ -530,6 +531,11 @@ void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage
 
 void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
+	if (CurrentWeapon)
+	{
+		OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo);
+	}
+
 	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
 	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
 	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
