@@ -450,9 +450,9 @@ int32 ABaseWeapon::GetAmmoFromBackpack() const
 	return AmmoBackpack;
 }
 
-void ABaseWeapon::SetAmmoToBackpack( int NewAmmo)
+void ABaseWeapon::ChangeAmmoCountInBackpack( int NewAmmo)
 {
-	///AmmoBackpack = NewAmmo;
+	//AmmoBackpack = NewAmmo;
 	AmmoBackpack = AmmoBackpack + NewAmmo;
 }
 
@@ -464,14 +464,14 @@ void ABaseWeapon::FinishReload()
 	if (GetAmmoFromBackpack() >= AmmoNeedTake)
 	{
 		int NewAmmoForBackpack = GetAmmoFromBackpack() - AmmoNeedTake;
-		SetAmmoToBackpack(-AmmoNeedTake);
+		ChangeAmmoCountInBackpack(-AmmoNeedTake);
 		WeaponInfo.Round = WeaponInfo.Round + AmmoNeedTake;
 	}
 	else
 	{
 
 		WeaponInfo.Round = WeaponInfo.Round + GetAmmoFromBackpack();
-		SetAmmoToBackpack(-GetAmmoFromBackpack());
+		ChangeAmmoCountInBackpack(-GetAmmoFromBackpack());
 	}
 	
 	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTake);
@@ -480,6 +480,7 @@ void ABaseWeapon::FinishReload()
 void ABaseWeapon::CancelReload()
 {
 	WeaponReloading = false;
+
 	/*if (SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())
 		SkeletalMeshWeapon->GetAnimInstance()->StopAllMontages(0.15f);
 
@@ -506,21 +507,6 @@ bool ABaseWeapon::CheckWeaponCanFire()
 
 bool ABaseWeapon::CheckCanWeaponReload()
 {
-	/*bool result = true;
-	if (GetOwner())
-	{
-		UTPSInventoryComponent* MyInv = Cast<UTPSInventoryComponent>(GetOwner()->GetComponentByClass(UTPSInventoryComponent::StaticClass()));
-		if (MyInv)
-		{
-			int8 AviableAmmoForWeapon;
-			if (!MyInv->CheckAmmoForWeapon(WeaponSetting.WeaponType, AviableAmmoForWeapon))
-			{
-				result = false;
-			}
-		}
-	}
-	return result;*/
-	
 	if (GetAmmoFromBackpack() > 0)
 	{
 		return true;

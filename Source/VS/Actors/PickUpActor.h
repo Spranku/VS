@@ -7,6 +7,9 @@
 #include "/Projects/VS/Source/VS/FuncLibrary/Types.h"
 #include "PickUpActor.generated.h"
 
+class ABaseWeapon;
+class USoundBase;
+
 UCLASS()
 class VS_API APickUpActor : public AActor
 {
@@ -25,15 +28,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components)
 	class USphereComponent* SphereCollision = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components)
+	class USoundBase* EquipSound = nullptr;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item settings")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item settings", meta = (ExposeOnSpawn = true))
 	EWeaponType WeaponTypeAmmo;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Item settings")
 	int AmmoCout = 1;
+	
+	void AddAmmoToBackpack(TArray<ABaseWeapon*> Weapons);
 
 public:	
 	// Called every frame
@@ -41,4 +49,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PickUpSuccess();
+
+	UFUNCTION()
+	void SphereCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+									 AActor* OtherActor,
+									 UPrimitiveComponent* OtherComp,
+									 int32 OtherBodyIndex,
+									 bool bFromSweep,
+									 const FHitResult& SweepResult);
+
 };

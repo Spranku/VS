@@ -134,9 +134,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable)
-	void SetAmmoToBackpack(int NewAmmo);
-
 	FTimerHandle ScopeTimerHandle;
 
 	FTimerHandle FireTimerHande;
@@ -191,6 +188,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetAmmoFromBackpack() const; 
+
+	UFUNCTION(BlueprintCallable)
+	void ChangeAmmoCountInBackpack(int NewAmmo);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetWeaponRound() const;
