@@ -135,9 +135,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
-	int GetAmmoFromBackpack() const;
-
-	UFUNCTION(BlueprintCallable)
 	void SetAmmoToBackpack(int NewAmmo);
 
 	FTimerHandle ScopeTimerHandle;
@@ -145,7 +142,7 @@ protected:
 	FTimerHandle FireTimerHande;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo");
-	int AmmoBackpack;
+	int32 AmmoBackpack;
 
 public:	
 	// Called every frame
@@ -191,6 +188,9 @@ public:
 
 	UFUNCTION()
 	void ShowScopeTimeline(float Value, bool bIsAiming);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetAmmoFromBackpack() const; 
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetWeaponRound() const;

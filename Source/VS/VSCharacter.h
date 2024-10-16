@@ -281,12 +281,6 @@ public:
 
 	void WeaponChangeAmmo(EWeaponType TypeWeapon, int32 AmmTaken);
 
-	UFUNCTION(BlueprintCallable)
-	void SaveAmmoToBackPack(int AmmoToAdd);
-
-	UFUNCTION(BlueprintCallable)
-	int GetAmmoFromBackpack() const;
-
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool GetIsAlive();
 

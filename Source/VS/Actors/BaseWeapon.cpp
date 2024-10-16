@@ -445,7 +445,7 @@ void ABaseWeapon::InitReload()
 	//}
 }
 
-int ABaseWeapon::GetAmmoFromBackpack() const
+int32 ABaseWeapon::GetAmmoFromBackpack() const
 {
 	return AmmoBackpack;
 }
@@ -474,26 +474,6 @@ void ABaseWeapon::FinishReload()
 		SetAmmoToBackpack(-GetAmmoFromBackpack());
 	}
 	
-
-	//WeaponInfo.Round = WeaponSetting.MaxRound;
-
-	//UE_LOG(LogTemp, Error, TEXT("The WeaponInfo.Round value is: %d"), WeaponInfo.Round);
-
-	//int8 AviableAmmoFromInventory =  GetAviableAmmoForReload();
-
-	//int8 NeedToReload = WeaponSetting.MaxRound - AdditionalWeaponInfo.Round;
-
-	//if (NeedToReload > AviableAmmoFromInventory)
-	//{
-	//	AdditionalWeaponInfo.Round = AviableAmmoFromInventory;
-	//	AmmoNeedTakeFromInv = AviableAmmoFromInventory;
-	//}
-	//else
-	//{
-	//	AdditionalWeaponInfo.Round += NeedToReload;
-	//	AmmoNeedTakeFromInv = NeedToReload;
-	//}
-
 	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTake);
 }
 
@@ -540,17 +520,15 @@ bool ABaseWeapon::CheckCanWeaponReload()
 		}
 	}
 	return result;*/
-	if (CurrentOwner)
+	
+	if (GetAmmoFromBackpack() > 0)
 	{
-		if (CurrentOwner->GetAmmoFromBackpack() > 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-			CancelReload();
-		}
+		return true;
+	}
+	else
+	{
+		return false;
+		CancelReload();
 	}
 	return false;
 	CancelReload();

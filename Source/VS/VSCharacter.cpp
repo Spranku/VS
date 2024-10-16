@@ -367,7 +367,7 @@ void AVSCharacter::StopCrouch()
 
 void AVSCharacter::TryReloadWeapon()
 {
-	if (/*CharHealthComponent && CharHealthComponent->GetIsAlive() && */CurrentWeapon && !CurrentWeapon->WeaponReloading)
+	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive() && CurrentWeapon && !CurrentWeapon->WeaponReloading)
 	{
 		TryReloadWeapon_OnServer();
 	}
@@ -375,19 +375,30 @@ void AVSCharacter::TryReloadWeapon()
 
 void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
-	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
+	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("TryReloadWeapon_OnServer - Success start reloadig"));
+
+		bIsAiming ? StopAiming() : void(0);
+		bCanAiming = false;
+		/// TODO  BlockActionDuringEquip_OnClient ?
+
 		bIsReload = true;
 		//bCanAiming = false;
 		CurrentWeapon->InitReload();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound OR GetAmmoFromBackpack() == 0 OR CurrentWeapon->CheckCanWeaponReload() = false"));
+		/// TODO: Miss click sound ?
 	}
 }
 
 void AVSCharacter::InitReload()
 {
-	UE_LOG(LogTemp, Error, TEXT("AVSCharacter::InitReload"));
+	/*UE_LOG(LogTemp, Error, TEXT("AVSCharacter::InitReload"));
 	bIsAiming ? StopAiming() : void(0);
-	bCanAiming = false;
+	bCanAiming = false;*/
 	TryReloadWeapon();
 }
 
@@ -975,16 +986,6 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
-}
-
-void  AVSCharacter::SaveAmmoToBackPack(int AmmoToAdd)
-{
-	BackpackAmmo = AmmoToAdd;
-}
-
-int AVSCharacter::GetAmmoFromBackpack() const
-{
-	return BackpackAmmo;
 }
 
 bool AVSCharacter::GetIsAlive()
