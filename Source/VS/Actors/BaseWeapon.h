@@ -60,9 +60,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	class USceneCaptureComponent2D* SceneCapture;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
-	UTexture2D* WeaponIcon = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool ShowDebug = false;
 
@@ -92,7 +89,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	FWeaponInfo WeaponSetting;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	UMaterialInstance* CustomLenseMaterial;
