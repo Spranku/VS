@@ -22,6 +22,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoTypeChange, EWeaponType, Wea
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoChange, int32 , NewAmmo);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponAdditionalInfoChange, FAdditionalWeaponInfo, AdditionalInfo);
 
+UENUM(BlueprintType)
+enum class EHeroType : uint8
+{
+	Hunk UMETA(DisplayName = "Hunk"),
+	Swat UMETA(DisplayName = "Swat"),
+	Observer UMETA(DisplayName = "Observer")
+};
+
 UCLASS(config=Game)
 class AVSCharacter : public ACharacter
 {
@@ -47,9 +55,6 @@ protected:
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
-
-	/*UPROPERTY(EditDefaultsOnly, Category = "Components")
-	TSubclassOf<UVSCharacterHealthComponent> CharacterHealthComponentClass;*/
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UVSCharacterHealthComponent* CharacterHealthComponent;
@@ -95,9 +100,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FirstPersonEquipWeaponAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hero")
+	EHeroType HeroType = EHeroType::Hunk;
+
 	/** AnimMontage to play each time we reloading */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* ThirdPersonEquipAnimation;
+	///UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	///UAnimMontage* ThirdPersonEquipAnimation;
 
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -279,6 +287,9 @@ public:
 	FVector GetForwardVectorFromCamera();
 
 	FVector GetLocationFromCamera();
+
+	UFUNCTION(BlueprintCallable)
+	EHeroType GetHeroType() const;
 
 	UFUNCTION(BlueprintCallable)
 	ABaseWeapon* GetCurrentWeapon() const;

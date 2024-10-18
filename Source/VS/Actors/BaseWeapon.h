@@ -30,9 +30,6 @@ public:
 	FOnWeaponReloadEnd OnWeaponReloadEnd;
 	FOnWeaponFireStart OnWeaponFireStart;
 
-	/*UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
-	FOnSwitchWeapon OnSwitchWeapon;*/
-
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
 
@@ -147,7 +144,7 @@ public:
 
 	void DispersionTick(float DeltaTime);
 
-	void OwnerInit();
+	void InitOwnerCharacter();
 
 	void WeaponInit();
 
@@ -172,6 +169,15 @@ public:
 	FVector GetFireEndLocation() const;
 
 	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
+
+	UFUNCTION()
+	void ChangeAnimationsForOwner();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void SetAnimationForHunkHero_BP();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void SetAnimationForSwatHero_BP();
 
 	UFUNCTION()
 	void CheckRateOfFire();

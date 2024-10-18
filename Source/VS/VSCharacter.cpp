@@ -258,7 +258,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		StartWeaponEquipAnimation(ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
+		StartWeaponEquipAnimation(/*ThirdPersonEquipAnimation*/ CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
 		BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
@@ -759,7 +759,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
 			CurrentWeapon->AttachToComponent(/*GetMesh()*/ Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
-			CurrentWeapon->OwnerInit();
+			CurrentWeapon->InitOwnerCharacter();
 			//CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
@@ -877,6 +877,11 @@ bool AVSCharacter::GetIsAlive()
 		result = CharacterHealthComponent->GetIsAlive();
 	}
 	return result;
+}
+
+EHeroType AVSCharacter::GetHeroType() const
+{
+	return HeroType;
 }
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

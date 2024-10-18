@@ -81,21 +81,37 @@ void ABaseWeapon::BeginPlay()
 		SkeletalMeshWeapon->SetVisibility(true);
 	}
 }
+void ABaseWeapon::ChangeAnimationsForOwner()
+{
+	switch (CurrentOwner->HeroType)
+	{
+	case EHeroType::Hunk:
+		SetAnimationForHunkHero_BP();
+		break;
+	case EHeroType::Swat:
+		SetAnimationForSwatHero_BP();
+		break;
+	case EHeroType::Observer:
+		break;
+	default:
+		break;
+	}
+}
 
-void ABaseWeapon::OwnerInit()
+void ABaseWeapon::InitOwnerCharacter()
 {
 	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
 	if (MyChar)
 	{
 		CurrentOwner = MyChar;
 		CurrentOwner->SetInstigator(CurrentOwner);
-		UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::OwnerInit - success SetOwner and SetInstigator"));	
+		ChangeAnimationsForOwner();
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
-}     /// Refactoring to InitOwnerCharacter
+} 
 
 // Called every frame
 void ABaseWeapon::Tick(float DeltaTime)
@@ -611,6 +627,10 @@ void ABaseWeapon::CancelAiming_Implementation()
 		ShowScopeTimeline(0.2f,false);
 	}
 }
+
+void ABaseWeapon::SetAnimationForHunkHero_BP_Implementation() {}
+
+void ABaseWeapon::SetAnimationForSwatHero_BP_Implementation() {}
 
 void ABaseWeapon::CheckRateOfFire()
 {
