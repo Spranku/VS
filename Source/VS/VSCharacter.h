@@ -292,25 +292,25 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool GetIsAlive();
 
-	UFUNCTION() /// Do nothing UFUNC?
+	UFUNCTION() 
 	void InitWeapon();
 
-	UFUNCTION() /// Do nothing UFUNC?
-	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake);
+	UFUNCTION()
+	void WeaponReloadEnd();
 
-	UFUNCTION() /// Do nothing UFUNC?
+	UFUNCTION() 
 	void StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
-	UFUNCTION() /// Do nothing UFUNC?
+	UFUNCTION() 
 	void StartWeaponFireAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
-	UFUNCTION() /// Do nothing UFUNC?
+	UFUNCTION()
 	void StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
-	UFUNCTION(Server, Reliable) /// Try to do Unreliable
+	UFUNCTION(Server, Unreliable) /// Do nothing Reliable?
 	void S_LookUPSync(FRotator RotationSync);
 
-	UFUNCTION(NetMulticast, Reliable) /// Try to do Unreliable
+	UFUNCTION(NetMulticast, Unreliable) /// Do nothing Reliable?
 	void M_LookUPSync(FRotator RotationSync);
 
 	UFUNCTION(NetMulticast, Reliable)

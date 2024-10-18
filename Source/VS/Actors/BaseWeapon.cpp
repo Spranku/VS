@@ -473,7 +473,7 @@ void ABaseWeapon::FinishReload()
 		ChangeAmmoCountInBackpack(-GetAmmoFromBackpack());
 	}
 	
-	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTake); // DO notwhing?
+	OnWeaponReloadEnd.Broadcast(); // DO notwhing?
 }
 
 void ABaseWeapon::CancelReload()
@@ -485,7 +485,7 @@ void ABaseWeapon::CancelReload()
 
 	OnWeaponReloadEnd.Broadcast(false, 0);*/
 
-	OnWeaponReloadEnd.Broadcast(false, 0);
+	OnWeaponReloadEnd.Broadcast();
 }
 
 void ABaseWeapon::ChangeDispersionByShoot()

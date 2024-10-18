@@ -361,17 +361,12 @@ void AVSCharacter::InitReload()
 	TryReloadWeapon();
 }
 
-void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake) /// Remove ammo taken?
+void AVSCharacter::WeaponReloadEnd()
 {
-	if (CurrentWeapon)
-	{
-		///WeaponChangeAmmo(CurrentWeapon->GetWeaponType(), AmmoTake); RETURN?
-		//OnWeaponAdditionalInfoChange.Broadcast(CurrentWeapon->WeaponInfo); 
-		OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round);
-	}
+	CurrentWeapon ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : void(0);
+
 	bIsReload = false;
 	bCanAiming = true;
-	/// WeaponReloadEnd_BP(bIsSuccess);
 }
 
 void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) /// Refactoring to Start play Reload weapon animation
