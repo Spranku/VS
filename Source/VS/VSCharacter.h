@@ -17,6 +17,11 @@ class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSwitchWeapon, EWeaponType, WeaponType, FAdditionalWeaponInfo, WeaponAdditionalInfo, ABaseWeapon*,CurrentWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoTypeChange, EWeaponType, WeaponType, int32, NewRound);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoChange, int32 , NewAmmo);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponAdditionalInfoChange, FAdditionalWeaponInfo, AdditionalInfo);
+
 UCLASS(config=Game)
 class AVSCharacter : public ACharacter
 {
@@ -25,6 +30,15 @@ public:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
+
+	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	FOnSwitchWeapon OnSwitchWeapon;
+
+	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	FOnAmmoTypeChange OnAmmoTypeChange;
+
+	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	FOnAmmoChange OnAmmoChange;
 protected:
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
@@ -85,9 +99,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* ThirdPersonEquipAnimation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
-	TArray<UAnimMontage*> DeadsAnim;
-
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
@@ -97,6 +108,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FCharacterSpeed MovementInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	TArray<UAnimMontage*> DeadsAnim;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Class")
 	TArray<TSubclassOf<class ABaseWeapon>> DefaultWeapons;
@@ -157,6 +171,8 @@ protected:
 	FTimerDelegate AimTimerDelegate;
 
 	FTimerHandle RagDollTimerHandle;
+
+	int BackpackAmmo = 1;
 
 	float Alpha = 0.0f;
 	
@@ -249,6 +265,13 @@ protected:
 
 public:
 	
+	virtual float TakeDamage(float DamageAmount,
+							 struct FDamageEvent const& DamageEvent,
+							 class AController* EventInstigator,
+							 AActor* DamageCauser) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
@@ -257,15 +280,8 @@ public:
 
 	FVector GetLocationFromCamera();
 
-	virtual float TakeDamage(float DamageAmount,
-							 struct FDamageEvent const& DamageEvent,
-							 class AController* EventInstigator,
-							 AActor* DamageCauser) override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool GetIsAlive();
+	UFUNCTION(BlueprintCallable)
+	ABaseWeapon* GetCurrentWeapon() const;
 
 	UFUNCTION(BlueprintCallable)
 	void CharDead(AController* DamageInstigator);
@@ -273,35 +289,41 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void CharDead_BP(AController* DamageInstigator);
 
-	UFUNCTION(BlueprintCallable)
-	ABaseWeapon* GetCurrentWeapon();
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool GetIsAlive();
 
-	UFUNCTION()
+	UFUNCTION() 
 	void InitWeapon();
 
 	UFUNCTION()
-	void WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void WeaponReloadEnd();
+
+	UFUNCTION() 
+	void StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+
+	UFUNCTION() 
+	void StartWeaponFireAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
 	UFUNCTION()
-	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
+	void StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
-	UFUNCTION()
-	void WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
-
-	UFUNCTION()
-	void WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
-
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Unreliable) /// Do nothing Reliable?
 	void S_LookUPSync(FRotator RotationSync);
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(NetMulticast, Unreliable) /// Do nothing Reliable?
 	void M_LookUPSync(FRotator RotationSync);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void ChangeAmmoByShotEvent_Multicast();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void EnableRagdoll_Multicast();
 
 	UFUNCTION(NetMulticast,Unreliable)
 	void ChangingWeapon(int32 Index);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
 	UFUNCTION(NetMulticast,Unreliable)
 	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
@@ -312,7 +334,5 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 };
 

@@ -15,7 +15,6 @@ ABaseWeapon::ABaseWeapon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	///SetReplicates(true);
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
@@ -96,7 +95,7 @@ void ABaseWeapon::OwnerInit()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
-}
+}     /// Refactoring to InitOwnerCharacter
 
 // Called every frame
 void ABaseWeapon::Tick(float DeltaTime)
@@ -418,7 +417,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		UE_LOG(LogTemp, Error, TEXT("Round 0"));
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
-			CurrentOwner->StopAiming_OnServer_Implementation();
+			///CurrentOwner->StopAiming_OnServer_Implementation(); /// Now on client work success, but not on server 
 			InitReload();
 		}
 	}
@@ -446,35 +445,47 @@ void ABaseWeapon::InitReload()
 	//}
 }
 
+int32 ABaseWeapon::GetAmmoFromBackpack() const
+{
+	return AmmoBackpack;
+}
+
+void ABaseWeapon::ChangeAmmoCountInBackpack( int NewAmmo)
+{
+	//AmmoBackpack = NewAmmo;
+	AmmoBackpack = AmmoBackpack + NewAmmo;
+}
+
 void ABaseWeapon::FinishReload()
 {
 	WeaponReloading = false;
-	WeaponInfo.Round = WeaponSetting.MaxRound;
+	int32 AmmoNeedTake = WeaponSetting.MaxRound - WeaponInfo.Round; 
 
-	//int8 AviableAmmoFromInventory =  GetAviableAmmoForReload();
-	int8 AmmoNeedTakeFromInv;
-	//int8 NeedToReload = WeaponSetting.MaxRound - AdditionalWeaponInfo.Round;
-
-	//if (NeedToReload > AviableAmmoFromInventory)
-	//{
-	//	AdditionalWeaponInfo.Round = AviableAmmoFromInventory;
-	//	AmmoNeedTakeFromInv = AviableAmmoFromInventory;
-	//}
-	//else
-	//{
-	//	AdditionalWeaponInfo.Round += NeedToReload;
-	//	AmmoNeedTakeFromInv = NeedToReload;
-	//}
-	OnWeaponReloadEnd.Broadcast(true, -AmmoNeedTakeFromInv);
+	if (GetAmmoFromBackpack() >= AmmoNeedTake)
+	{
+		int NewAmmoForBackpack = GetAmmoFromBackpack() - AmmoNeedTake;
+		ChangeAmmoCountInBackpack(-AmmoNeedTake);
+		WeaponInfo.Round = WeaponInfo.Round + AmmoNeedTake;
+	}
+	else
+	{
+		WeaponInfo.Round = WeaponInfo.Round + GetAmmoFromBackpack();
+		ChangeAmmoCountInBackpack(-GetAmmoFromBackpack());
+	}
+	
+	OnWeaponReloadEnd.Broadcast(); // DO notwhing?
 }
 
 void ABaseWeapon::CancelReload()
 {
 	WeaponReloading = false;
+
 	/*if (SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())
 		SkeletalMeshWeapon->GetAnimInstance()->StopAllMontages(0.15f);
 
 	OnWeaponReloadEnd.Broadcast(false, 0);*/
+
+	OnWeaponReloadEnd.Broadcast();
 }
 
 void ABaseWeapon::ChangeDispersionByShoot()
@@ -495,21 +506,17 @@ bool ABaseWeapon::CheckWeaponCanFire()
 
 bool ABaseWeapon::CheckCanWeaponReload()
 {
-	/*bool result = true;
-	if (GetOwner())
+	if (GetAmmoFromBackpack() > 0)
 	{
-		UTPSInventoryComponent* MyInv = Cast<UTPSInventoryComponent>(GetOwner()->GetComponentByClass(UTPSInventoryComponent::StaticClass()));
-		if (MyInv)
-		{
-			int8 AviableAmmoForWeapon;
-			if (!MyInv->CheckAmmoForWeapon(WeaponSetting.WeaponType, AviableAmmoForWeapon))
-			{
-				result = false;
-			}
-		}
+		return true;
 	}
-	return result;*/
-	return true;
+	else
+	{
+		return false;
+		CancelReload();
+	}
+	return false;
+	CancelReload();
 }
 
 void ABaseWeapon::SetWeaponStateFire_OnServer_Implementation(bool bIsFire)
@@ -696,6 +703,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
+	DOREPLIFETIME(ABaseWeapon, WeaponInfo);
 }
 
 

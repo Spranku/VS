@@ -18,8 +18,7 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
-//////////////////////////////////////////////////////////////////////////
-// AVSCharacter
+//////////////////////////////////////////////////////////////////////////// AVSCharacter
 
 AVSCharacter::AVSCharacter()
 {
@@ -259,14 +258,15 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		WeaponEquipAnimStart(ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
+		StartWeaponEquipAnimation(ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
 		BlockActionDuringEquip_OnClient();
-
+	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
 		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 1.5f, false);
 	}
 	else if (!HasAuthority())
 	{
+		//CurrentWeapon->OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo); /// HERE?
 		SetCurrentWeapon_OnServer(Weapons[Index]);
 	}
 }
@@ -285,6 +285,7 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 	CurrentIndex = Index;
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
 	CurrentWeapon = Weapons[Index];
+	OnAmmoTypeChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->GetWeaponRound());
 	OnRep_CurrentWeapon(OldWeapon);
 
 	CurrentWeapon->BlockFire = false;
@@ -295,6 +296,7 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 {
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
 	CurrentWeapon = NewWeapon;
+
 	OnRep_CurrentWeapon(OldWeapon);
 }
 
@@ -302,46 +304,6 @@ void AVSCharacter::OnFire()
 {
 	bIsFire = true;
 	FireEvent(true);
-
-	// try and fire a projectile
-	//if (ProjectileClass != nullptr)
-	//{
-	//	UWorld* const World = GetWorld();
-	//	if (World != nullptr)
-	//	{
-	//		if (!bUsingMotionControllers)
-	//		{
-	// 
-	//			const FRotator SpawnRotation = GetControlRotation();
-	//			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-	//			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-	//			//Set Spawn Collision Handling Override
-	//			FActorSpawnParameters ActorSpawnParams;
-	//			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-	//			// spawn the projectile at the muzzle
-	//			World->SpawnActor<AVSProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-	//		}
-	//	}
-	//}
-
-	//// try and play the sound if specified
-	//if (FireSound != nullptr)
-	//{
-	//	UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	//}
-
-	//// try and play a firing animation if specified
-	//if (FireAnimation != nullptr)
-	//{
-	//	// Get the animation object for the arms mesh
-	//	UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-	//	if (AnimInstance != nullptr)
-	//	{
-	//		AnimInstance->Montage_Play(FireAnimation, 1.f);
-	//	}
-	//}
 }
 
 void AVSCharacter::EndFire() /// For test
@@ -364,7 +326,7 @@ void AVSCharacter::StopCrouch()
 
 void AVSCharacter::TryReloadWeapon()
 {
-	if (/*CharHealthComponent && CharHealthComponent->GetIsAlive() && */CurrentWeapon && !CurrentWeapon->WeaponReloading)
+	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive() && CurrentWeapon && !CurrentWeapon->WeaponReloading)
 	{
 		TryReloadWeapon_OnServer();
 	}
@@ -372,30 +334,42 @@ void AVSCharacter::TryReloadWeapon()
 
 void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
-	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
+	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("TryReloadWeapon_OnServer - Success start reloadig"));
+
+		bIsAiming ? StopAiming() : void(0);
+		bCanAiming = false;
+		/// TODO  BlockActionDuringEquip_OnClient ?
+
 		bIsReload = true;
 		//bCanAiming = false;
 		CurrentWeapon->InitReload();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound OR GetAmmoFromBackpack() == 0 OR CurrentWeapon->CheckCanWeaponReload() = false"));
+		/// TODO: Miss click sound ?
 	}
 }
 
 void AVSCharacter::InitReload()
 {
-	UE_LOG(LogTemp, Error, TEXT("InitReload"));
+	/*UE_LOG(LogTemp, Error, TEXT("AVSCharacter::InitReload"));
 	bIsAiming ? StopAiming() : void(0);
-	bCanAiming = false;
+	bCanAiming = false;*/
 	TryReloadWeapon();
 }
 
-void AVSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe)
+void AVSCharacter::WeaponReloadEnd()
 {
+	CurrentWeapon ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : void(0);
+
 	bIsReload = false;
 	bCanAiming = true;
-	/// WeaponReloadEnd_BP(bIsSuccess);
 }
 
-void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) /// Refactoring to Start play Reload weapon animation
 {
 	if (Anim3P && Anim1P)
 	{
@@ -408,21 +382,17 @@ void AVSCharacter::WeaponReloadAnimStart(UAnimMontage* Anim3P, UAnimMontage* Ani
 	}
 }
 
-void AVSCharacter::WeaponFireAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::StartWeaponFireAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
-	///if (InventoryComponent && CurrentWeapon)
-	///{
-	///	InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
-	///}
-	/// WeaponFireStart_BP(Anim3P,Anim1P);
+	CurrentWeapon ? ChangeAmmoByShotEvent_Multicast() : void(0);
 	
 	if (Anim3P && Anim1P)
 	{	
 		PlayWeaponFireMontage_Multicast(Anim3P, Anim1P);
 	}
-}
+} 
 
-void AVSCharacter::WeaponEquipAnimStart(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
 	if (Anim3P && Anim1P)
 	{
@@ -488,6 +458,11 @@ void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdP
 		AnimInstance3P->Montage_Play(ThirdPersonAnim);
 		AnimInstance1P->Montage_Play(FirstPersonAnim);
 	}
+}
+
+void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
+{
+	HasAuthority() ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round - 1);
 }
 
 void AVSCharacter::InitAiming()
@@ -573,10 +548,11 @@ void AVSCharacter::InitAimTimeline(float From, float To)
 void AVSCharacter::NextWeapon()
 {
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
-
+	
 	if (HasAuthority())
 	{
 		EquipWeapon_OnServer(Index);
+		
 	}
 	else
 	{
@@ -587,7 +563,7 @@ void AVSCharacter::NextWeapon()
 void AVSCharacter::LastWeapon()
 {
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
-
+	
 	if (HasAuthority())
 	{
 		EquipWeapon_OnServer(Index);
@@ -777,6 +753,8 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 {
 	if (CurrentWeapon)
 	{
+		OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo,CurrentWeapon); 
+		
 		if (!CurrentWeapon->CurrentOwner)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
@@ -786,27 +764,25 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
-		CurrentWeapon->WeaponInfo.Round = CurrentWeapon->WeaponSetting.MaxRound; /// Here?
 
 		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 
 		if (CurrentWeapon->bIsRailGun)
 		{
 			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("SecondaryWeaponSocket"));
-
 		}
 		else
 		{
 			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 		}
 
-		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::WeaponReloadAnimStart);
+		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::WeaponFireAnimStart);
+		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponFireAnimation);
 
-		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::WeaponReloadAnimStart);
+		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::WeaponFireAnimStart);
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponFireAnimation);
 	}
 
 	if (OldWeapon)
@@ -844,7 +820,7 @@ void AVSCharacter::InitWeapon()
 	InitWeaponTimerHandle.Invalidate();
 }
 
-EMovementState AVSCharacter::GetMovementState()
+EMovementState AVSCharacter::GetMovementState() /// TODO REF TO CONST
 {
 	return MovementState;
 }
@@ -888,9 +864,19 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return ActualDamage;
 }
 
-ABaseWeapon* AVSCharacter::GetCurrentWeapon()
+ABaseWeapon* AVSCharacter::GetCurrentWeapon() const
 {
 	return CurrentWeapon;
+}
+
+bool AVSCharacter::GetIsAlive()
+{
+	bool result = false;
+	if (CharacterHealthComponent)
+	{
+		result = CharacterHealthComponent->GetIsAlive();
+	}
+	return result;
 }
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -914,13 +900,4 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
 }
 
-bool AVSCharacter::GetIsAlive()
-{
-	bool result = false;
-	if (CharacterHealthComponent)
-	{
-		result = CharacterHealthComponent->GetIsAlive();
-	}
-	return result;
-}
 
