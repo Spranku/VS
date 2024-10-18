@@ -450,9 +450,8 @@ int32 ABaseWeapon::GetAmmoFromBackpack() const
 	return AmmoBackpack;
 }
 
-void ABaseWeapon::ChangeAmmoCountInBackpack( int NewAmmo)
+void ABaseWeapon::ChangeAmmoCountInBackpack(int NewAmmo)
 {
-	//AmmoBackpack = NewAmmo;
 	AmmoBackpack = AmmoBackpack + NewAmmo;
 }
 
