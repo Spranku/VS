@@ -81,6 +81,7 @@ void ABaseWeapon::BeginPlay()
 		SkeletalMeshWeapon->SetVisibility(true);
 	}
 }
+
 void ABaseWeapon::ChangeAnimationsForOwner()
 {
 	switch (CurrentOwner->HeroType)
@@ -430,10 +431,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Round 0"));
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
 			///CurrentOwner->StopAiming_OnServer_Implementation(); /// Now on client work success, but not on server 
+			///!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO STOP AIMING FOR CLIENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			///CurrentOwner->BlockActionDuringEquip_OnClient_Implementation();
 			InitReload();
 		}
 	}
@@ -453,12 +455,6 @@ void ABaseWeapon::InitReload()
 	{
 		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::InitReload() - WeaponSetting.ThirdPersonReload = false"));
 	}
-
-	//if (WeaponSetting.ClipDropMesh.DropMesh)
-	//{
-	//	DropClipFlag = true;
-	//	DropClipTimer = WeaponSetting.ClipDropMesh.DropMeshTime;
-	//}
 }
 
 int32 ABaseWeapon::GetAmmoFromBackpack() const

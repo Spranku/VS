@@ -150,6 +150,12 @@ struct FWeaponInfo
 	FProjectileInfo ProjectileSetting;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	USoundBase* InAimingSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	USoundBase* OutAimingSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	UParticleSystem* EffectFireWeapon = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")

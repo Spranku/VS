@@ -369,11 +369,22 @@ void AVSCharacter::WeaponReloadEnd()
 	bCanAiming = true;
 }
 
-void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) /// Refactoring to Start play Reload weapon animation
+void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) 
 {
+	if (HasAuthority()) /// HOW WE CAN STOP AIMING ON CLIENT!?!??!?!?!?!?!
+	{
+		StopAiming();
+	}
+	else
+	{
+		BlockActionDuringEquip_OnClient();
+	}
+
 	if (Anim3P && Anim1P)
 	{
 		/// WeaponReloadStart_BP(Anim3P, Anim1P);
+		//BlockActionDuringEquip_OnClient();
+
 		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
 	}
 	else
@@ -467,16 +478,11 @@ void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation()
 
 void AVSCharacter::InitAiming()
 {
-	if (bCanAiming)
+	if (bCanAiming && CurrentWeapon)
 	{
-		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
-		{
-			InitAimTimeline(90.0f, 30.0f);
-		}
-		else
-		{
-			InitAimTimeline(90.0f, 60.0f);
-		}
+		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.InAimingSound) : void(0);
+		CurrentWeapon->bIsRailGun ? InitAimTimeline(90.0f, 30.0f) : InitAimTimeline(90.0f, 60.0f); 
+
 		if (HasAuthority())
 		{
 			bIsAiming = true;
@@ -496,17 +502,10 @@ void AVSCharacter::InitAiming_OnServer_Implementation()
 
 void AVSCharacter::StopAiming()
 {
-	if (bIsAiming)
+	if (bIsAiming && CurrentWeapon)
 	{
-		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
-		{
-			InitAimTimeline(30.0f, 90.0f);
-			///UE_LOG(LogTemp, Error, TEXT("StopAiming"));
-		}
-		else
-		{
-			InitAimTimeline(60.0f, 90.0f);
-		}
+		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.InAimingSound) : void(0);
+		CurrentWeapon->bIsRailGun ? InitAimTimeline(30.0f, 90.0f) : InitAimTimeline(60.0f, 90.0f);
 	}
 
 	if (HasAuthority())
