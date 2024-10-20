@@ -332,18 +332,13 @@ void AVSCharacter::TryReloadWeapon()
 	}
 }
 
-void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
+void AVSCharacter::TryReloadWeapon_OnClient_Implementation()
 {
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryReloadWeapon_OnServer - Success start reloadig"));
-
 		bIsAiming ? StopAiming() : void(0);
 		bCanAiming = false;
-		/// TODO  BlockActionDuringEquip_OnClient ?
-
 		bIsReload = true;
-		//bCanAiming = false;
 		CurrentWeapon->InitReload();
 	}
 	else
@@ -351,6 +346,11 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 		UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound OR GetAmmoFromBackpack() == 0 OR CurrentWeapon->CheckCanWeaponReload() = false"));
 		/// TODO: Miss click sound ?
 	}
+}
+
+void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
+{
+	TryReloadWeapon_OnClient();
 }
 
 void AVSCharacter::InitReload()

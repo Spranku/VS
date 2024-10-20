@@ -322,7 +322,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	else
 	{ 
 		///	////////////////////HitScan LineTrace////////////////////// 
-		UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
+		//UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
 
 		if (!BlockFire)
 		{
@@ -392,12 +392,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 				if (WeaponSetting.EffectFireWeapon)
 				{
-					UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Success EffectFireWeapon"));
+					//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Success EffectFireWeapon"));
 					FireWeaponFX_Multicast(WeaponSetting.EffectFireWeapon, HitResult);
 				}
 				else
 				{
-					UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - WeaponSetting.EffectFireWeapon = NULL"));
+					//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - WeaponSetting.EffectFireWeapon = NULL"));
 				}
 
 				if (WeaponSetting.ProjectileSetting.HitSound)
@@ -420,12 +420,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
+				//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("FireTime "));
+			//UE_LOG(LogTemp, Warning, TEXT("FireTime "));
 		}
 	}
 
@@ -585,7 +585,7 @@ void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResu
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("TraceFX = NULL"));
+		//UE_LOG(LogTemp, Error, TEXT("TraceFX = NULL"));
 	}
 }
 

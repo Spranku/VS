@@ -179,7 +179,8 @@ protected:
 	int BackpackAmmo = 1;
 
 	float Alpha = 0.0f;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category = "Animation")
 	bool bCanAiming = true;
 
 	void OnFire();
@@ -231,6 +232,9 @@ protected:
 
 	UFUNCTION(Server,Unreliable)
 	void TryReloadWeapon_OnServer();
+
+	UFUNCTION(Client,Unreliable)
+	void TryReloadWeapon_OnClient();
 
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
