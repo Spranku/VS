@@ -377,14 +377,13 @@ void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage
 	}
 	else
 	{
-		BlockActionDuringEquip_OnClient();
+		//BlockActionDuringEquip_OnClient(); // ALL NOT WORKING
+		/*bIsAiming ? StopAiming() : void(0);	// ALL NOT WORKING
+		bCanAiming = false;*/	// ALL NOT WORKING
 	}
 
 	if (Anim3P && Anim1P)
 	{
-		/// WeaponReloadStart_BP(Anim3P, Anim1P);
-		//BlockActionDuringEquip_OnClient();
-
 		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
 	}
 	else
