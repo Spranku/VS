@@ -99,10 +99,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hero")
 	EHeroType HeroType = EHeroType::Hunk;
 
-	/** AnimMontage to play each time we reloading */
-	///UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	///UAnimMontage* ThirdPersonEquipAnimation;
-
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
