@@ -122,8 +122,6 @@ void ABaseWeapon::Tick(float DeltaTime)
 	FireTick(DeltaTime);
 	ReloadTick(DeltaTime);
 	DispersionTick(DeltaTime);
-	//ClipDropTick(DeltaTime);
-	//ShellDropTick(DeltaTime);
 }
 
 void ABaseWeapon::ReloadTick(float DeltaTime)
@@ -322,7 +320,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	else
 	{ 
 		///	////////////////////HitScan LineTrace////////////////////// 
-		//UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
+		UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
 
 		if (!BlockFire)
 		{
@@ -420,22 +418,22 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 			}
 			else
 			{
-				//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
+				UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
 			}
 		}
 		else
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("FireTime "));
+			UE_LOG(LogTemp, Warning, TEXT("FireTime "));
 		}
 	}
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
 	{
+		/// TODO missclick sound
+		///WeaponSetting.EmptyMagSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.EmptyMagSound) : void(0);
+		
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
-			///CurrentOwner->StopAiming_OnServer_Implementation(); /// Now on client work success, but not on server 
-			///!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO STOP AIMING FOR CLIENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			///CurrentOwner->BlockActionDuringEquip_OnClient_Implementation();
 			InitReload();
 		}
 	}
@@ -717,6 +715,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
+	DOREPLIFETIME(ABaseWeapon, ReloadTimer);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
 	DOREPLIFETIME(ABaseWeapon, WeaponInfo);
 }

@@ -192,7 +192,7 @@ protected:
 	void StopCrouch();
 
 	void InitReload();
-	
+
 	void InitAiming();
 
 	void StopAiming();
@@ -233,11 +233,11 @@ protected:
 	UFUNCTION(Server,Unreliable)
 	void TryReloadWeapon_OnServer();
 
-	UFUNCTION(Client,Unreliable)
-	void TryReloadWeapon_OnClient();
-
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
+
+	UFUNCTION(Client,Unreliable)
+	void StopAiming_OnClient();
 
 	UFUNCTION(Server, UnReliable)
 	void InitAiming_OnServer();

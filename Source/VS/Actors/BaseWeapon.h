@@ -72,7 +72,7 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
+	UPROPERTY(EditAnywhere,Replicated, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")

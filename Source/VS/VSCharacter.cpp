@@ -332,7 +332,7 @@ void AVSCharacter::TryReloadWeapon()
 	}
 }
 
-void AVSCharacter::TryReloadWeapon_OnClient_Implementation()
+void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
 	{
@@ -341,23 +341,10 @@ void AVSCharacter::TryReloadWeapon_OnClient_Implementation()
 		bIsReload = true;
 		CurrentWeapon->InitReload();
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound OR GetAmmoFromBackpack() == 0 OR CurrentWeapon->CheckCanWeaponReload() = false"));
-		/// TODO: Miss click sound ?
-	}
-}
-
-void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
-{
-	TryReloadWeapon_OnClient();
 }
 
 void AVSCharacter::InitReload()
 {
-	/*UE_LOG(LogTemp, Error, TEXT("AVSCharacter::InitReload"));
-	bIsAiming ? StopAiming() : void(0);
-	bCanAiming = false;*/
 	TryReloadWeapon();
 }
 
@@ -369,19 +356,15 @@ void AVSCharacter::WeaponReloadEnd()
 	bCanAiming = true;
 }
 
+void AVSCharacter::StopAiming_OnClient_Implementation()
+{
+	StopAiming();
+}
+
 void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) 
 {
-	if (HasAuthority()) /// HOW WE CAN STOP AIMING ON CLIENT!?!??!?!?!?!?!
-	{
-		StopAiming();
-	}
-	else
-	{
-		//BlockActionDuringEquip_OnClient(); // ALL NOT WORKING
-		/*bIsAiming ? StopAiming() : void(0);	// ALL NOT WORKING
-		bCanAiming = false;*/	// ALL NOT WORKING
-	}
-
+	StopAiming_OnClient(); /// Work, but can zoom
+	
 	if (Anim3P && Anim1P)
 	{
 		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
@@ -477,7 +460,7 @@ void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation()
 
 void AVSCharacter::InitAiming()
 {
-	if (bCanAiming && CurrentWeapon)
+	if (bCanAiming && CurrentWeapon && !CurrentWeapon->WeaponReloading) /// && !CurrentWeapon->WeaponReloading WORK FOR SERVER ONLY
 	{
 		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.InAimingSound) : void(0);
 		CurrentWeapon->bIsRailGun ? InitAimTimeline(90.0f, 30.0f) : InitAimTimeline(90.0f, 60.0f); 
@@ -503,7 +486,7 @@ void AVSCharacter::StopAiming()
 {
 	if (bIsAiming && CurrentWeapon)
 	{
-		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.InAimingSound) : void(0);
+		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.OutAimingSound) : void(0);
 		CurrentWeapon->bIsRailGun ? InitAimTimeline(30.0f, 90.0f) : InitAimTimeline(60.0f, 90.0f);
 	}
 
