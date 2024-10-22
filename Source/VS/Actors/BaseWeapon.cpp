@@ -128,8 +128,6 @@ void ABaseWeapon::ReloadTick(float DeltaTime)
 {
 	if (WeaponReloading || GetWeaponRound() < 0)
 	{
-		/// UE_LOG(LogTemp, Warning, TEXT("WeaponReloading || GetWeaponRound = true"));
-
 		if (ReloadTimer < 0.0f)
 		{
 			FinishReload();
