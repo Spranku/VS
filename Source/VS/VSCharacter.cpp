@@ -258,7 +258,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		StartWeaponEquipAnimation(ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
+		StartWeaponEquipAnimation(/*ThirdPersonEquipAnimation*/ CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
 		BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
@@ -336,28 +336,15 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryReloadWeapon_OnServer - Success start reloadig"));
-
 		bIsAiming ? StopAiming() : void(0);
 		bCanAiming = false;
-		/// TODO  BlockActionDuringEquip_OnClient ?
-
 		bIsReload = true;
-		//bCanAiming = false;
 		CurrentWeapon->InitReload();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->GetWeaponRound() > CurrentWeapon->WeaponSetting.MaxRound OR GetAmmoFromBackpack() == 0 OR CurrentWeapon->CheckCanWeaponReload() = false"));
-		/// TODO: Miss click sound ?
 	}
 }
 
 void AVSCharacter::InitReload()
 {
-	/*UE_LOG(LogTemp, Error, TEXT("AVSCharacter::InitReload"));
-	bIsAiming ? StopAiming() : void(0);
-	bCanAiming = false;*/
 	TryReloadWeapon();
 }
 
@@ -369,11 +356,17 @@ void AVSCharacter::WeaponReloadEnd()
 	bCanAiming = true;
 }
 
-void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) /// Refactoring to Start play Reload weapon animation
+void AVSCharacter::StopAiming_OnClient_Implementation()
 {
+	StopAiming();
+}
+
+void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) 
+{
+	StopAiming_OnClient(); /// Work, but can zoom
+	
 	if (Anim3P && Anim1P)
 	{
-		/// WeaponReloadStart_BP(Anim3P, Anim1P);
 		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
 	}
 	else
@@ -467,16 +460,11 @@ void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation()
 
 void AVSCharacter::InitAiming()
 {
-	if (bCanAiming)
+	if (bCanAiming && CurrentWeapon && !CurrentWeapon->WeaponReloading) /// && !CurrentWeapon->WeaponReloading WORK FOR SERVER ONLY
 	{
-		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
-		{
-			InitAimTimeline(90.0f, 30.0f);
-		}
-		else
-		{
-			InitAimTimeline(90.0f, 60.0f);
-		}
+		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.InAimingSound) : void(0);
+		CurrentWeapon->bIsRailGun ? InitAimTimeline(90.0f, 30.0f) : InitAimTimeline(90.0f, 60.0f); 
+
 		if (HasAuthority())
 		{
 			bIsAiming = true;
@@ -496,17 +484,10 @@ void AVSCharacter::InitAiming_OnServer_Implementation()
 
 void AVSCharacter::StopAiming()
 {
-	if (bIsAiming)
+	if (bIsAiming && CurrentWeapon)
 	{
-		if (CurrentWeapon && CurrentWeapon->bIsRailGun)
-		{
-			InitAimTimeline(30.0f, 90.0f);
-			///UE_LOG(LogTemp, Error, TEXT("StopAiming"));
-		}
-		else
-		{
-			InitAimTimeline(60.0f, 90.0f);
-		}
+		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.OutAimingSound) : void(0);
+		CurrentWeapon->bIsRailGun ? InitAimTimeline(30.0f, 90.0f) : InitAimTimeline(60.0f, 90.0f);
 	}
 
 	if (HasAuthority())
@@ -759,7 +740,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		{
 			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
 			CurrentWeapon->AttachToComponent(/*GetMesh()*/ Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
-			CurrentWeapon->OwnerInit();
+			CurrentWeapon->InitOwnerCharacter();
 			//CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
@@ -877,6 +858,11 @@ bool AVSCharacter::GetIsAlive()
 		result = CharacterHealthComponent->GetIsAlive();
 	}
 	return result;
+}
+
+EHeroType AVSCharacter::GetHeroType() const
+{
+	return HeroType;
 }
 
 void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

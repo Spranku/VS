@@ -22,6 +22,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoTypeChange, EWeaponType, Wea
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoChange, int32 , NewAmmo);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponAdditionalInfoChange, FAdditionalWeaponInfo, AdditionalInfo);
 
+UENUM(BlueprintType)
+enum class EHeroType : uint8
+{
+	Hunk UMETA(DisplayName = "Hunk"),
+	Swat UMETA(DisplayName = "Swat"),
+	Observer UMETA(DisplayName = "Observer")
+};
+
 UCLASS(config=Game)
 class AVSCharacter : public ACharacter
 {
@@ -47,9 +55,6 @@ protected:
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
-
-	/*UPROPERTY(EditDefaultsOnly, Category = "Components")
-	TSubclassOf<UVSCharacterHealthComponent> CharacterHealthComponentClass;*/
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UVSCharacterHealthComponent* CharacterHealthComponent;
@@ -87,17 +92,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
 
-	/** Sound to play each time we reloading */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	USoundBase* ReloadSound;
-
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FirstPersonEquipWeaponAnimation;
 
-	/** AnimMontage to play each time we reloading */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* ThirdPersonEquipAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hero")
+	EHeroType HeroType = EHeroType::Hunk;
 
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -175,7 +175,8 @@ protected:
 	int BackpackAmmo = 1;
 
 	float Alpha = 0.0f;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category = "Animation")
 	bool bCanAiming = true;
 
 	void OnFire();
@@ -187,7 +188,7 @@ protected:
 	void StopCrouch();
 
 	void InitReload();
-	
+
 	void InitAiming();
 
 	void StopAiming();
@@ -230,6 +231,9 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
+
+	UFUNCTION(Client,Unreliable)
+	void StopAiming_OnClient();
 
 	UFUNCTION(Server, UnReliable)
 	void InitAiming_OnServer();
@@ -276,9 +280,13 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+
 	FVector GetForwardVectorFromCamera();
 
 	FVector GetLocationFromCamera();
+
+	UFUNCTION(BlueprintCallable)
+	EHeroType GetHeroType() const;
 
 	UFUNCTION(BlueprintCallable)
 	ABaseWeapon* GetCurrentWeapon() const;

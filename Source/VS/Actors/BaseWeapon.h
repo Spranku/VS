@@ -30,9 +30,6 @@ public:
 	FOnWeaponReloadEnd OnWeaponReloadEnd;
 	FOnWeaponFireStart OnWeaponFireStart;
 
-	/*UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
-	FOnSwitchWeapon OnSwitchWeapon;*/
-
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
 
@@ -75,7 +72,7 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReloadLogic")
+	UPROPERTY(EditAnywhere,Replicated, BlueprintReadWrite, Category = "ReloadLogic")
 	float ReloadTimer = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
@@ -147,7 +144,7 @@ public:
 
 	void DispersionTick(float DeltaTime);
 
-	void OwnerInit();
+	void InitOwnerCharacter();
 
 	void WeaponInit();
 
@@ -172,6 +169,15 @@ public:
 	FVector GetFireEndLocation() const;
 
 	FVector ApplyDispersionToShoot(FVector DirectionShoot) const;
+
+	UFUNCTION()
+	void ChangeAnimationsForOwner();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void SetAnimationForHunkHero_BP();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void SetAnimationForSwatHero_BP();
 
 	UFUNCTION()
 	void CheckRateOfFire();

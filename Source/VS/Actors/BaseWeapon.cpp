@@ -82,20 +82,37 @@ void ABaseWeapon::BeginPlay()
 	}
 }
 
-void ABaseWeapon::OwnerInit()
+void ABaseWeapon::ChangeAnimationsForOwner()
+{
+	switch (CurrentOwner->HeroType)
+	{
+	case EHeroType::Hunk:
+		SetAnimationForHunkHero_BP();
+		break;
+	case EHeroType::Swat:
+		SetAnimationForSwatHero_BP();
+		break;
+	case EHeroType::Observer:
+		break;
+	default:
+		break;
+	}
+}
+
+void ABaseWeapon::InitOwnerCharacter()
 {
 	AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
 	if (MyChar)
 	{
 		CurrentOwner = MyChar;
 		CurrentOwner->SetInstigator(CurrentOwner);
-		UE_LOG(LogTemp, Warning, TEXT("ABaseWeapon::OwnerInit - success SetOwner and SetInstigator"));	
+		ChangeAnimationsForOwner();
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
-}     /// Refactoring to InitOwnerCharacter
+} 
 
 // Called every frame
 void ABaseWeapon::Tick(float DeltaTime)
@@ -105,8 +122,6 @@ void ABaseWeapon::Tick(float DeltaTime)
 	FireTick(DeltaTime);
 	ReloadTick(DeltaTime);
 	DispersionTick(DeltaTime);
-	//ClipDropTick(DeltaTime);
-	//ShellDropTick(DeltaTime);
 }
 
 void ABaseWeapon::ReloadTick(float DeltaTime)
@@ -375,12 +390,12 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 				if (WeaponSetting.EffectFireWeapon)
 				{
-					UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Success EffectFireWeapon"));
+					//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Success EffectFireWeapon"));
 					FireWeaponFX_Multicast(WeaponSetting.EffectFireWeapon, HitResult);
 				}
 				else
 				{
-					UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - WeaponSetting.EffectFireWeapon = NULL"));
+					//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - WeaponSetting.EffectFireWeapon = NULL"));
 				}
 
 				if (WeaponSetting.ProjectileSetting.HitSound)
@@ -414,10 +429,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Round 0"));
+		/// TODO missclick sound
+		///WeaponSetting.EmptyMagSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.EmptyMagSound) : void(0);
+		
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
-			///CurrentOwner->StopAiming_OnServer_Implementation(); /// Now on client work success, but not on server 
 			InitReload();
 		}
 	}
@@ -437,12 +453,6 @@ void ABaseWeapon::InitReload()
 	{
 		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::InitReload() - WeaponSetting.ThirdPersonReload = false"));
 	}
-
-	//if (WeaponSetting.ClipDropMesh.DropMesh)
-	//{
-	//	DropClipFlag = true;
-	//	DropClipTimer = WeaponSetting.ClipDropMesh.DropMeshTime;
-	//}
 }
 
 int32 ABaseWeapon::GetAmmoFromBackpack() const
@@ -450,9 +460,8 @@ int32 ABaseWeapon::GetAmmoFromBackpack() const
 	return AmmoBackpack;
 }
 
-void ABaseWeapon::ChangeAmmoCountInBackpack( int NewAmmo)
+void ABaseWeapon::ChangeAmmoCountInBackpack(int NewAmmo)
 {
-	//AmmoBackpack = NewAmmo;
 	AmmoBackpack = AmmoBackpack + NewAmmo;
 }
 
@@ -574,7 +583,7 @@ void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResu
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("TraceFX = NULL"));
+		//UE_LOG(LogTemp, Error, TEXT("TraceFX = NULL"));
 	}
 }
 
@@ -612,6 +621,10 @@ void ABaseWeapon::CancelAiming_Implementation()
 		ShowScopeTimeline(0.2f,false);
 	}
 }
+
+void ABaseWeapon::SetAnimationForHunkHero_BP_Implementation() {}
+
+void ABaseWeapon::SetAnimationForSwatHero_BP_Implementation() {}
 
 void ABaseWeapon::CheckRateOfFire()
 {
@@ -702,6 +715,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
+	DOREPLIFETIME(ABaseWeapon, ReloadTimer);
 	DOREPLIFETIME(ABaseWeapon, ShootEndLocation);
 	DOREPLIFETIME(ABaseWeapon, WeaponInfo);
 }
