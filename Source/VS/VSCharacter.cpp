@@ -453,6 +453,11 @@ void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdP
 	}
 }
 
+//void AVSCharacter::PlayImpactSound_Multicast_Implementation(USoundBase* ImpactSound)
+//{
+//	Get
+//}
+
 void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
 {
 	HasAuthority() ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round - 1);
@@ -819,29 +824,21 @@ FVector AVSCharacter::GetLocationFromCamera()
 
 float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	/// UE_LOG(LogTemp, Warning, TEXT("TakeDamagde"));
-
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive())
 	{
-			/// UE_LOG(LogTemp, Warning, TEXT("ChangeHealthValue in Character"));
-
-			///CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
-
 		CharacterHealthComponent->ChangeHealthValue_OnServer(-DamageAmount, EventInstigator);
-		
-			/// UE_LOG(LogTemp, Warning, TEXT("DamageAmount: - %f"), DamageAmount);	
+
+		if (HasAuthority())
+		{
+			int32 rnd = FMath::RandHelper(ImpactSound.Num());
+			if (ImpactSound.IsValidIndex(rnd) && ImpactSound[rnd] && GetWorld())
+			{
+				///PlayImpactSound_Multicast(ImpactSound[rnd]);
+				UGameplayStatics::PlaySound2D(GetWorld(), ImpactSound[rnd]);
+			}
+		}
 	}
-
-	//if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
-	//{
-	//	ABaseProjectile* myProjectile = Cast<ABaseProjectile>(DamageCauser);
-	//	if (myProjectile)
-	//	{
-	//		UType::AddEffecttBySurfaceType(this, NAME_None, myProjectile->ProjectileSetting.Effect, GetSurfaceType()); // To Do Name none - bone for radial damage
-	//	}
-	//}
-
 	return ActualDamage;
 }
 

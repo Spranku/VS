@@ -179,6 +179,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void SetAnimationForSwatHero_BP();
 
+	UFUNCTION(BlueprintNativeEvent)
+	void FireBP();
+
 	UFUNCTION()
 	void CheckRateOfFire();
 

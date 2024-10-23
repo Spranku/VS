@@ -128,8 +128,6 @@ void ABaseWeapon::ReloadTick(float DeltaTime)
 {
 	if (WeaponReloading || GetWeaponRound() < 0)
 	{
-		/// UE_LOG(LogTemp, Warning, TEXT("WeaponReloading || GetWeaponRound = true"));
-
 		if (ReloadTimer < 0.0f)
 		{
 			FinishReload();
@@ -255,6 +253,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 {
 	FireTime = WeaponSetting.RateOfFire;
 	WeaponInfo.Round = WeaponInfo.Round - 1;
+	FireBP();
 
 	UAnimMontage* ThirdPersonAnim = nullptr;
 	UAnimMontage* FirstPersonAnim = nullptr;
@@ -625,6 +624,10 @@ void ABaseWeapon::CancelAiming_Implementation()
 void ABaseWeapon::SetAnimationForHunkHero_BP_Implementation() {}
 
 void ABaseWeapon::SetAnimationForSwatHero_BP_Implementation() {}
+
+void ABaseWeapon::FireBP_Implementation()
+{
+}
 
 void ABaseWeapon::CheckRateOfFire()
 {

@@ -112,6 +112,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	TArray<UAnimMontage*> DeadsAnim;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	TArray<USoundBase*> ImpactSound;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Class")
 	TArray<TSubclassOf<class ABaseWeapon>> DefaultWeapons;
 
@@ -124,6 +127,7 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")
 	class ABaseWeapon* CurrentWeapon;
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
 
@@ -158,8 +162,6 @@ public:
 
 	FRotator ControlRotationSynchronized;
 
-protected:
-
 	FTimerHandle InitWeaponTimerHandle;
 
 	FTimerHandle EquipTimerHandle;
@@ -176,8 +178,8 @@ protected:
 
 	float Alpha = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,  Category = "Animation")
 	bool bCanAiming = true;
+protected:
 
 	void OnFire();
 
@@ -280,7 +282,6 @@ public:
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-
 	FVector GetForwardVectorFromCamera();
 
 	FVector GetLocationFromCamera();
@@ -315,10 +316,10 @@ public:
 	UFUNCTION()
 	void StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
 
-	UFUNCTION(Server, Unreliable) /// Do nothing Reliable?
+	UFUNCTION(Server, Unreliable) 
 	void S_LookUPSync(FRotator RotationSync);
 
-	UFUNCTION(NetMulticast, Unreliable) /// Do nothing Reliable?
+	UFUNCTION(NetMulticast, Unreliable) 
 	void M_LookUPSync(FRotator RotationSync);
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -333,6 +334,9 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
+	///UFUNCTION(NetMulticast, Unreliable)
+	///void PlayImpactSound_Multicast(USoundBase* ImpactSound);
+
 	UFUNCTION(NetMulticast,Unreliable)
 	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
@@ -341,6 +345,5 @@ public:
 	 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-
 };
 
