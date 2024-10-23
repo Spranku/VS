@@ -453,16 +453,10 @@ void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdP
 	}
 }
 
-void AVSCharacter::PlayImpactMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
-{
-	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
-	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
-	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
-	{
-		AnimInstance3P->Montage_Play(ThirdPersonAnim);
-		AnimInstance1P->Montage_Play(FirstPersonAnim);
-	}
-}
+//void AVSCharacter::PlayImpactSound_Multicast_Implementation(USoundBase* ImpactSound)
+//{
+//	Get
+//}
 
 void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
 {
@@ -837,10 +831,11 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 		if (HasAuthority())
 		{
-			int32 rnd = FMath::RandHelper(ImpactAnim.Num());
-			if (ImpactAnim.IsValidIndex(rnd) && ImpactAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
+			int32 rnd = FMath::RandHelper(ImpactSound.Num());
+			if (ImpactSound.IsValidIndex(rnd) && ImpactSound[rnd] && GetWorld())
 			{
-				PlayImpactMontage_Multicast(ImpactAnim[rnd], ImpactAnim[rnd]);
+				///PlayImpactSound_Multicast(ImpactSound[rnd]);
+				UGameplayStatics::PlaySound2D(GetWorld(), ImpactSound[rnd]);
 			}
 		}
 	}

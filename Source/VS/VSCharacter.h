@@ -113,7 +113,7 @@ public:
 	TArray<UAnimMontage*> DeadsAnim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
-	TArray<UAnimMontage*> ImpactAnim;
+	TArray<USoundBase*> ImpactSound;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Class")
 	TArray<TSubclassOf<class ABaseWeapon>> DefaultWeapons;
@@ -334,8 +334,8 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void PlayImpactMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	///UFUNCTION(NetMulticast, Unreliable)
+	///void PlayImpactSound_Multicast(USoundBase* ImpactSound);
 
 	UFUNCTION(NetMulticast,Unreliable)
 	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
