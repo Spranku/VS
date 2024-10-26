@@ -834,7 +834,6 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 			int32 rnd = FMath::RandHelper(ImpactSound.Num());
 			if (ImpactSound.IsValidIndex(rnd) && ImpactSound[rnd] && GetWorld())
 			{
-				///PlayImpactSound_Multicast(ImpactSound[rnd]);
 				UGameplayStatics::PlaySound2D(GetWorld(), ImpactSound[rnd]);
 			}
 		}

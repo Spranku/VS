@@ -334,9 +334,6 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
-	///UFUNCTION(NetMulticast, Unreliable)
-	///void PlayImpactSound_Multicast(USoundBase* ImpactSound);
-
 	UFUNCTION(NetMulticast,Unreliable)
 	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
