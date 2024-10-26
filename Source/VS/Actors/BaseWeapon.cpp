@@ -332,21 +332,24 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 												  TraceTypeQuery1,
 												  false,
 												  Actors,
-												  EDrawDebugTrace::ForDuration,
+												  EDrawDebugTrace::None,
 												  HitResult,
 												  true,
 												  FLinearColor::Red,
 												  FLinearColor::Green,
 												  5.0f);
+			if (ShowDebug)
+			{
 
-			DrawDebugLine(GetWorld(),
-						  ShootTo.GetLocation(),
-						  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(/*Character*/CurrentOwner->GetController()->GetControlRotation()) * 20000.0f,
-						  FColor::Green,
-						  false,
-						  5.0f,
-						  (uint8)'\000',
-						  0.5f);
+				DrawDebugLine(GetWorld(),
+							  ShootTo.GetLocation(),
+							  ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(/*Character*/CurrentOwner->GetController()->GetControlRotation()) * 20000.0f,
+							  FColor::Green,
+							  false,
+							  5.0f,
+							  (uint8)'\000',
+							  0.5f);
+			}
 
 			BlockFire = true;
 			GetWorld()->GetTimerManager().SetTimer(FireTimerHande, this, &ABaseWeapon::CheckRateOfFire, WeaponSetting.RateOfFire, false);
