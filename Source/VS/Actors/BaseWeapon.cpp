@@ -318,9 +318,6 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	}
 	else
 	{ 
-		///	////////////////////HitScan LineTrace////////////////////// 
-		UE_LOG(LogTemp, Warning, TEXT("HitScan LineTrace"));
-
 		if (!BlockFire)
 		{
 			FHitResult HitResult;
@@ -374,40 +371,20 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 							5.0f);
 					}
 				}
-				 /// TODO Ternar operator
+
 				if (WeaponSetting.ProjectileSetting.HitFXs.Contains(mySurfaceType))
 				{
 					TraceFX_Multicast(WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType], HitResult);
-
-					/*UParticleSystem* myParticle = WeaponSetting.ProjectileSetting.HitFXs[mySurfaceType];
-					if (myParticle)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
-							myParticle,
-							FTransform(Hit.ImpactNormal.Rotation(),
-							Hit.ImpactPoint,
-							FVector(1.0f)));
-					}*/
 				}
 
 				if (WeaponSetting.EffectFireWeapon)
 				{
-					//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - Success EffectFireWeapon"));
 					FireWeaponFX_Multicast(WeaponSetting.EffectFireWeapon, HitResult);
-				}
-				else
-				{
-					//UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - WeaponSetting.EffectFireWeapon = NULL"));
 				}
 
 				if (WeaponSetting.ProjectileSetting.HitSound)
 				{
 					TraceSound_Multicast(WeaponSetting.ProjectileSetting.HitSound, HitResult);
-
-					/*UGameplayStatics::PlaySoundAtLocation(GetWorld(),
-						WeaponSetting.ProjectileSetting.HitSound,
-						Hit.ImpactNormal);*/
-
 				}
 
 				UGameplayStatics::ApplyPointDamage(HitResult.GetActor(),
@@ -418,22 +395,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 												   this,
 												   NULL);
 			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::Fire_Implementation - HitResult.GetActor() or HitResult.PhysMaterial Is Not Valid!!!"));
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("FireTime "));
 		}
 	}
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
 	{
-		/// TODO missclick sound
-		///WeaponSetting.EmptyMagSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.EmptyMagSound) : void(0);
-		
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
 			InitReload();
@@ -450,10 +416,6 @@ void ABaseWeapon::InitReload()
 	{
 		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
 		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::InitReload() - WeaponSetting.ThirdPersonReload = false"));
 	}
 }
 
@@ -484,18 +446,12 @@ void ABaseWeapon::FinishReload()
 		ChangeAmmoCountInBackpack(-GetAmmoFromBackpack());
 	}
 	
-	OnWeaponReloadEnd.Broadcast(); // DO notwhing?
+	OnWeaponReloadEnd.Broadcast(); 
 }
 
 void ABaseWeapon::CancelReload()
 {
 	WeaponReloading = false;
-
-	/*if (SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())
-		SkeletalMeshWeapon->GetAnimInstance()->StopAllMontages(0.15f);
-
-	OnWeaponReloadEnd.Broadcast(false, 0);*/
-
 	OnWeaponReloadEnd.Broadcast();
 }
 
@@ -512,7 +468,7 @@ float ABaseWeapon::GetCurrentDispersion() const
 
 bool ABaseWeapon::CheckWeaponCanFire()
 {
-	return  /*true*/ !BlockFire;
+	return !BlockFire;
 }
 
 bool ABaseWeapon::CheckCanWeaponReload()
@@ -560,10 +516,10 @@ void ABaseWeapon::FireSpread_Implementation()
 	float PitchRecoil = BaseRecoil * MultiplierSpread;
 	float YawRecoil = (PitchRecoil / RecoilCoef * FMath::RandRange(PitchRecoil / RecoilCoef * MultiplierSpread, PitchRecoil / RecoilCoef));
 
-	if (/*Character*/CurrentOwner)
+	if (CurrentOwner)
 	{
-		/*Character*/CurrentOwner->AddControllerPitchInput(PitchRecoil);
-		/*Character*/CurrentOwner->AddControllerYawInput(YawRecoil);
+		CurrentOwner->AddControllerPitchInput(PitchRecoil);
+		CurrentOwner->AddControllerYawInput(YawRecoil);
 	}
 }
 
@@ -574,7 +530,6 @@ void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
 
 void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
 {
-	UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::TraceFX_Multicast_Implementation"));
 	if (FX)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
@@ -582,10 +537,6 @@ void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResu
 												 FTransform(HitResult.ImpactNormal.Rotation(),
 												 HitResult.ImpactPoint,
 												 FVector(1.0f)));
-	}
-	else
-	{
-		//UE_LOG(LogTemp, Error, TEXT("TraceFX = NULL"));
 	}
 }
 
@@ -628,9 +579,7 @@ void ABaseWeapon::SetAnimationForHunkHero_BP_Implementation() {}
 
 void ABaseWeapon::SetAnimationForSwatHero_BP_Implementation() {}
 
-void ABaseWeapon::FireBP_Implementation()
-{
-}
+void ABaseWeapon::FireBP_Implementation()	{}
 
 void ABaseWeapon::CheckRateOfFire()
 {
@@ -645,16 +594,14 @@ void ABaseWeapon::RemoveMaterialLense()
 
 void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
 {
-	if (/*Character*/ CurrentOwner && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())//Bad Code? maybe best way init local variable or in func
+	if (CurrentOwner && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())
 	{
-		/*Character*/CurrentOwner->PlayWeaponReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
+		CurrentOwner->PlayWeaponReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
 	}
 }
 
 void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMovementState)
 {
-	/// BlockFire = false; for crouch
-
 	switch (NewMovementState)
 	{
 	case EMovementState::AimWalk_State:
@@ -676,7 +623,6 @@ void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMo
 	default:
 		break;
 	}
-	//ChangeDispersion();
 }
 
 void ABaseWeapon::UpdateWeaponByCharacterMovementStateOnServer_Implementation(FVector NewShootEndLocation, bool NewShouldReduceDispersion)
@@ -689,7 +635,7 @@ FVector ABaseWeapon::GetFireEndLocation() const
 {
 	bool bShootDirection = false;
 	FVector FactEndLocation = FVector(0.0f);
-	/*Character*/CurrentOwner ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(/*Character*/CurrentOwner->GetController()->GetControlRotation()) * 20000.0f) : void(0);
+	CurrentOwner ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(CurrentOwner->GetController()->GetControlRotation()) * 20000.0f) : void(0);
 
 	return FactEndLocation;
 }
@@ -718,7 +664,6 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//DOREPLIFETIME(ABaseWeapon, AdditionalWeaponInfo);
 	DOREPLIFETIME(ABaseWeapon, WeaponReloading);
 	DOREPLIFETIME(ABaseWeapon, WeaponAiming);
 	DOREPLIFETIME(ABaseWeapon, ReloadTimer);
