@@ -96,29 +96,10 @@ void AVSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	MovementTick(DeltaTime);
-
-	/*if (CurrentWeapon && Controller)
-	{
-		LastWeaponRotationUpdateTime += DeltaTime;
-		if (LastWeaponRotationUpdateTime >= WeaponRotationUpdateInterval)
-		{
-			FRotator CameraRotation = Controller->GetControlRotation();
-			CurrentWeapon->SetWeaponRotation(CameraRotation);
-			LastWeaponRotationUpdateTime = 0.0f;
-		}
-		 ///FRotator CameraRotation = Controller->GetControlRotation(); 
-		 /// CurrentWeapon->SetWeaponRotation(CameraRotation);
-	}*/
 }
 
 void AVSCharacter::MovementTick(float DeltaTime)
 {
-	//if (CharHealthComponent && CharHealthComponent->GetIsAlive())
-	//{
-
-	///	FString SEnum = UEnum::GetValueAsString(GetMovementState());
-	///	UE_LOG(LogTemp, Error, TEXT("MovementState - %s"), *SEnum);
-
 	if (GetController() && GetController()->IsLocalPlayerController())
 	{
 		if (CurrentWeapon)
@@ -141,30 +122,6 @@ void AVSCharacter::MovementTick(float DeltaTime)
 			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
 		}
 	}
-	/// Do nothing?
-
-	/*else
-	{
-		if (CurrentWeapon)
-		{
-			FVector Displacement = FVector(0);
-			bool bIsReduceDispersion = false;
-			switch (MovementState)
-			{
-			case EMovementState::Run_State:
-				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
-				bIsReduceDispersion = true;
-				break;
-			case EMovementState::AimWalk_State:
-				bIsReduceDispersion = true;
-				Displacement = (FirstPersonCameraComponent->GetForwardVector() * 10000.0f);
-				break;
-			default:
-				break;
-			}
-			///CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((GetForwardVectorFromCamera() * 10000.0f) + Displacement, bIsReduceDispersion);
-		}
-	}*/
 }
 
 void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -243,7 +200,6 @@ void AVSCharacter::CharDead(AController* DamageInstigator)
 	else
 	{
 		FireEvent(false);
-		UE_LOG(LogTemp, Error, TEXT("HasAuthority() = false: FireEvent()"));
 	}
 
 	GetCapsuleComponent() ? GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore) : void(0);
@@ -266,7 +222,6 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 	}
 	else if (!HasAuthority())
 	{
-		//CurrentWeapon->OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo); /// HERE?
 		SetCurrentWeapon_OnServer(Weapons[Index]);
 	}
 }
@@ -306,7 +261,7 @@ void AVSCharacter::OnFire()
 	FireEvent(true);
 }
 
-void AVSCharacter::EndFire() /// For test
+void AVSCharacter::EndFire()
 {
 	bIsFire = false;
 	FireEvent(false);
@@ -315,7 +270,6 @@ void AVSCharacter::EndFire() /// For test
 void AVSCharacter::InitCrouch()
 {
 	bIsCrouch = true;
-	UE_LOG(LogTemp, Warning, TEXT("InitCrouch"));
 }
 
 void AVSCharacter::StopCrouch()
@@ -363,15 +317,11 @@ void AVSCharacter::StopAiming_OnClient_Implementation()
 
 void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) 
 {
-	StopAiming_OnClient(); /// Work, but can zoom
+	StopAiming_OnClient();
 	
 	if (Anim3P && Anim1P)
 	{
 		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::WeaponReloadStart - Anim3P && Anim1P = 0"));
 	}
 }
 
@@ -413,10 +363,6 @@ void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage
 		AnimInstance3P->Montage_Play(ThirdPersonAnim);
 		AnimInstance1P->Montage_Play(FirstPersonAnim);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::PlayReloadMontage_Multicast_Implementation - AnimInstance3P = nullptr && AnimInstance1P = nullptr"));
-	}
 }
 
 void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
@@ -427,7 +373,6 @@ void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* 
 	{
 		AnimInstance3P->Montage_Play(ThirdPersonAnim);
 		AnimInstance1P->Montage_Play(FirstPersonAnim);
-		///FireRecoil(); /// Here ?
 	}
 }
 
@@ -452,11 +397,6 @@ void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdP
 		AnimInstance1P->Montage_Play(FirstPersonAnim);
 	}
 }
-
-//void AVSCharacter::PlayImpactSound_Multicast_Implementation(USoundBase* ImpactSound)
-//{
-//	Get
-//}
 
 void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
 {
@@ -568,17 +508,12 @@ void AVSCharacter::FireEvent(bool bIsFiring)
 	{
 		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::FireEvent - Current weapon = NULL"));
-	}
 }
 
 void AVSCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
 	{
-		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
 	}
 }
@@ -587,7 +522,6 @@ void AVSCharacter::MoveRight(float Value)
 {
 	if (Value != 0.0f)
 	{
-		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
 	}
 }
@@ -743,10 +677,9 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		
 		if (!CurrentWeapon->CurrentOwner)
 		{
-			CurrentWeapon->SetActorTransform(/*GetMesh()*/Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
-			CurrentWeapon->AttachToComponent(/*GetMesh()*/ Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
+			CurrentWeapon->SetActorTransform(Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
+			CurrentWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
 			CurrentWeapon->InitOwnerCharacter();
-			//CurrentWeapon->CurrentOwner = this;
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
 		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
@@ -806,7 +739,7 @@ void AVSCharacter::InitWeapon()
 	InitWeaponTimerHandle.Invalidate();
 }
 
-EMovementState AVSCharacter::GetMovementState() /// TODO REF TO CONST
+EMovementState AVSCharacter::GetMovementState() const
 {
 	return MovementState;
 }

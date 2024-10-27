@@ -30,8 +30,6 @@ ABaseProjectile::ABaseProjectile()
 	
 	BulletProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Bullet ProjectileMovement"));
 	BulletProjectileMovement->UpdatedComponent = RootComponent;
-	//BulletProjectileMovement->InitialSpeed = 1.f;
-	//BulletProjectileMovement->MaxSpeed = 0.f;
 
 	BulletSound = CreateDefaultSubobject<UAudioComponent>(TEXT("BulletAudio"));
 	BulletSound->SetupAttachment(RootComponent);
@@ -129,23 +127,7 @@ void ABaseProjectile::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, AAc
 		{
 			SpawnHitSound_Multicast(ProjectileSetting.HitSound, Hit);
 		}
-
-		///	UType::AddEffecttBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfaceType);
 	}
-
-
-	/*if (GetInstigatorController())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("---ABaseProjectile::BulletCollisionSphereHit - Success GetInstigatorController()---"));
-		FString Name = GetInstigatorController()->GetName();
-		///UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *GetInstigatorController() - &gt; GetName());
-		UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *Name);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("---ABaseProjectile::BulletCollisionSphereHit - Failed GetInstigatorController()---"));
-	}*/
-	
 
 	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);
 	UAISense_Damage::ReportDamageEvent(GetWorld(), Hit.GetActor(), GetInstigator(), ProjectileSetting.ProjectileDamage, Hit.Location, Hit.Location);

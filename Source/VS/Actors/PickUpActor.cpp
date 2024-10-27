@@ -38,7 +38,6 @@ void APickUpActor::BeginPlay()
 void APickUpActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void APickUpActor::PickUpSuccess()

@@ -15,7 +15,6 @@ ABaseWeapon::ABaseWeapon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	///SetReplicates(true);
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
@@ -61,19 +60,6 @@ void ABaseWeapon::BeginPlay()
 
 	DefaultLenseMaterial ? LenseMesh->SetMaterial(0, DefaultLenseMaterial) : 0;
 
-	//AVSCharacter* MyChar = Cast<AVSCharacter>(GetOwner());
-	//if (MyChar)
-	//{
-	//	/*Character*/ CurrentOwner = MyChar;
-	//	/*CurrentOwner = Character;*/
-	//	
-	//	UE_LOG(LogTemp, Warning, TEXT("Success cast to Character"));	
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
-	//}
-
 	WeaponInit();
 
 	if (!CurrentOwner)
@@ -107,10 +93,6 @@ void ABaseWeapon::InitOwnerCharacter()
 		CurrentOwner = MyChar;
 		CurrentOwner->SetInstigator(CurrentOwner);
 		ChangeAnimationsForOwner();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed cast to Character"));
 	}
 } 
 
@@ -153,26 +135,32 @@ void ABaseWeapon::FireTick(float DeltaTime)
 			if (GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, ShootDirection + MuzzleLocation, ECollisionChannel::ECC_Camera))
 			{
 				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, HitResult.ImpactPoint), MuzzleLocation);
-				/*DrawDebugLine(GetWorld(),
-					ShootTo.GetLocation(),
-					ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-					FColor::Green,
-					false,
-					5.0f,
-					(uint8)'\000',
-					0.5f);*/
+				if (ShowDebug)
+				{
+					DrawDebugLine(GetWorld(),
+						          ShootTo.GetLocation(),
+						          ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(CurrentOwner->GetController()->GetControlRotation()) * 20000.0f,
+						          FColor::Green,
+						          false,
+						          5.0f,
+						          (uint8)'\000',
+						          0.5f);
+				}
 			}
 			else
 			{
 				ShootTo = FTransform(UKismetMathLibrary::FindLookAtRotation(MuzzleLocation, ShootDirection + MuzzleLocation), MuzzleLocation);
-				/*DrawDebugLine(GetWorld(),
-					ShootTo.GetLocation(),
-					ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(Character->GetController()->GetControlRotation()) * 20000.0f,
-					FColor::Yellow,
-					false,
-					5.0f,
-					(uint8)'\000',
-					0.5f);*/
+				if (ShowDebug)
+				{
+					DrawDebugLine(GetWorld(),
+						          ShootTo.GetLocation(),
+						          ShootTo.GetLocation() + UKismetMathLibrary::GetForwardVector(CurrentOwner->GetController()->GetControlRotation()) * 20000.0f,
+						          FColor::Yellow,
+						          false,
+						          5.0f,
+						          (uint8)'\000',
+						          0.5f);
+				}
 			}
 			Fire(ShootTo);
 		}
@@ -236,17 +224,8 @@ void ABaseWeapon::SetMaterialLense_OnClient_Implementation()
 				///LenseMesh->SetMaterial(0, DynMaterial); Do nothing?
 				GetWorld()->GetTimerManager().ClearTimer(ScopeTimerHandle);
 			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::SetMaterialLense_OnClient_Implementation - drop material"));
-			}
 		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ABaseWeapon::SetMaterialLense_OnClient_Implementation - drop material"));
-	}
-	
 }
 
 void ABaseWeapon::Fire_Implementation(FTransform ShootTo)

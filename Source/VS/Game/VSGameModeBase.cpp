@@ -8,7 +8,7 @@
 AVSGameModeBase::AVSGameModeBase() : Super()
 {
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/Blueprints/Core/BP_Character"/*"/Game/FirstPersonCPP/Blueprints/FirstPersonCharacter"*/));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/Blueprints/Core/BP_Character"));
 	if (PlayerPawnClassFinder.Succeeded())
 	{
 		DefaultPawnClass = PlayerPawnClassFinder.Class;
@@ -21,7 +21,6 @@ AVSGameModeBase::AVSGameModeBase() : Super()
 
 	// use our custom HUD class
 	HUDClass = AVSHUD::StaticClass();
-	//Blueprint'/Game/Blueprints/Core/BP_Character.BP_Character'
 }
 
 void AVSGameModeBase::PlayerCharacterDead()

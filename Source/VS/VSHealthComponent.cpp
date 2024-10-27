@@ -26,12 +26,12 @@ void UVSHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 void UVSHealthComponent::SetCurrentHealth(float NewHealth)
 {
-	/*Health*/ Souls = NewHealth;
+	Souls = NewHealth;
 }
 
 float UVSHealthComponent::GetCurrentHealth() const
 {
-	return /*Health*/Souls;
+	return Souls;
 }
 
 bool UVSHealthComponent::GetIsAlive() const
@@ -43,33 +43,28 @@ void UVSHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeV
 {
 	if (GetOwner()->HasAuthority())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Server is changing health: %f"), ChangeValue);
 		if (bIsAlive)
 		{
 			ChangeValue *= CoefDamage;
-			/*Health*/Souls += ChangeValue;
-			//	OnHealthChange.Broadcast(Health, ChangeValue);
+			Souls += ChangeValue;
+			
 			OnHealthChangeEvent_Multicast(/*Health*/ Souls, ChangeValue);
-			if (/*Health*/Souls > /*1.0f*/MaxSouls)
+			if (Souls > MaxSouls)
 			{
-				/*Health*/Souls = /*1.0f*/MaxSouls;
+				Souls = MaxSouls;
 			}
 			else
 			{
-				if (/*Health*/Souls < 0.0f)
+				if (Souls < 0.0f)
 				{
 					bIsAlive = false;
 					UE_LOG(LogTemp, Error, TEXT("The boolean value is %s"), (bIsAlive ? TEXT("true") : TEXT("false")));
-					//OnDead.Broadcast();
+					
 					DeadEvent_Multicast(DamageInstigator);
-					/*Health*/Souls = 0.0f;
+					Souls = 0.0f;
 				}
 			}
 		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Client attempted to change health: %f"), ChangeValue);
 	}
 }
 
@@ -87,7 +82,7 @@ void UVSHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UVSHealthComponent, /*Health*/Souls);
+	DOREPLIFETIME(UVSHealthComponent, Souls);
 	DOREPLIFETIME(UVSHealthComponent, bIsAlive);
 }
 

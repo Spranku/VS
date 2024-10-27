@@ -217,7 +217,7 @@ protected:
 
 	void InitAimTimeline(float From, float To);
 
-	EMovementState GetMovementState();
+	EMovementState GetMovementState() const;
 
 	UFUNCTION()
 	void ChangeFoV(float In, float Out);
