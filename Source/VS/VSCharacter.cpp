@@ -218,7 +218,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 		BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
-		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 1.5f, false);
+		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 0.5f, false);
 	}
 	else if (!HasAuthority())
 	{
