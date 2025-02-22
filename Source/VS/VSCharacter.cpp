@@ -34,6 +34,7 @@ AVSCharacter::AVSCharacter()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
@@ -269,13 +270,36 @@ void AVSCharacter::EndFire()
 
 void AVSCharacter::InitCrouch()
 {
-	bIsCrouch = true;
+	if (HasAuthority())
+	{
+		bIsCrouch = true;
+		Crouch();
+		ChangeMovementState();
+	}
+	else
+	{
+		Super::Crouch();
+		InitCrouch_OnServer();
+	}
+	/*bIsCrouch = true;
+	Super::Crouch();*/
 }
 
 void AVSCharacter::StopCrouch()
 {
-	bIsCrouch = false;
-	UE_LOG(LogTemp, Warning, TEXT("StopCrouch"));
+	if (HasAuthority())
+	{
+		bIsCrouch = false;
+		UnCrouch();
+		ChangeMovementState();
+	}
+	else
+	{
+		Super::UnCrouch();
+		StopCrouch_OnServer();
+	}
+	/*bIsCrouch = false;
+	Super::UnCrouch();*/
 }
 
 void AVSCharacter::TryReloadWeapon()
@@ -446,6 +470,16 @@ void AVSCharacter::StopAiming()
 	}
 }
 
+void AVSCharacter::InitCrouch_OnServer_Implementation()
+{
+	InitCrouch();
+}
+
+void AVSCharacter::StopCrouch_OnServer_Implementation()
+{
+	StopCrouch();
+}
+
 void AVSCharacter::StopAiming_OnServer_Implementation()
 {
 	StopAiming();
@@ -609,7 +643,7 @@ void AVSCharacter::ChangeMovementState()
 	{
 		if (bIsCrouch)
 		{
-			bIsAiming = false;
+			//bIsAiming = false;
 			NewState = EMovementState::Crouch_State;
 		}
 		else
@@ -802,6 +836,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, bIsAiming);
 	DOREPLIFETIME(AVSCharacter, bIsMoving);
 	DOREPLIFETIME(AVSCharacter, bIsReload);
+	DOREPLIFETIME(AVSCharacter, bIsCrouch);
 	DOREPLIFETIME(AVSCharacter, bIsFire);
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
@@ -814,5 +849,4 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentIndex, COND_None);
 }
-
 

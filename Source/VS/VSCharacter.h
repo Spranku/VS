@@ -134,7 +134,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsFire = false;
 
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Replicated)
 	bool bIsCrouch = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
@@ -243,22 +243,28 @@ protected:
 	UFUNCTION(Server, UnReliable)
 	void StopAiming_OnServer();
 
+	UFUNCTION(Server, UnReliable)
+	void InitCrouch_OnServer();
+
+	UFUNCTION(Server, UnReliable)
+	void StopCrouch_OnServer();
+
 	UFUNCTION(Server,Reliable)
 	void EquipWeapon_OnServer(const int32 Index);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, UnReliable)
 	void SetMovementState_OnServer(EMovementState NewState);
 
 	UFUNCTION(Server, Reliable)
 	void SetCurrentWeapon_OnServer(class ABaseWeapon* NewWeapon);
 
-	UFUNCTION(Client,Unreliable)
+	UFUNCTION(Client,UnReliable)
 	void BlockActionDuringEquip_OnClient();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(NetMulticast, UnReliable)
 	void SetMovementState_Multicast(EMovementState NewState);
 
 	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
