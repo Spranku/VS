@@ -6,19 +6,29 @@
 void UVSCharacterHealthComponent::ChangeHealthValue_OnServer(float ChangeValue, AController* DamageInstigator)
 {
 	float CurrentDamage = ChangeValue * CoefDamage;
-
+	
 	if (Shield > 0.0f && ChangeValue < 0.0f)
 	{
+		UE_LOG(LogTemp, Error, TEXT("Current Damage: %f"), CurrentDamage);
 		ChangeShieldValue(ChangeValue);
 		if (Shield < 0.0f)
 		{
-			// FX
+			// FX destroy shield
 			UE_LOG(LogTemp, Warning, TEXT("UTPSCharacterHealthComponent::ChangeHealthValue - Shield < 0"));
+		}
+		
+		// For Head Shot
+		if (CurrentDamage < -200)
+		{
+			UE_LOG(LogTemp, Error, TEXT("CURRENT DAMAGE MORE 200"));
+			Super::ChangeHealthValue_OnServer(ChangeValue, DamageInstigator);
 		}
 	}
 	else
 	{
+		
 		Super::ChangeHealthValue_OnServer(ChangeValue, DamageInstigator);
+		Super::ChangeHealthValue_OnServer_Implementation(0.1, DamageInstigator);
 	}
 }
 

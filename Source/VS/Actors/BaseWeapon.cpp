@@ -614,7 +614,17 @@ FVector ABaseWeapon::GetFireEndLocation() const
 {
 	bool bShootDirection = false;
 	FVector FactEndLocation = FVector(0.0f);
-	CurrentOwner ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(CurrentOwner->GetController()->GetControlRotation()) * 20000.0f) : void(0);
+	//CurrentOwner ? FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(CurrentOwner->GetController()->GetControlRotation()) * 20000.0f) : void(0);
+
+	if (CurrentOwner && SkeletalMeshWeapon)
+	{
+		FactEndLocation = SkeletalMeshWeapon->GetSocketLocation("Ironsight") + ApplyDispersionToShoot(UKismetMathLibrary::GetForwardVector(CurrentOwner->GetController()->GetControlRotation()) * 20000.0f);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Current Owner or SkeletalMeshWeapon is NULL"));
+		//return FactEndLocation;
+	}
 
 	return FactEndLocation;
 }
