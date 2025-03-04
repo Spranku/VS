@@ -254,6 +254,17 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		FireWeaponSocketFX_Multicast(WeaponSetting.EffectFireWeapon, SkeletalMeshWeapon->GetSocketTransform("muzzle"));
 	}
 
+	if (FireSound)
+	{
+		
+		FireSound_Multicast(FireSound,this->GetActorLocation());
+		//UGameplayStatics::SpawnSoundAtLocation(GetWorld(), FireSound, this->GetActorLocation());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("FireSound = null of other probles"));
+	}
+
 	ChangeDispersionByShoot();
 
 	FVector SpawnLocation = ShootTo.GetLocation();
@@ -361,10 +372,10 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 					FireWeaponFX_Multicast(WeaponSetting.EffectFireWeapon, HitResult);
 				}
 
-				if (WeaponSetting.ProjectileSetting.HitSound)
+				/*if (WeaponSetting.ProjectileSetting.HitSound)
 				{
-					TraceSound_Multicast(WeaponSetting.ProjectileSetting.HitSound, HitResult);
-				}
+					TraceSound_Server(WeaponSetting.ProjectileSetting.HitSound, HitResult);
+				}*/
 
 				UGameplayStatics::ApplyPointDamage(HitResult.GetActor(),
 												   WeaponSetting.WeaponDamage,
@@ -536,15 +547,20 @@ void ABaseWeapon::FireWeaponFX_Multicast_Implementation(UParticleSystem* FX, FHi
 	}
 }
 
-void ABaseWeapon::TraceSound_Multicast_Implementation(USoundBase* HitSound, FHitResult HitResult)
-{
-	if (HitSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(),
-										      WeaponSetting.ProjectileSetting.HitSound,
-										      HitResult.ImpactNormal);
-	}
-}
+//void ABaseWeapon::TraceSound_Server_Implementation(USoundBase* HitSound, FHitResult HitResult)
+//{
+//	TraceSound_Multicast(HitSound,HitResult);
+//}
+//
+//void ABaseWeapon::TraceSound_Multicast_Implementation(USoundBase* HitSound, FHitResult HitResult)
+//{
+//	if (HitSound)
+//	{
+//		UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+//			WeaponSetting.ProjectileSetting.HitSound,
+//			HitResult.ImpactNormal);
+//	}
+//}
 
 void ABaseWeapon::CancelAiming_Implementation()
 {
@@ -647,6 +663,11 @@ FProjectileInfo ABaseWeapon::GetProjectile()
 EWeaponType ABaseWeapon::GetWeaponType() const
 {
 	return WeaponSetting.WeaponType;
+}
+
+void ABaseWeapon::FireSound_Multicast_Implementation(USoundBase* Sound, FVector Location)
+{
+	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), Sound, Location);
 }
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
