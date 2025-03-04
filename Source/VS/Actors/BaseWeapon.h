@@ -56,6 +56,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	class USceneCaptureComponent2D* SceneCapture;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	USoundBase* FireSound = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool ShowDebug = false;
 
@@ -238,8 +241,14 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void FireWeaponSocketFX_Multicast(UParticleSystem* newFX, FTransform SocketTransform);
 
+	//UFUNCTION(NetMulticast,Unreliable)
+	//void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
+
+	//UFUNCTION(Server, Unreliable)
+	//void TraceSound_Server(USoundBase* HitSound, FHitResult HitResult);
+
 	UFUNCTION(NetMulticast, Unreliable)
-	void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
+	void FireSound_Multicast(USoundBase* Sound, FVector Location);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };
