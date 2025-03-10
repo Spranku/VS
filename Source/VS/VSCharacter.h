@@ -129,6 +129,12 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bTurnRight = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	bool bTurnLeft = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
@@ -156,7 +162,7 @@ protected:
 	float Pitch_OnRep;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
-	float AimYaw;
+	float Yaw_OnRep;
 
 	FRotator CamForwardVector;
 
@@ -220,6 +226,9 @@ protected:
 	EMovementState GetMovementState() const;
 
 	UFUNCTION()
+	void TurnLeftRight(bool TurnLeft, bool TurnRight);
+
+	UFUNCTION()
 	void ChangeFoV(float In, float Out);
 
 	UFUNCTION()
@@ -233,6 +242,9 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
+
+	UFUNCTION(Server, Unreliable)
+	void YawOnServer(float YawRep);
 
 	UFUNCTION(Client,Unreliable)
 	void StopAiming_OnClient();
@@ -263,6 +275,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void YawMulticast(float YawRep);
 
 	UFUNCTION(NetMulticast, UnReliable)
 	void SetMovementState_Multicast(EMovementState NewState);

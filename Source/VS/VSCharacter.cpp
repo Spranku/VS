@@ -248,6 +248,7 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 	bCanAiming = true;
 }
 
+
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
 {
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
@@ -309,6 +310,7 @@ void AVSCharacter::TryReloadWeapon()
 		TryReloadWeapon_OnServer();
 	}
 }
+
 
 void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
@@ -564,6 +566,61 @@ void AVSCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+
+	if (BaseTurnRate != 0)
+	{
+		TurnLeftRight(0, 0);
+		float Yaw = UKismetMathLibrary::Clamp(UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Yaw, -90.0f, 90.0f);
+
+		if (HasAuthority())
+		{
+			YawMulticast(Yaw);
+			Yaw_OnRep = Yaw;
+		}
+		else
+		{
+			YawOnServer(Yaw);
+			Yaw_OnRep = Yaw;
+		}
+
+		if (IsLocallyControlled())
+		{
+			FRotator Rotation = GetControlRotation();
+			if (HasAuthority())
+			{
+				M_LookUPSync(Rotation);
+			}
+			else
+			{
+				S_LookUPSync(Rotation);
+			}
+		}
+	}
+	else
+	{
+		if (BaseTurnRate > 0.3f)
+		{
+			TurnLeftRight(bTurnRight = true, bTurnLeft = false);
+		}
+		else
+		{
+			bTurnRight = false;
+		}
+
+		if (BaseTurnRate < 0.3f)
+		{
+			TurnLeftRight(bTurnRight = false, bTurnLeft = true);
+		}
+		else
+		{
+			bTurnLeft = false;
+		}
+	}
+}
+void AVSCharacter::TurnLeftRight(bool TurnLeft, bool TurnRight)
+{
+	bTurnRight = TurnRight;
+	bTurnLeft = TurnLeft;
 }
 
 void AVSCharacter::LookUpAtRate(float Rate)
@@ -599,6 +656,19 @@ void AVSCharacter::LookUpAtRate(float Rate)
 			}
 		}
 	}
+}
+
+void AVSCharacter::YawMulticast_Implementation(float YawRep)
+{
+	if (!IsLocallyControlled())
+	{
+		Yaw_OnRep = YawRep;
+	}
+}
+
+void AVSCharacter::YawOnServer_Implementation(float YawRep)
+{
+	YawMulticast(YawRep);
 }
 
 void AVSCharacter::PitchMulticast_Implementation(float PitchRep)
@@ -841,9 +911,10 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
-	DOREPLIFETIME(AVSCharacter, AimYaw);
+	DOREPLIFETIME(AVSCharacter, Yaw_OnRep);
 	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
-
+	DOREPLIFETIME(AVSCharacter, bTurnRight);
+	DOREPLIFETIME(AVSCharacter, bTurnLeft);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
