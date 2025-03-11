@@ -128,11 +128,6 @@ public:
 	class ABaseWeapon* CurrentWeapon;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
-	bool bTurnRight = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
-	bool bTurnLeft = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
@@ -217,6 +212,7 @@ protected:
 
 	void MoveRight(float Val);
 
+	UFUNCTION(BlueprintCallable)
 	void TurnAtRate(float Rate);
 
 	void LookUpAtRate(float Rate);
@@ -224,9 +220,6 @@ protected:
 	void InitAimTimeline(float From, float To);
 
 	EMovementState GetMovementState() const;
-
-	UFUNCTION()
-	void TurnLeftRight(bool TurnLeft, bool TurnRight);
 
 	UFUNCTION()
 	void ChangeFoV(float In, float Out);
@@ -242,9 +235,6 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void PitchOnServer(float PitchRep);
-
-	UFUNCTION(Server, Unreliable)
-	void YawOnServer(float YawRep);
 
 	UFUNCTION(Client,Unreliable)
 	void StopAiming_OnClient();
@@ -275,9 +265,6 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PitchMulticast(float PitchRep);
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void YawMulticast(float YawRep);
 
 	UFUNCTION(NetMulticast, UnReliable)
 	void SetMovementState_Multicast(EMovementState NewState);
@@ -363,5 +350,11 @@ public:
 	 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+
+	UFUNCTION(Server,Unreliable)
+	void YawServer(float YawRep);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void YawMulti(float YawRep);
 };
 

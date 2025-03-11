@@ -567,60 +567,39 @@ void AVSCharacter::TurnAtRate(float Rate)
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 
-	if (BaseTurnRate != 0)
+	
+	// Calculate the difference between control rotation and actor rotation
+	float Yaw = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Yaw;
+
+	// Clamp the yaw delta to the range [-90, 90]
+	Yaw_OnRep = UKismetMathLibrary::Clamp(Yaw, -180.0f, 180.0f);
+	
+	if (HasAuthority())
 	{
-		TurnLeftRight(0, 0);
-		float Yaw = UKismetMathLibrary::Clamp(UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Yaw, -90.0f, 90.0f);
-
-		if (HasAuthority())
-		{
-			YawMulticast(Yaw);
-			Yaw_OnRep = Yaw;
-		}
-		else
-		{
-			YawOnServer(Yaw);
-			Yaw_OnRep = Yaw;
-		}
-
-		if (IsLocallyControlled())
-		{
-			FRotator Rotation = GetControlRotation();
-			if (HasAuthority())
-			{
-				M_LookUPSync(Rotation);
-			}
-			else
-			{
-				S_LookUPSync(Rotation);
-			}
-		}
+		YawMulti(Yaw);
+		Yaw_OnRep = Yaw;
 	}
 	else
 	{
-		if (BaseTurnRate > 0.3f)
-		{
-			TurnLeftRight(bTurnRight = true, bTurnLeft = false);
-		}
-		else
-		{
-			bTurnRight = false;
-		}
-
-		if (BaseTurnRate < 0.3f)
-		{
-			TurnLeftRight(bTurnRight = false, bTurnLeft = true);
-		}
-		else
-		{
-			bTurnLeft = false;
-		}
+		YawServer(Yaw);
+		Yaw_OnRep = Yaw;
 	}
 }
-void AVSCharacter::TurnLeftRight(bool TurnLeft, bool TurnRight)
+
+void AVSCharacter::YawServer_Implementation(float YawRep)
 {
-	bTurnRight = TurnRight;
-	bTurnLeft = TurnLeft;
+	if (!IsLocallyControlled())
+	{
+		Yaw_OnRep = YawRep;
+	}
+}
+
+void AVSCharacter::YawMulti_Implementation(float YawRep)
+{
+	if (!IsLocallyControlled())
+	{
+		Yaw_OnRep = YawRep;
+	}
 }
 
 void AVSCharacter::LookUpAtRate(float Rate)
@@ -656,19 +635,6 @@ void AVSCharacter::LookUpAtRate(float Rate)
 			}
 		}
 	}
-}
-
-void AVSCharacter::YawMulticast_Implementation(float YawRep)
-{
-	if (!IsLocallyControlled())
-	{
-		Yaw_OnRep = YawRep;
-	}
-}
-
-void AVSCharacter::YawOnServer_Implementation(float YawRep)
-{
-	YawMulticast(YawRep);
 }
 
 void AVSCharacter::PitchMulticast_Implementation(float PitchRep)
@@ -913,8 +879,6 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
 	DOREPLIFETIME(AVSCharacter, Yaw_OnRep);
 	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
-	DOREPLIFETIME(AVSCharacter, bTurnRight);
-	DOREPLIFETIME(AVSCharacter, bTurnLeft);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
 	DOREPLIFETIME_CONDITION(AVSCharacter, CurrentWeapon, COND_None);
