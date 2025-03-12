@@ -156,7 +156,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float Pitch_OnRep;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Animation")
 	float Yaw_OnRep;
 
 	FRotator CamForwardVector;

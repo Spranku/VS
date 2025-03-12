@@ -574,7 +574,7 @@ void AVSCharacter::TurnAtRate(float Rate)
 	// Clamp the yaw delta to the range [-90, 90]
 	Yaw_OnRep = UKismetMathLibrary::Clamp(Yaw, -180.0f, 180.0f);
 	
-	if (HasAuthority())
+	/*if (HasAuthority())
 	{
 		YawMulti(Yaw);
 		Yaw_OnRep = Yaw;
@@ -583,7 +583,7 @@ void AVSCharacter::TurnAtRate(float Rate)
 	{
 		YawServer(Yaw);
 		Yaw_OnRep = Yaw;
-	}
+	}*/
 }
 
 void AVSCharacter::YawServer_Implementation(float YawRep)
@@ -877,7 +877,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
-	DOREPLIFETIME(AVSCharacter, Yaw_OnRep);
+	//DOREPLIFETIME(AVSCharacter, Yaw_OnRep);
 	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);
