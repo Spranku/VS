@@ -32,8 +32,8 @@ ABaseWeapon::ABaseWeapon()
 	LenseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LenseMesh"));
 	LenseMesh->SetupAttachment(SkeletalMeshWeapon);
 	LenseMesh->SetCollisionProfileName(FName("NoCollision"), false);
-	LenseMesh->SetRelativeLocation(FVector(0.02f, -5.5f, 21.5f));
-	LenseMesh->SetRelativeRotation(FRotator(0.0f, -180.0f, 90.0f));
+	//LenseMesh->SetRelativeLocation(FVector(0.02f, -5.5f, 21.5f));
+	//LenseMesh->SetRelativeRotation(FRotator(0.0f, -180.0f, 90.0f));
 	LenseMesh->bOnlyOwnerSee = true;
 
 	ShootLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("ShootLocation"));
