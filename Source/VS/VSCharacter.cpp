@@ -705,7 +705,7 @@ void AVSCharacter::ChangeMovementState()
 
 void AVSCharacter::CharacterUpdate()
 {
-	float ResSpeed = 600.0f;
+	float ResSpeed = 500.0f;
 
 	switch (MovementState)
 	{
