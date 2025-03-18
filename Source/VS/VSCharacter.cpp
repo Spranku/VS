@@ -50,7 +50,8 @@ AVSCharacter::AVSCharacter()
 	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
-	FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	//FP_Gun->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
+	FP_Gun->SetupAttachment(Mesh1P, TEXT("WeaponSocket"));
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
@@ -567,39 +568,9 @@ void AVSCharacter::TurnAtRate(float Rate)
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 
-	
 	// Calculate the difference between control rotation and actor rotation
 	float Yaw = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Yaw;
 
-	// Clamp the yaw delta to the range [-90, 90]
-	Yaw_OnRep = UKismetMathLibrary::Clamp(Yaw, -180.0f, 180.0f);
-	
-	/*if (HasAuthority())
-	{
-		YawMulti(Yaw);
-		Yaw_OnRep = Yaw;
-	}
-	else
-	{
-		YawServer(Yaw);
-		Yaw_OnRep = Yaw;
-	}*/
-}
-
-void AVSCharacter::YawServer_Implementation(float YawRep)
-{
-	if (!IsLocallyControlled())
-	{
-		Yaw_OnRep = YawRep;
-	}
-}
-
-void AVSCharacter::YawMulti_Implementation(float YawRep)
-{
-	if (!IsLocallyControlled())
-	{
-		Yaw_OnRep = YawRep;
-	}
 }
 
 void AVSCharacter::LookUpAtRate(float Rate)
@@ -877,7 +848,6 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);
-	//DOREPLIFETIME(AVSCharacter, Yaw_OnRep);
 	DOREPLIFETIME(AVSCharacter, CurrentWeapon);
 
 	DOREPLIFETIME_CONDITION(AVSCharacter, Weapons, COND_None);

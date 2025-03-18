@@ -156,9 +156,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
 	float Pitch_OnRep;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Animation")
-	float Yaw_OnRep;
-
 	FRotator CamForwardVector;
 
 	FRotator ControlRotationSynchronized;
@@ -350,11 +347,5 @@ public:
 	 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponReloadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
-
-	UFUNCTION(Server,Unreliable)
-	void YawServer(float YawRep);
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void YawMulti(float YawRep);
 };
 
