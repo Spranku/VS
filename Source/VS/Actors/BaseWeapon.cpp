@@ -574,9 +574,9 @@ void ABaseWeapon::SetAnimationForHunkHero_BP_Implementation() {}
 
 void ABaseWeapon::SetAnimationForSwatHero_BP_Implementation() {}
 
-void ABaseWeapon::FireBP_Implementation()	{}
+void ABaseWeapon::FireBP_Implementation() {}
 
-void ABaseWeapon::CheckRateOfFire()
+void ABaseWeapon::CheckRateOfFire() 
 {
 	BlockFire = false;
 }

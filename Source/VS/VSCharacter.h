@@ -121,7 +121,7 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite,Replicated, Category = "State")
 	TArray<class ABaseWeapon*> Weapons;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite,Replicated, Category = "State")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly,Replicated, Category = "State")
 	int32 CurrentIndex = 0;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")

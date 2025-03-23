@@ -268,6 +268,12 @@ void AVSCharacter::EndFire()
 {
 	bIsFire = false;
 	FireEvent(false);
+
+	/// Disable fire montage for firts person arms
+	if (CurrentWeapon && CurrentWeapon->WeaponSetting.FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	{
+		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection("Loop", "Trail", CurrentWeapon->WeaponSetting.FirstPersonFireRelax);
+	}
 }
 
 void AVSCharacter::InitCrouch()
