@@ -161,26 +161,31 @@ struct FWeaponInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	UParticleSystem* EffectFireWeapon = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonReload = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonFireIronsight = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonFireRelax = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonEquipAnimation = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonFireIronsight = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonFireRelax = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonReload = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Weapon")
+	UAnimationAsset* WeaponFire = nullptr;
+
+
 };
 
 USTRUCT(BlueprintType)

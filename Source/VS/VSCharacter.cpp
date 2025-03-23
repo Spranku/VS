@@ -51,7 +51,7 @@ AVSCharacter::AVSCharacter()
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
 	//FP_Gun->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
-	FP_Gun->SetupAttachment(Mesh1P, TEXT("WeaponSocket"));
+	FP_Gun->SetupAttachment(Mesh1P, TEXT("gun"));
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
@@ -718,8 +718,8 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		
 		if (!CurrentWeapon->CurrentOwner)
 		{
-			CurrentWeapon->SetActorTransform(Mesh1P->GetSocketTransform(FName("WeaponSocket")), false, nullptr, ETeleportType::TeleportPhysics);
-			CurrentWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("WeaponSocket"));
+			CurrentWeapon->SetActorTransform(Mesh1P->GetSocketTransform(FName("gun")), false, nullptr, ETeleportType::TeleportPhysics);
+			CurrentWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("gun"));
 			CurrentWeapon->InitOwnerCharacter();
 			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
 		}
