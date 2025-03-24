@@ -200,32 +200,9 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
 	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
 
-
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		if (CurrentWeapon)
-		{
-			if (CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation)
-			{
-				if (CurrentWeapon->WeaponSetting.FirstPersonEquipAnimation)
-				{
-					StartWeaponEquipAnimation(CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, CurrentWeapon->WeaponSetting.FirstPersonEquipAnimation); /// Why animation = NULL?
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->WeaponSetting.FirstPersonEquipAnimation = NULLPTR"));
-				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation = NULLPTR"));
-			}
-
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("CurrentWEapon = 0"));
-		}
+		CurrentWeapon ? StartWeaponEquipAnimation(CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, CurrentWeapon->WeaponSetting.FirstPersonEquipAnimation) : void(0);
 		BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
