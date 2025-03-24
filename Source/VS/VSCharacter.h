@@ -39,13 +39,13 @@ public:
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
 
-	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintAssignable/*, EditAnywhere, BlueprintReadWrite*/)
 	FOnSwitchWeapon OnSwitchWeapon;
 
-	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintAssignable/*, EditAnywhere, BlueprintReadWrite*/)
 	FOnAmmoTypeChange OnAmmoTypeChange;
 
-	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintAssignable/*, EditAnywhere, BlueprintReadWrite*/)
 	FOnAmmoChange OnAmmoChange;
 protected:
 	/** Gun mesh: 1st person view (seen only by self) */
@@ -73,35 +73,15 @@ protected:
 
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY()
 	float BaseTurnRate;
 
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY()
 	float BaseLookUpRate;
-
-	/** Gun muzzle's offset from the characters location */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	FVector GunOffset;
-
-	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class AVSProjectile> ProjectileClass;
-
-	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	USoundBase* FireSound;
-
-	/** AnimMontage to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	UAnimMontage* FirstPersonEquipWeaponAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hero")
 	EHeroType HeroType = EHeroType::Hunk;
-
-	/** Whether to use motion controller location for aiming. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	uint8 bUsingMotionControllers : 1;
 
 	UPROPERTY(Replicated)
 	EMovementState MovementState = EMovementState::Run_State;
@@ -124,36 +104,35 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly,Replicated, Category = "State")
 	int32 CurrentIndex = 0;
 
+protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")
 	class ABaseWeapon* CurrentWeapon;
 
-protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsMoving = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsFire = false;
 
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsCrouch = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsReload = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly,Replicated)
+	UPROPERTY(BlueprintReadOnly,Replicated)
 	bool bIsAiming = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsJumping = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	UPROPERTY(BlueprintReadWrite, Replicated)
 	float Direction;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	UPROPERTY(BlueprintReadWrite, Replicated)
 	float AimPitch;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Animation")
+	UPROPERTY(BlueprintReadWrite, Replicated)
 	float Pitch_OnRep;
 
 	FRotator CamForwardVector;
@@ -209,14 +188,24 @@ protected:
 
 	void MoveRight(float Val);
 
-	UFUNCTION(BlueprintCallable)
-	void TurnAtRate(float Rate);
-
 	void LookUpAtRate(float Rate);
 
 	void InitAimTimeline(float From, float To);
 
+	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
+	
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+	virtual void Jump() override;
+
+	virtual void StopJumping() override;
+
 	EMovementState GetMovementState() const;
+
+	virtual float TakeDamage(float DamageAmount,
+							 struct FDamageEvent const& DamageEvent,
+							 class AController* EventInstigator,
+							 AActor* DamageCauser) override;
 
 	UFUNCTION()
 	void ChangeFoV(float In, float Out);
@@ -226,6 +215,9 @@ protected:
 
 	UFUNCTION()
 	void TryReloadWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void TurnAtRate(float Rate);
 
 	UFUNCTION(Server,Unreliable)
 	void TryReloadWeapon_OnServer();
@@ -266,21 +258,8 @@ protected:
 	UFUNCTION(NetMulticast, UnReliable)
 	void SetMovementState_Multicast(EMovementState NewState);
 
-	virtual void SetCurrentWeapon_OnServer_Implementation(class ABaseWeapon* NewWeapon);
-	
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-
-	virtual void Jump() override;
-
-	virtual void StopJumping() override;
-
 public:
 	
-	virtual float TakeDamage(float DamageAmount,
-							 struct FDamageEvent const& DamageEvent,
-							 class AController* EventInstigator,
-							 AActor* DamageCauser) override;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }

@@ -174,6 +174,9 @@ struct FWeaponInfo
 	UAnimMontage* ThirdPersonEquipAnimation = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonEquipAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonFireIronsight = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")

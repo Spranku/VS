@@ -57,9 +57,6 @@ AVSCharacter::AVSCharacter()
 	FP_MuzzleLocation->SetupAttachment(FP_Gun);
 	//FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
 
-	// Default offset from the character location for projectiles to spawn
-	GunOffset = FVector(100.0f, 0.0f, 10.0f);
-
 	CharacterHealthComponent = CreateDefaultSubobject<UVSCharacterHealthComponent>(TEXT("CharacterHealthComponent"));
 	CharacterHealthComponent ? CharacterHealthComponent->OnDead.AddDynamic(this, &AVSCharacter::CharDead) : void(0);
 
@@ -82,16 +79,6 @@ void AVSCharacter::BeginPlay()
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(InitWeaponTimerHandle, this, &AVSCharacter::InitWeapon, 0.5f, false);
-
-	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
-	if (bUsingMotionControllers)
-	{
-		Mesh1P->SetHiddenInGame(true, true);
-	}
-	else
-	{
-		Mesh1P->SetHiddenInGame(false, true);
-	}
 }
 
 void AVSCharacter::Tick(float DeltaTime)
@@ -216,7 +203,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		StartWeaponEquipAnimation(/*ThirdPersonEquipAnimation*/ CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, FirstPersonEquipWeaponAnimation);
+		StartWeaponEquipAnimation(CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, CurrentWeapon->WeaponSetting.FirstPersonEquipAnimation); /// Why animation = NULL?
 		BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
@@ -389,45 +376,37 @@ void AVSCharacter::EnableRagdoll_Multicast_Implementation()
 
 void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
-	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
-	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
-	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	if (GetMesh() && GetMesh1P())
 	{
-		AnimInstance3P->Montage_Play(ThirdPersonAnim);
-		AnimInstance1P->Montage_Play(FirstPersonAnim);
+		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
+		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
 }
 
 void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
-	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
-	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
-	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	if (GetMesh() && GetMesh1P())
 	{
-		AnimInstance3P->Montage_Play(ThirdPersonAnim);
-		AnimInstance1P->Montage_Play(FirstPersonAnim);
+		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
+		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
 }
 
 void AVSCharacter::PlayWeaponEquipMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
-	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
-	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
-	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	if (GetMesh() && GetMesh1P())
 	{
-		AnimInstance3P->Montage_Play(ThirdPersonAnim);
-		AnimInstance1P->Montage_Play(FirstPersonAnim);
+		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
+		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
 }
 
 void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
-	UAnimInstance* AnimInstance3P = GetMesh()->GetAnimInstance();
-	UAnimInstance* AnimInstance1P = Mesh1P->GetAnimInstance();
-	if (AnimInstance3P != nullptr && AnimInstance1P != nullptr)
+	if (GetMesh() && GetMesh1P())
 	{
-		AnimInstance3P->Montage_Play(ThirdPersonAnim);
-		AnimInstance1P->Montage_Play(FirstPersonAnim);
+		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
+		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
 }
 
