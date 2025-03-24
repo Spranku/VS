@@ -186,7 +186,7 @@ struct FWeaponInfo
 	UAnimMontage* FirstPersonReload = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Weapon")
-	UAnimationAsset* WeaponFire = nullptr;
+	UAnimationAsset* WeaponReload = nullptr;
 
 
 };

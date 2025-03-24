@@ -380,6 +380,12 @@ void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
+
+	/// Play animation for weapon
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->PlayWeaponAnimation(CurrentWeapon->WeaponSetting.WeaponReload,false);
+	}
 }
 
 void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)

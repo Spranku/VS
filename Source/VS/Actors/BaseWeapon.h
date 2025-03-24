@@ -191,6 +191,9 @@ public:
 	void RemoveMaterialLense();
 
 	UFUNCTION()
+	void PlayWeaponAnimation(UAnimationAsset* AnimToPlay,bool Looping);
+
+	UFUNCTION()
 	void ShowScopeTimeline(float Value, bool bIsAiming);
 
 	UFUNCTION(BlueprintCallable)

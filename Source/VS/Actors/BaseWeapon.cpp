@@ -587,6 +587,14 @@ void ABaseWeapon::RemoveMaterialLense()
 	SceneCapture->Deactivate();
 }
 
+void ABaseWeapon::PlayWeaponAnimation(UAnimationAsset* AnimToPlay, bool Looping)
+{
+	if (SkeletalMeshWeapon && AnimToPlay)
+	{
+		SkeletalMeshWeapon->PlayAnimation(AnimToPlay, Looping);
+	}
+}
+
 void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
 {
 	if (CurrentOwner && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())
