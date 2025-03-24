@@ -411,7 +411,10 @@ void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdP
 
 void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
 {
-	HasAuthority() ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round - 1);
+	if (CurrentWeapon)
+	{
+		HasAuthority() ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round - 1);
+	}
 }
 
 void AVSCharacter::InitAiming()
