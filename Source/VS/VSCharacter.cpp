@@ -91,7 +91,7 @@ void AVSCharacter::MovementTick(float DeltaTime)
 {
 	if (GetController() && GetController()->IsLocalPlayerController())
 	{
-		if (CurrentWeapon)
+		if (GetCurrentWeapon())
 		{
 			FVector Displacement = FVector(0);
 			bool bIsReduceDispersion = false;
@@ -108,7 +108,7 @@ void AVSCharacter::MovementTick(float DeltaTime)
 			default:
 				break;
 			}
-			CurrentWeapon->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
+			GetCurrentWeapon()->UpdateWeaponByCharacterMovementStateOnServer((FirstPersonCameraComponent->GetForwardVector() * 10000.0f) + Displacement, bIsReduceDispersion);
 		}
 	}
 }
@@ -198,13 +198,13 @@ void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator){}
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
-	if (!Weapons.IsValidIndex(Index) || CurrentWeapon == Weapons[Index]) return;
+	if (!Weapons.IsValidIndex(Index) || GetCurrentWeapon() == Weapons[Index]) return;
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
 		if (ThirdPersonEquipAnimation && FirstPersonEquipAnimation)
 		{
-			StartWeaponEquipAnimation(/*CurrentWeapon->WeaponSetting.*/ThirdPersonEquipAnimation, /*CurrentWeapon->WeaponSetting.*/FirstPersonEquipAnimation);
+			StartWeaponEquipAnimation(ThirdPersonEquipAnimation, FirstPersonEquipAnimation);
 		}
 
 		BlockActionDuringEquip_OnClient();
@@ -220,7 +220,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 void AVSCharacter::BlockActionDuringEquip_OnClient_Implementation()
 {
-	CurrentWeapon->BlockFire = true;
+	GetCurrentWeapon()->BlockFire = true;
 	bIsAiming ? StopAiming() : void(0);
 	bCanAiming = false;
 }
@@ -252,7 +252,7 @@ void AVSCharacter::OnFire()
 	bIsFire = true;
 
 	/// Fire montage for first person arms
-	if (!bIsReload && FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	if (!bIsReload && GetCurrentWeapon() && GetCurrentWeapon()->GetAmmoFromBackpack() != 0 && FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
 	{
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax);
 	}
@@ -271,7 +271,7 @@ void AVSCharacter::EndFire()
 	/// Disable fire montage for firts person arms
 	if (FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
 	{
-		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection("Loop", "Trail", /*CurrentWeapon->WeaponSetting.*/FirstPersonFireRelax);
+		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection("Loop", "Trail", FirstPersonFireRelax);
 	}
 	else
 	{
@@ -343,7 +343,7 @@ void AVSCharacter::StopCrouch()
 
 void AVSCharacter::TryReloadWeapon()
 {
-	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive() && CurrentWeapon && !CurrentWeapon->WeaponReloading)
+	if (CharacterHealthComponent && CharacterHealthComponent->GetIsAlive() && GetCurrentWeapon() && !GetCurrentWeapon()->WeaponReloading)
 	{
 		TryReloadWeapon_OnServer();
 	}
@@ -351,12 +351,12 @@ void AVSCharacter::TryReloadWeapon()
 
 void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
-	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
+	if (GetCurrentWeapon()->GetWeaponRound() < GetCurrentWeapon()->WeaponSetting.MaxRound && GetCurrentWeapon()->GetAmmoFromBackpack() != 0 && GetCurrentWeapon()->CheckCanWeaponReload())
 	{
 		bIsAiming ? StopAiming() : void(0);
 		bCanAiming = false;
 		bIsReload = true;
-		CurrentWeapon->InitReload(); 
+		GetCurrentWeapon()->InitReload();
 	}
 }
 
@@ -367,7 +367,7 @@ void AVSCharacter::InitReload()
 
 void AVSCharacter::WeaponReloadEnd()
 {
-	CurrentWeapon ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : void(0);
+	GetCurrentWeapon() ? OnAmmoChange.Broadcast(GetCurrentWeapon()->WeaponInfo.Round) : void(0);
 
 	bIsReload = false;
 	bCanAiming = true;
@@ -390,7 +390,7 @@ void AVSCharacter::StartWeaponReloadAnimation()
 
 void AVSCharacter::StartWeaponFireAnimation()
 {
-	CurrentWeapon ? ChangeAmmoByShotEvent_Multicast() : void(0);
+	GetCurrentWeapon() ? ChangeAmmoByShotEvent_Multicast() : void(0);
 	
 	if (ThirdPersonFireIronsight)
 	{	
@@ -461,18 +461,18 @@ void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdP
 
 void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
 {
-	if (CurrentWeapon)
+	if (GetCurrentWeapon())
 	{
-		HasAuthority() ? OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round) : OnAmmoChange.Broadcast(CurrentWeapon->WeaponInfo.Round - 1);
+		HasAuthority() ? OnAmmoChange.Broadcast(GetCurrentWeapon()->WeaponInfo.Round) : OnAmmoChange.Broadcast(GetCurrentWeapon()->WeaponInfo.Round - 1);
 	}
 }
 
 void AVSCharacter::InitAiming()
 {
-	if (bCanAiming && CurrentWeapon && !CurrentWeapon->WeaponReloading) /// && !CurrentWeapon->WeaponReloading WORK FOR SERVER ONLY
+	if (bCanAiming && GetCurrentWeapon() && !GetCurrentWeapon()->WeaponReloading) /// && !CurrentWeapon->WeaponReloading WORK FOR SERVER ONLY
 	{
-		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.InAimingSound) : void(0);
-		CurrentWeapon->bIsRailGun ? InitAimTimeline(90.0f, 30.0f) : InitAimTimeline(90.0f, 60.0f); 
+		GetCurrentWeapon()->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), GetCurrentWeapon()->WeaponSetting.InAimingSound) : void(0);
+		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(90.0f, 30.0f) : InitAimTimeline(90.0f, 60.0f);
 
 		if (HasAuthority())
 		{
@@ -493,10 +493,10 @@ void AVSCharacter::InitAiming_OnServer_Implementation()
 
 void AVSCharacter::StopAiming()
 {
-	if (bIsAiming && CurrentWeapon)
+	if (bIsAiming && GetCurrentWeapon())
 	{
-		CurrentWeapon->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), CurrentWeapon->WeaponSetting.OutAimingSound) : void(0);
-		CurrentWeapon->bIsRailGun ? InitAimTimeline(30.0f, 90.0f) : InitAimTimeline(60.0f, 90.0f);
+		GetCurrentWeapon()->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), GetCurrentWeapon()->WeaponSetting.OutAimingSound) : void(0);
+		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(30.0f, 90.0f) : InitAimTimeline(60.0f, 90.0f);
 	}
 
 	if (HasAuthority())
@@ -527,14 +527,14 @@ void AVSCharacter::StopAiming_OnServer_Implementation()
 
 void AVSCharacter::ChangeFoV(float In, float Out)
 {
-	if (CurrentWeapon && CurrentWeapon->WeaponSetting.ADS && Alpha >= 1.0f)
+	if (GetCurrentWeapon() && GetCurrentWeapon()->WeaponSetting.ADS && Alpha >= 1.0f)
 	{
 		Alpha = 0.0f;
 		GetWorld()->GetTimerManager().ClearTimer(AimTimerHandle);
 	}
 	else
 	{
-		Alpha += GetWorld()->DeltaTimeSeconds * CurrentWeapon->WeaponSetting.ADS;
+		Alpha += GetWorld()->DeltaTimeSeconds * GetCurrentWeapon()->WeaponSetting.ADS;
 		FirstPersonCameraComponent->SetFieldOfView(UKismetMathLibrary::Lerp(In, Out, Alpha));
 	}
 }
