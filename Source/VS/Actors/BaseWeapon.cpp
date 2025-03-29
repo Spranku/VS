@@ -234,14 +234,14 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	WeaponInfo.Round = WeaponInfo.Round - 1;
 	FireBP();
 
-	/*if (WeaponAiming)
+	if (WeaponAiming)
 	{
-		PlayWeaponAnimation(WeaponSetting.WeaponFireIronsight, true);
+		PlayWeaponAnimation_Multicast(WeaponSetting.WeaponFireIronsight, false);
 	}
 	else
 	{
-		PlayWeaponAnimation(WeaponSetting.WeaponFireRelax, true);
-	}*/
+		PlayWeaponAnimation_Multicast(WeaponSetting.WeaponFireRelax, false);
+	}
 	
 	OnWeaponFireStart.Broadcast(/*ThirdPersonAnim,FirstPersonAnim*/);
 
@@ -401,6 +401,12 @@ void ABaseWeapon::InitReload()
 	ReloadTimer = WeaponSetting.ReloadTime;
 
 	StartWeaponAnimReload_Multicast();
+
+	//Place for use weapon reload animation
+	if (WeaponSetting.WeaponReload)
+	{
+		PlayWeaponAnimation_Multicast(WeaponSetting.WeaponReload, false);
+	}
 }
 
 int32 ABaseWeapon::GetAmmoFromBackpack() const
@@ -581,7 +587,7 @@ void ABaseWeapon::RemoveMaterialLense()
 	SceneCapture->Deactivate();
 }
 
-void ABaseWeapon::PlayWeaponAnimation(UAnimationAsset* AnimToPlay, bool Looping)
+void ABaseWeapon::PlayWeaponAnimation_Multicast_Implementation(UAnimationAsset* AnimToPlay, bool Looping)
 {
 	if (SkeletalMeshWeapon && AnimToPlay)
 	{
@@ -597,11 +603,11 @@ void ABaseWeapon::StartWeaponAnimReload_Multicast_Implementation()
 {
 	OnWeaponReloadStart.Broadcast();
 
-	/// Place for use weapon reload animation
+	/*/// Place for use weapon reload animation
 	if (WeaponSetting.WeaponReload)
 	{
-		PlayWeaponAnimation(WeaponSetting.WeaponReload, false);
-	}
+		PlayWeaponAnimation_Multicast(WeaponSetting.WeaponReload, false);
+	}*/
 }
 
 void ABaseWeapon::UpdateStateWeapon_OnServer_Implementation(EMovementState NewMovementState)

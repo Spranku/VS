@@ -190,8 +190,6 @@ public:
 	UFUNCTION()
 	void RemoveMaterialLense();
 
-	UFUNCTION()
-	void PlayWeaponAnimation(UAnimationAsset* AnimToPlay,bool Looping);
 
 	UFUNCTION()
 	void ShowScopeTimeline(float Value, bool bIsAiming);
@@ -233,7 +231,10 @@ public:
 	void FireSpread();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void StartWeaponAnimReload_Multicast(/*UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson*/);
+	void PlayWeaponAnimation_Multicast(UAnimationAsset* AnimToPlay,bool Looping);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void StartWeaponAnimReload_Multicast();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void TraceFX_Multicast(UParticleSystem* FX, FHitResult HitResult);

@@ -232,7 +232,7 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 	CurrentIndex = Index;
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
 	CurrentWeapon = Weapons[Index];
-	OnAmmoTypeChange.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->GetWeaponRound());
+	OnAmmoTypeChange.Broadcast(GetCurrentWeapon()->GetWeaponType(), GetCurrentWeapon()->GetWeaponRound());
 	OnRep_CurrentWeapon(OldWeapon);
 
 	CurrentWeapon->BlockFire = false;
