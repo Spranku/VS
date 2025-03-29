@@ -104,6 +104,30 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly,Replicated, Category = "State")
 	int32 CurrentIndex = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
+	UAnimMontage* ThirdPersonReload = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
+	UAnimMontage* ThirdPersonFireIronsight = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
+	UAnimMontage* ThirdPersonFireRelax = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
+	UAnimMontage* ThirdPersonEquipAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonEquipAnimation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonFireIronsight = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonFireRelax = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonReload = nullptr;
+
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")
 	class ABaseWeapon* CurrentWeapon;
@@ -213,9 +237,6 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_CurrentWeapon(const class ABaseWeapon* OldWeapon);
 
-	UFUNCTION()
-	void TryReloadWeapon();
-
 	UFUNCTION(BlueprintCallable)
 	void TurnAtRate(float Rate);
 
@@ -270,6 +291,9 @@ public:
 
 	FVector GetLocationFromCamera();
 
+	UFUNCTION()
+	void TryReloadWeapon();
+
 	UFUNCTION(BlueprintCallable)
 	EHeroType GetHeroType() const;
 
@@ -292,10 +316,10 @@ public:
 	void WeaponReloadEnd();
 
 	UFUNCTION() 
-	void StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void StartWeaponReloadAnimation(/*UAnimMontage* Anim3P, UAnimMontage* Anim1P*/);
 
 	UFUNCTION() 
-	void StartWeaponFireAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
+	void StartWeaponFireAnimation(/*UAnimMontage* Anim3P, UAnimMontage* Anim1P*/);
 
 	UFUNCTION()
 	void StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);
@@ -319,7 +343,7 @@ public:
 	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
 
 	UFUNCTION(NetMulticast,Unreliable)
-	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
+	void PlayWeaponFireMontage_Multicast(UAnimMontage* ThirdPersonAnim/*, UAnimMontage* FirstPersonAnim*/);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayWeaponEquipMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);

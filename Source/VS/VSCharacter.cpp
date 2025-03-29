@@ -202,7 +202,11 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		CurrentWeapon ? StartWeaponEquipAnimation(CurrentWeapon->WeaponSetting.ThirdPersonEquipAnimation, CurrentWeapon->WeaponSetting.FirstPersonEquipAnimation) : void(0);
+		if (ThirdPersonEquipAnimation && FirstPersonEquipAnimation)
+		{
+			StartWeaponEquipAnimation(/*CurrentWeapon->WeaponSetting.*/ThirdPersonEquipAnimation, /*CurrentWeapon->WeaponSetting.*/FirstPersonEquipAnimation);
+		}
+
 		BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
@@ -235,7 +239,6 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 	bCanAiming = true;
 }
 
-
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
 {
 	const ABaseWeapon* OldWeapon = CurrentWeapon;
@@ -247,6 +250,16 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 void AVSCharacter::OnFire()
 {
 	bIsFire = true;
+
+	/// Fire montage for first person arms
+	if (!bIsReload && FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	{
+		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::OnFire - bIsReload = true"));
+	}
 	FireEvent(true);
 }
 
@@ -256,10 +269,42 @@ void AVSCharacter::EndFire()
 	FireEvent(false);
 
 	/// Disable fire montage for firts person arms
-	if (CurrentWeapon && CurrentWeapon->WeaponSetting.FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	if (FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
 	{
-		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection("Loop", "Trail", CurrentWeapon->WeaponSetting.FirstPersonFireRelax);
+		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection("Loop", "Trail", /*CurrentWeapon->WeaponSetting.*/FirstPersonFireRelax);
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::EndFire - FirstPersonFireRelax or GetMesh1P = null"));
+	}
+	///
+	/// ////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ////
+	/// /// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// //////
+	/// ///////// ///////// ///////// ///////// ///////// //////
+	/// Disable fire for weapon, NEED TO REFACTORING
+
+	/*if (bIsAiming)
+	{
+		if (CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireIronsight)
+		{
+			CurrentWeapon->SkeletalMeshWeapon->PlayAnimation(0, false);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("AVSCharacter::EndFire - CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireIronsight = NULLPTR"));
+		}
+	}
+	else
+	{
+		if (CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireRelax)
+		{
+			CurrentWeapon->SkeletalMeshWeapon->PlayAnimation(0, false);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("AVSCharacter::EndFire - CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireRelax = NULLPTR"));
+		}
+	}*/
 }
 
 void AVSCharacter::InitCrouch()
@@ -304,7 +349,6 @@ void AVSCharacter::TryReloadWeapon()
 	}
 }
 
-
 void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 {
 	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->GetAmmoFromBackpack() != 0 && CurrentWeapon->CheckCanWeaponReload())
@@ -312,7 +356,7 @@ void AVSCharacter::TryReloadWeapon_OnServer_Implementation()
 		bIsAiming ? StopAiming() : void(0);
 		bCanAiming = false;
 		bIsReload = true;
-		CurrentWeapon->InitReload();
+		CurrentWeapon->InitReload(); 
 	}
 }
 
@@ -334,23 +378,23 @@ void AVSCharacter::StopAiming_OnClient_Implementation()
 	StopAiming();
 }
 
-void AVSCharacter::StartWeaponReloadAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P) 
+void AVSCharacter::StartWeaponReloadAnimation() 
 {
 	StopAiming_OnClient();
 	
-	if (Anim3P && Anim1P)
+	if (ThirdPersonReload && FirstPersonReload/* && Anim1P*/)
 	{
-		PlayWeaponReloadMontage_Multicast(Anim3P, Anim1P);
+		PlayWeaponReloadMontage_Multicast(ThirdPersonReload , FirstPersonReload/*, Anim1P*/);
 	}
 }
 
-void AVSCharacter::StartWeaponFireAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
+void AVSCharacter::StartWeaponFireAnimation()
 {
 	CurrentWeapon ? ChangeAmmoByShotEvent_Multicast() : void(0);
 	
-	if (Anim3P && Anim1P)
+	if (ThirdPersonFireIronsight)
 	{	
-		PlayWeaponFireMontage_Multicast(Anim3P, Anim1P);
+		PlayWeaponFireMontage_Multicast(ThirdPersonFireIronsight/*, Anim1P*/);
 	}
 } 
 
@@ -381,19 +425,19 @@ void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
 
-	/// Play animation for weapon
-	if (CurrentWeapon)
+	/// IN BaseWEapon
+	// Play animation for weapon
+	/*if (CurrentWeapon)
 	{
-		CurrentWeapon->PlayWeaponAnimation(CurrentWeapon->WeaponSetting.WeaponReload,false);
-	}
+		CurrentWeapon->PlayWeaponAnimation_Multicast(CurrentWeapon->WeaponSetting.WeaponReload,false);
+	}*/
 }
 
-void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
+void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim)
 {
-	if (GetMesh() && GetMesh1P())
+	if (GetMesh())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
-		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
 }
 

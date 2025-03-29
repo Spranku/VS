@@ -234,19 +234,16 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	WeaponInfo.Round = WeaponInfo.Round - 1;
 	FireBP();
 
-	UAnimMontage* ThirdPersonAnim = nullptr;
-	UAnimMontage* FirstPersonAnim = nullptr;
-	if (WeaponAiming)
+	/*if (WeaponAiming)
 	{
-		ThirdPersonAnim = WeaponSetting.ThirdPersonFireIronsight;
-		FirstPersonAnim = WeaponSetting.FirstPersonFireIronsight;
+		PlayWeaponAnimation(WeaponSetting.WeaponFireIronsight, true);
 	}
 	else
 	{
-		ThirdPersonAnim = WeaponSetting.ThirdPersonFireRelax;
-		FirstPersonAnim = WeaponSetting.FirstPersonFireRelax;
-	}
-	OnWeaponFireStart.Broadcast(ThirdPersonAnim,FirstPersonAnim);
+		PlayWeaponAnimation(WeaponSetting.WeaponFireRelax, true);
+	}*/
+	
+	OnWeaponFireStart.Broadcast(/*ThirdPersonAnim,FirstPersonAnim*/);
 
 	if (WeaponSetting.EffectFireWeapon)
 	{
@@ -389,10 +386,11 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 	}
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
-	{
+	{	
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
-			InitReload();
+			SkeletalMeshWeapon->Stop();
+			CurrentOwner->TryReloadWeapon();
 		}
 	}
 }
@@ -402,11 +400,7 @@ void ABaseWeapon::InitReload()
 	WeaponReloading = true;
 	ReloadTimer = WeaponSetting.ReloadTime;
 
-	if (WeaponSetting.ThirdPersonReload)
-	{
-		OnWeaponReloadStart.Broadcast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
-		AnimWeaponStart_Multicast(WeaponSetting.ThirdPersonReload, WeaponSetting.FirstPersonReload);
-	}
+	StartWeaponAnimReload_Multicast();
 }
 
 int32 ABaseWeapon::GetAmmoFromBackpack() const
@@ -593,13 +587,20 @@ void ABaseWeapon::PlayWeaponAnimation(UAnimationAsset* AnimToPlay, bool Looping)
 	{
 		SkeletalMeshWeapon->PlayAnimation(AnimToPlay, Looping);
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshWeapon OR AnimToPlay == 0"));
+	}
 }
 
-void ABaseWeapon::AnimWeaponStart_Multicast_Implementation(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson)
+void ABaseWeapon::StartWeaponAnimReload_Multicast_Implementation()
 {
-	if (CurrentOwner && AnimThirdPerson && AnimFirstPerson && SkeletalMeshWeapon && SkeletalMeshWeapon->GetAnimInstance())
+	OnWeaponReloadStart.Broadcast();
+
+	/// Place for use weapon reload animation
+	if (WeaponSetting.WeaponReload)
 	{
-		CurrentOwner->PlayWeaponReloadMontage_Multicast(AnimThirdPerson, AnimFirstPerson);
+		PlayWeaponAnimation(WeaponSetting.WeaponReload, false);
 	}
 }
 

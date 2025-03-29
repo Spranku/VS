@@ -161,7 +161,7 @@ struct FWeaponInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	UParticleSystem* EffectFireWeapon = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonReload = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
@@ -183,12 +183,16 @@ struct FWeaponInfo
 	UAnimMontage* FirstPersonFireRelax = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonReload = nullptr;
+	UAnimMontage* FirstPersonReload = nullptr;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Weapon")
 	UAnimationAsset* WeaponReload = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Weapon")
+	UAnimationAsset* WeaponFireRelax = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Weapon")
+	UAnimationAsset* WeaponFireIronsight = nullptr;
 };
 
 USTRUCT(BlueprintType)

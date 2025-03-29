@@ -12,9 +12,9 @@
 
 class AVSCharacter;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponReloadStart, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponReloadStart/*, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponReloadEnd);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponFireStart, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponFireStart);
 
 UCLASS()
 class VS_API ABaseWeapon : public AActor
@@ -74,9 +74,6 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
 
-	UPROPERTY(EditAnywhere,Replicated, BlueprintReadWrite, Category = "ReloadLogic")
-	float ReloadTimer = 0.0f;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	float BaseRecoil = 0.25f;
 
@@ -97,6 +94,9 @@ public:
 
 	UPROPERTY(EditAnywhere,Replicated, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo WeaponInfo;
+
+	UPROPERTY(Replicated)
+	float ReloadTimer = 0.0f;
 
 	UPROPERTY(Replicated)
 	FVector ShootEndLocation = FVector(0);
@@ -233,7 +233,7 @@ public:
 	void FireSpread();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void AnimWeaponStart_Multicast(UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson);
+	void StartWeaponAnimReload_Multicast(/*UAnimMontage* AnimThirdPerson, UAnimMontage* AnimFirstPerson*/);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void TraceFX_Multicast(UParticleSystem* FX, FHitResult HitResult);
