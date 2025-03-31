@@ -181,6 +181,7 @@ protected:
 
 	bool bCanAiming = true;
 protected:
+	void test();
 
 	void OnFire();
 
@@ -316,10 +317,10 @@ public:
 	void WeaponReloadEnd();
 
 	UFUNCTION() 
-	void StartWeaponReloadAnimation(/*UAnimMontage* Anim3P, UAnimMontage* Anim1P*/);
+	void StartWeaponReloadAnimation();
 
 	UFUNCTION() 
-	void StartWeaponFireAnimation(/*UAnimMontage* Anim3P, UAnimMontage* Anim1P*/);
+	void StartWeaponThirdPersonFireAnimation();
 
 	UFUNCTION()
 	void StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P);

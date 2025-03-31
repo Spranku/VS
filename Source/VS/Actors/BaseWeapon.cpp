@@ -243,7 +243,7 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 		PlayWeaponAnimation_Multicast(WeaponSetting.WeaponFireRelax, false);
 	}
 	
-	OnWeaponFireStart.Broadcast(/*ThirdPersonAnim,FirstPersonAnim*/);
+	OnWeaponFireStart.Broadcast();
 
 	if (WeaponSetting.EffectFireWeapon)
 	{
@@ -387,12 +387,19 @@ void ABaseWeapon::Fire_Implementation(FTransform ShootTo)
 
 	if (GetWeaponRound() <= 0 && !WeaponReloading)
 	{	
+		OnWeaponFireEnd.Broadcast();
 		if (CurrentOwner && CheckCanWeaponReload())
 		{
-			SkeletalMeshWeapon->Stop();
+			//SkeletalMeshWeapon->Stop();
 			CurrentOwner->TryReloadWeapon();
 		}
 	}
+}
+
+void ABaseWeapon::test_Implementation()
+{
+	SkeletalMeshWeapon->Stop();
+	SkeletalMeshWeapon->PlayAnimation(nullptr,false);
 }
 
 void ABaseWeapon::InitReload()

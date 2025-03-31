@@ -12,9 +12,10 @@
 
 class AVSCharacter;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponReloadStart/*, UAnimMontage*, Anim3P, UAnimMontage*, Anim1P*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponReloadStart);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponReloadEnd);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponFireStart);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponFireEnd);
 
 UCLASS()
 class VS_API ABaseWeapon : public AActor
@@ -28,6 +29,7 @@ public:
 	FOnWeaponReloadStart OnWeaponReloadStart;
 	FOnWeaponReloadEnd OnWeaponReloadEnd;
 	FOnWeaponFireStart OnWeaponFireStart;
+	FOnWeaponFireEnd OnWeaponFireEnd;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
@@ -235,6 +237,9 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void StartWeaponAnimReload_Multicast();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void test();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void TraceFX_Multicast(UParticleSystem* FX, FHitResult HitResult);

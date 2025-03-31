@@ -251,60 +251,28 @@ void AVSCharacter::OnFire()
 {
 	bIsFire = true;
 
-	/// Fire montage for first person arms
-	if (!bIsReload && GetCurrentWeapon() && GetCurrentWeapon()->GetAmmoFromBackpack() != 0 && FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	/// Play fire montage for first person arms
+	if (FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
 	{
-		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax);
+		UE_LOG(LogTemp, Warning, TEXT("Montage Play"));
+		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::OnFire - bIsReload = true"));
-	}
+
 	FireEvent(true);
 }
 
 void AVSCharacter::EndFire()
 {
 	bIsFire = false;
+
+	/// Disable fire montage for first person arms
+	if(FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Montage Set Next Section"));
+		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection(TEXT("Loop"), TEXT("Tail"), FirstPersonFireRelax);
+	}
+	
 	FireEvent(false);
-
-	/// Disable fire montage for firts person arms
-	if (FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
-	{
-		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection("Loop", "Trail", FirstPersonFireRelax);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AVSCharacter::EndFire - FirstPersonFireRelax or GetMesh1P = null"));
-	}
-	///
-	/// ////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ////
-	/// /// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// ///////// //////
-	/// ///////// ///////// ///////// ///////// ///////// //////
-	/// Disable fire for weapon, NEED TO REFACTORING
-
-	/*if (bIsAiming)
-	{
-		if (CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireIronsight)
-		{
-			CurrentWeapon->SkeletalMeshWeapon->PlayAnimation(0, false);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("AVSCharacter::EndFire - CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireIronsight = NULLPTR"));
-		}
-	}
-	else
-	{
-		if (CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireRelax)
-		{
-			CurrentWeapon->SkeletalMeshWeapon->PlayAnimation(0, false);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("AVSCharacter::EndFire - CurrentWeapon && CurrentWeapon->WeaponSetting.WeaponFireRelax = NULLPTR"));
-		}
-	}*/
 }
 
 void AVSCharacter::InitCrouch()
@@ -388,13 +356,13 @@ void AVSCharacter::StartWeaponReloadAnimation()
 	}
 }
 
-void AVSCharacter::StartWeaponFireAnimation()
+void AVSCharacter::StartWeaponThirdPersonFireAnimation()
 {
 	GetCurrentWeapon() ? ChangeAmmoByShotEvent_Multicast() : void(0);
 	
 	if (ThirdPersonFireIronsight)
 	{	
-		PlayWeaponFireMontage_Multicast(ThirdPersonFireIronsight/*, Anim1P*/);
+		PlayWeaponFireMontage_Multicast(ThirdPersonFireIronsight);
 	}
 } 
 
@@ -424,13 +392,6 @@ void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
-
-	/// IN BaseWEapon
-	// Play animation for weapon
-	/*if (CurrentWeapon)
-	{
-		CurrentWeapon->PlayWeaponAnimation_Multicast(CurrentWeapon->WeaponSetting.WeaponReload,false);
-	}*/
 }
 
 void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim)
@@ -775,11 +736,11 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 
 		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponFireAnimation);
+		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
 
 		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponFireAnimation);
+		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
 	}
 
 	if (OldWeapon)
