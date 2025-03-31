@@ -180,8 +180,8 @@ protected:
 	float Alpha = 0.0f;
 
 	bool bCanAiming = true;
+
 protected:
-	void test();
 
 	void OnFire();
 
@@ -281,6 +281,9 @@ protected:
 	void SetMovementState_Multicast(EMovementState NewState);
 
 public:
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Test();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

@@ -249,16 +249,18 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 
 void AVSCharacter::OnFire()
 {
-	bIsFire = true;
 
 	/// Play fire montage for first person arms
-	if (FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
+	if (GetCurrentWeapon()->GetWeaponRound() != 0 && !bIsReload && FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Montage Play"));
+		bIsFire = true;
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
+		FireEvent(true);
 	}
-
-	FireEvent(true);
+	/*else
+	{
+		EndFire();
+	}*/
 }
 
 void AVSCharacter::EndFire()
@@ -268,7 +270,6 @@ void AVSCharacter::EndFire()
 	/// Disable fire montage for first person arms
 	if(FirstPersonFireRelax && GetMesh1P()->GetAnimInstance())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Montage Set Next Section"));
 		GetMesh1P()->GetAnimInstance()->Montage_SetNextSection(TEXT("Loop"), TEXT("Tail"), FirstPersonFireRelax);
 	}
 	
@@ -737,10 +738,12 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
 		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
+		CurrentWeapon->OnWeaponFireEnd.RemoveDynamic(this, &AVSCharacter::Test);
 
 		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
 		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
+		CurrentWeapon->OnWeaponFireEnd.AddDynamic(this, &AVSCharacter::Test);
 	}
 
 	if (OldWeapon)
@@ -749,6 +752,17 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(EquipTimerHandle);
+}
+
+void AVSCharacter::Test_Implementation()
+{
+	/// Disable fire montage for first person arms when weapon round <= 0
+	if (GetMesh1P()->GetAnimInstance()->Montage_IsPlaying(FirstPersonFireRelax))
+	{
+		bIsFire = false;
+		FireEvent(false);
+		GetMesh1P()->GetAnimInstance()->StopAllMontages(1.0f);
+	}
 }
 
 void AVSCharacter::InitWeapon()
