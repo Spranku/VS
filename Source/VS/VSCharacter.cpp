@@ -257,10 +257,6 @@ void AVSCharacter::OnFire()
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
 		FireEvent(true);
 	}
-	/*else
-	{
-		EndFire();
-	}*/
 }
 
 void AVSCharacter::EndFire()
@@ -738,12 +734,12 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
 		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
-		CurrentWeapon->OnWeaponFireEnd.RemoveDynamic(this, &AVSCharacter::Test);
+		CurrentWeapon->OnWeaponFireEnd.RemoveDynamic(this, &AVSCharacter::StopFireMontage_Multicast);
 
 		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
 		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
 		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
-		CurrentWeapon->OnWeaponFireEnd.AddDynamic(this, &AVSCharacter::Test);
+		CurrentWeapon->OnWeaponFireEnd.AddDynamic(this, &AVSCharacter::StopFireMontage_Multicast);
 	}
 
 	if (OldWeapon)
@@ -754,7 +750,7 @@ void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 	GetWorld()->GetTimerManager().ClearTimer(EquipTimerHandle);
 }
 
-void AVSCharacter::Test_Implementation()
+void AVSCharacter::StopFireMontage_Multicast_Implementation()
 {
 	/// Disable fire montage for first person arms when weapon round <= 0
 	if (GetMesh1P()->GetAnimInstance()->Montage_IsPlaying(FirstPersonFireRelax))

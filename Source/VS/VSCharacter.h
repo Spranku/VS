@@ -281,9 +281,6 @@ protected:
 	void SetMovementState_Multicast(EMovementState NewState);
 
 public:
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void Test();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -342,6 +339,9 @@ public:
 
 	UFUNCTION(NetMulticast,Unreliable)
 	void ChangingWeapon(int32 Index);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void StopFireMontage_Multicast();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayDeadMontage_Multicast(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim);
