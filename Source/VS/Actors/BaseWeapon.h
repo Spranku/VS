@@ -73,6 +73,12 @@ public:
 	UPROPERTY(Replicated)
 	bool WeaponAiming = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	FVector RightHandEffectorLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	FVector LeftHandEffectorLocation = FVector(-29.0f,17.30f,2.4f);
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
 
