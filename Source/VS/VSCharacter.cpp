@@ -432,7 +432,7 @@ void AVSCharacter::InitAiming()
 	if (bCanAiming && GetCurrentWeapon() && !GetCurrentWeapon()->WeaponReloading) /// && !CurrentWeapon->WeaponReloading WORK FOR SERVER ONLY
 	{
 		GetCurrentWeapon()->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), GetCurrentWeapon()->WeaponSetting.InAimingSound) : void(0);
-		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(90.0f, 30.0f) : InitAimTimeline(90.0f, 60.0f);
+		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(90.0f, GetCurrentWeapon()->AimFOV/*30.0f*/) : InitAimTimeline(90.0f, GetCurrentWeapon()->AimFOV/* 60.0f*/);
 
 		if (HasAuthority())
 		{
@@ -456,7 +456,7 @@ void AVSCharacter::StopAiming()
 	if (bIsAiming && GetCurrentWeapon())
 	{
 		GetCurrentWeapon()->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), GetCurrentWeapon()->WeaponSetting.OutAimingSound) : void(0);
-		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(30.0f, 90.0f) : InitAimTimeline(60.0f, 90.0f);
+		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(GetCurrentWeapon()->AimFOV, 90.0f) : InitAimTimeline(GetCurrentWeapon()->AimFOV, 90.0f);
 	}
 
 	if (HasAuthority())

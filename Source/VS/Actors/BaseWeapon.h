@@ -74,10 +74,16 @@ public:
 	bool WeaponAiming = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	FVector RightHandEffectorLocation;
+	FVector RHandRelaxLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	FVector LeftHandEffectorLocation = FVector(-29.0f,17.30f,2.4f);
+	FVector LHandRelaxLocation = FVector(-29.0f,17.30f,2.4f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	FVector RHandAimLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	float AimFOV = 90.0f;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "State")
 	bool bIsRailGun = false;
