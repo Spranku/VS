@@ -249,6 +249,8 @@ void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeap
 
 void AVSCharacter::OnFire()
 {
+	/// TODO Check equip weapon!
+	
 
 	/// Play fire montage for first person arms
 	if (GetCurrentWeapon()->GetWeaponRound() != 0 && !bIsReload && GetCurrentWeapon()->FirstPersonFireRelax && GetCurrentWeapon()->FirstPersonFireIronsight && GetMesh1P()->GetAnimInstance())
