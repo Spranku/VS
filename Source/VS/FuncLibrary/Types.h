@@ -129,7 +129,10 @@ struct FWeaponInfo
 	float RateOfFire = 0.5;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
-	float ReloadTime = 1.8;
+	float TacReloadTime = 1.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
+	float EmptyReloadTime = 1.8;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponSettings")
 	float ADS = 4.5f;

@@ -405,7 +405,7 @@ void ABaseWeapon::test_Implementation()
 void ABaseWeapon::InitReload()
 {
 	WeaponReloading = true;
-	ReloadTimer = WeaponSetting.ReloadTime;
+	ReloadTimer = WeaponSetting.EmptyReloadTime;
 
 	StartWeaponAnimReload_Multicast();
 
