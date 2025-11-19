@@ -47,6 +47,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable/*, EditAnywhere, BlueprintReadWrite*/)
 	FOnAmmoChange OnAmmoChange;
+
+	int16 CoutJumps = 0;
 protected:
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category = Mesh)

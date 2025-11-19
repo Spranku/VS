@@ -152,16 +152,25 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void AVSCharacter::Jump()
 {
+	GetCharacterMovement()->GravityScale = 1.3f;
+	CoutJumps++;
+	if (bIsAiming && CoutJumps > 2)
+	{
+		GetCharacterMovement()->GravityScale = 2.0f;
+	}
+	else if(!bIsAiming)
+	{
+		CoutJumps = 0;
+	}
+
 	bIsJumping = true;
-	bCanAiming = false;
-	StopAiming();
 	Super::Jump();
 }
 
 void AVSCharacter::StopJumping()
 {
 	bIsJumping = false;
-	bCanAiming = true;
+	//bCanAiming = true;
 	Super::StopJumping();
 }
 
@@ -433,6 +442,7 @@ void AVSCharacter::InitAiming()
 {
 	if (bCanAiming && GetCurrentWeapon() && !GetCurrentWeapon()->WeaponReloading) /// && !CurrentWeapon->WeaponReloading WORK FOR SERVER ONLY
 	{
+		
 		GetCurrentWeapon()->WeaponSetting.InAimingSound ? UGameplayStatics::PlaySound2D(GetWorld(), GetCurrentWeapon()->WeaponSetting.InAimingSound) : void(0);
 		GetCurrentWeapon()->bIsRailGun ? InitAimTimeline(90.0f, GetCurrentWeapon()->AimFOV/*30.0f*/) : InitAimTimeline(90.0f, GetCurrentWeapon()->AimFOV/* 60.0f*/);
 
