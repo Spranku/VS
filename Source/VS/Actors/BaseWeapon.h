@@ -31,6 +31,30 @@ public:
 	FOnWeaponFireStart OnWeaponFireStart;
 	FOnWeaponFireEnd OnWeaponFireEnd;
 
+	float FireTime = 0.0f;
+
+	float DropClipTimer = -1.0f;
+
+	float DropShellTimer = -1.0f;
+
+	bool BlockFire = false;
+
+	bool DropClipFlag = false;
+
+	bool DropShellFlag = false;
+
+	bool ShouldReduseDispersion = false;
+
+	float CurrentDispersion = 0.0f;
+
+	float CurrentDispersionMax = 1.0f;
+
+	float CurrentDispersionMin = 0.1f;
+
+	float CurrentDispersionRecoil = 0.1f;
+
+	float CurrentDispersionReduction = 0.1f;
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,meta = (AllowPrivateAcess = "true"),Category = Components)
 	class USceneComponent* SceneComponent = nullptr;
 
@@ -58,9 +82,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ScopeMaterial")
 	class USceneCaptureComponent2D* SceneCapture;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	USoundBase* FireSound = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool ShowDebug = false;
 
@@ -70,9 +91,6 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Fire logic")
 	bool WeaponReloading = false;
 
-	UPROPERTY(Replicated)
-	bool WeaponAiming = false;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	FVector RHandRelaxLocation;
 
@@ -81,18 +99,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	FVector RHandAimLocation;
-
-	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonEquipAnimation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonFireIronsight = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonFireRelax = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonReload = nullptr;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	float AimFOV = 90.0f;
@@ -121,50 +127,17 @@ public:
 	UPROPERTY(EditAnywhere,Replicated, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo WeaponInfo;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	USoundBase* FireSound = nullptr;
+
+	UPROPERTY(Replicated)
+	bool WeaponAiming = false;
+
 	UPROPERTY(Replicated)
 	float ReloadTimer = 0.0f;
 
 	UPROPERTY(Replicated)
 	FVector ShootEndLocation = FVector(0);
-
-	float FireTime = 0.0f;
-		
-	float DropClipTimer = -1.0f;
-
-	float DropShellTimer = -1.0f;
-
-	bool BlockFire = false;
-
-	bool DropClipFlag = false;
-
-	bool DropShellFlag = false;
-
-	bool ShouldReduseDispersion = false;
-
-	float CurrentDispersion = 0.0f;
-
-	float CurrentDispersionMax = 1.0f;
-
-	float CurrentDispersionMin = 0.1f;
-
-	float CurrentDispersionRecoil = 0.1f;
-
-	float CurrentDispersionReduction = 0.1f;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	FTimerHandle ScopeTimerHandle;
-
-	FTimerHandle FireTimerHande;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo");
-	int32 AmmoBackpack;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	void ReloadTick(float DeltaTime);
 
@@ -187,7 +160,7 @@ public:
 	void SetOwningPawn(AVSCharacter* NewOwner);
 
 	void ChangeDispersionByShoot();
-	
+
 	float GetCurrentDispersion() const;
 
 	bool CheckWeaponCanFire();
@@ -216,12 +189,11 @@ public:
 	UFUNCTION()
 	void RemoveMaterialLense();
 
-
 	UFUNCTION()
 	void ShowScopeTimeline(float Value, bool bIsAiming);
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetAmmoFromBackpack() const; 
+	int32 GetAmmoFromBackpack() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ChangeAmmoCountInBackpack(int NewAmmo);
@@ -253,11 +225,11 @@ public:
 	UFUNCTION(Client, Unreliable)
 	void SetMaterialLense_OnClient();
 
-	UFUNCTION(NetMulticast,Unreliable)
+	UFUNCTION(NetMulticast, Unreliable)
 	void FireSpread();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void PlayWeaponAnimation_Multicast(UAnimationAsset* AnimToPlay,bool Looping);
+	void PlayWeaponAnimation_Multicast(UAnimationAsset* AnimToPlay, bool Looping);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void StartWeaponAnimReload_Multicast();
@@ -274,14 +246,21 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void FireWeaponSocketFX_Multicast(UParticleSystem* newFX, FTransform SocketTransform);
 
-	//UFUNCTION(NetMulticast,Unreliable)
-	//void TraceSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
-
-	//UFUNCTION(Server, Unreliable)
-	//void TraceSound_Server(USoundBase* HitSound, FHitResult HitResult);
-
 	UFUNCTION(NetMulticast, Unreliable)
 	void FireSound_Multicast(USoundBase* Sound, FVector Location);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
+
+	FTimerHandle ScopeTimerHandle;
+
+	FTimerHandle FireTimerHande;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo");
+	int32 AmmoBackpack;
 };
