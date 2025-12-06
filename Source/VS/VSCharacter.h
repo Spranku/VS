@@ -118,7 +118,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonEquipAnimation = nullptr;
 
-	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonEquipAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
@@ -128,7 +128,7 @@ public:
 	UAnimMontage* FirstPersonFireRelax = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonReload = nullptr;*/
+	UAnimMontage* FirstPersonReload = nullptr;
 
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, ReplicatedUsing = OnRep_CurrentWeapon, Category = "State")

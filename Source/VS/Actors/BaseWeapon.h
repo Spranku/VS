@@ -82,7 +82,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	FVector RHandAimLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonEquipAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
@@ -92,7 +92,7 @@ public:
 	UAnimMontage* FirstPersonFireRelax = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonReload = nullptr;
+	UAnimMontage* FirstPersonReload = nullptr;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	float AimFOV = 90.0f;
