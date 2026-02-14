@@ -197,7 +197,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UVSCharacterHealthComponent* CharacterHealthComponent;
 
-protected:
 	virtual void BeginPlay();
 
 	virtual void Tick(float DeltaTime);

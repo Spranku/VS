@@ -123,7 +123,7 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AVSCharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AVSCharacter::InitCrouch);
-	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AVSCharacter::StopCrouch);
+	//PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AVSCharacter::StopCrouch);
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AVSCharacter::OnFire);
@@ -207,13 +207,14 @@ void AVSCharacter::CharDead_BP_Implementation(AController* DamageInstigator){}
 
 void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 {
-	if (!Weapons.IsValidIndex(Index) || GetCurrentWeapon() == Weapons[Index]) return;
+	if (!Weapons.IsValidIndex(Index) || GetCurrentWeapon() == Weapons[Index]) 
+		return;
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		if (ThirdPersonEquipAnimation && /*GetCurrentWeapon()->*/FirstPersonEquipAnimation)
+		if (ThirdPersonEquipAnimation && FirstPersonEquipAnimation)
 		{
-			StartWeaponEquipAnimation(ThirdPersonEquipAnimation, /*GetCurrentWeapon()->*/FirstPersonEquipAnimation);
+			StartWeaponEquipAnimation(ThirdPersonEquipAnimation,  FirstPersonEquipAnimation);
 		}
 
 		BlockActionDuringEquip_OnClient();
@@ -287,19 +288,25 @@ void AVSCharacter::EndFire()
 
 void AVSCharacter::InitCrouch()
 {
-	if (HasAuthority())
+	if (bIsCrouch)
 	{
-		bIsCrouch = true;
-		Crouch();
-		ChangeMovementState();
+		StopCrouch();
 	}
 	else
 	{
-		Super::Crouch();
-		InitCrouch_OnServer();
+		if (HasAuthority())
+		{
+			bIsCrouch = true;
+			Crouch();
+			ChangeMovementState();
+		}
+		else
+		{
+			Super::Crouch();
+			InitCrouch_OnServer();
+		}
+	    bIsCrouch = true;
 	}
-	/*bIsCrouch = true;
-	Super::Crouch();*/
 }
 
 void AVSCharacter::StopCrouch()
@@ -315,8 +322,9 @@ void AVSCharacter::StopCrouch()
 		Super::UnCrouch();
 		StopCrouch_OnServer();
 	}
-	/*bIsCrouch = false;
-	Super::UnCrouch();*/
+
+	bIsCrouch = false;
+	//Super::UnCrouch();
 }
 
 void AVSCharacter::TryReloadWeapon()
