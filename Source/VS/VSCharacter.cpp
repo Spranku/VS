@@ -217,6 +217,9 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
+		/* Cancel reload during equip */
+		GetCurrentWeapon()->CancelReload();
+
 		if (ThirdPersonEquipAnimation && FirstPersonEquipAnimation)
 		{
 			StartWeaponEquipAnimation(ThirdPersonEquipAnimation,  FirstPersonEquipAnimation);
@@ -236,12 +239,20 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 void AVSCharacter::BlockActionDuringEquip_OnClient_Implementation()
 {
 	GetCurrentWeapon()->BlockFire = true;
+
+	/*/// TODO: CANCEL RELOAD
+	UE_LOG(LogTemp, Error,TEXT("CANCEL RELOAD"));
+	GetCurrentWeapon()->CancelReload();*/
+
 	bIsAiming ? StopAiming() : void(0);
 	bCanAiming = false;
 }
 
 void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 {
+	if (!GetWorld())
+		return;
+
 	GetWorld()->GetTimerManager().ClearTimer(EquipTimerHandle);
 
 	CurrentIndex = Index;
@@ -252,6 +263,7 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 
 	CurrentWeapon->BlockFire = false;
 	bCanAiming = true;
+	bIsEquip = false;
 }
 
 void AVSCharacter::SetCurrentWeapon_OnServer_Implementation(ABaseWeapon* NewWeapon)
@@ -545,6 +557,7 @@ void AVSCharacter::InitAimTimeline(float From, float To)
 
 void AVSCharacter::NextWeapon()
 {
+	bIsEquip = true;
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
 
 	if (HasAuthority())
@@ -560,6 +573,7 @@ void AVSCharacter::NextWeapon()
 
 void AVSCharacter::LastWeapon()
 {
+	bIsEquip = true;
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
 	
 	if (HasAuthority())
@@ -893,6 +907,7 @@ void AVSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVSCharacter, bIsReload);
 	DOREPLIFETIME(AVSCharacter, bIsCrouch);
 	DOREPLIFETIME(AVSCharacter, bIsFire);
+	DOREPLIFETIME(AVSCharacter, bIsEquip);
 	DOREPLIFETIME(AVSCharacter, Direction);
 	DOREPLIFETIME(AVSCharacter, AimPitch);
 	DOREPLIFETIME(AVSCharacter, Pitch_OnRep);

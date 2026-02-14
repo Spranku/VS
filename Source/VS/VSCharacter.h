@@ -211,6 +211,9 @@ protected:
 	bool bIsFire = false;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
+	bool bIsEquip = false;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsCrouch = false;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)

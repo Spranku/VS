@@ -157,11 +157,15 @@ public:
 
 	void InitAiming();
 
+	void CheckRateOfFire() noexcept;
+
+	FProjectileInfo GetProjectile() const noexcept;
+
 	void SetOwningPawn(AVSCharacter* NewOwner);
 
 	void ChangeDispersionByShoot();
 
-	float GetCurrentDispersion() const;
+	float GetCurrentDispersion() const noexcept;
 
 	bool CheckWeaponCanFire();
 
@@ -184,28 +188,22 @@ public:
 	void FireBP();
 
 	UFUNCTION()
-	void CheckRateOfFire();
-
-	UFUNCTION()
 	void RemoveMaterialLense();
 
 	UFUNCTION()
 	void ShowScopeTimeline(float Value, bool bIsAiming);
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetAmmoFromBackpack() const;
+	int32 GetAmmoFromBackpack() const noexcept;
 
 	UFUNCTION(BlueprintCallable)
 	void ChangeAmmoCountInBackpack(int NewAmmo);
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetWeaponRound() const;
+	int32 GetWeaponRound() const noexcept;
 
 	UFUNCTION(BlueprintCallable)
-	EWeaponType GetWeaponType() const;
-
-	UFUNCTION()
-	FProjectileInfo GetProjectile();
+	EWeaponType GetWeaponType() const noexcept;
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void SetWeaponStateFire_OnServer(bool bIsFire);

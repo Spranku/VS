@@ -416,7 +416,7 @@ void ABaseWeapon::InitReload()
 	}
 }
 
-int32 ABaseWeapon::GetAmmoFromBackpack() const
+int32 ABaseWeapon::GetAmmoFromBackpack() const noexcept
 {
 	return AmmoBackpack;
 }
@@ -443,7 +443,7 @@ void ABaseWeapon::FinishReload()
 		ChangeAmmoCountInBackpack(-GetAmmoFromBackpack());
 	}
 	
-	OnWeaponReloadEnd.Broadcast(); 
+	OnWeaponReloadEnd.Broadcast();
 }
 
 void ABaseWeapon::CancelReload()
@@ -457,7 +457,7 @@ void ABaseWeapon::ChangeDispersionByShoot()
 	CurrentDispersion = CurrentDispersion + CurrentDispersionRecoil;
 }
 
-float ABaseWeapon::GetCurrentDispersion() const
+float ABaseWeapon::GetCurrentDispersion() const noexcept
 {
 	float Result = CurrentDispersion;
 	return Result;
@@ -527,6 +527,7 @@ void ABaseWeapon::ShowScopeTimeline(float Value, bool bIsAiming)
 
 void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
 {
+#if !UE_SERVER
 	if (FX)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
@@ -535,15 +536,19 @@ void ABaseWeapon::TraceFX_Multicast_Implementation(UParticleSystem* FX, FHitResu
 												 HitResult.ImpactPoint,
 												 FVector(1.0f)));
 	}
+#endif
 }
 
 void ABaseWeapon::FireWeaponSocketFX_Multicast_Implementation(UParticleSystem* newFX, FTransform SocketTransform)
 {
+#if !UE_SERVER
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), newFX, SocketTransform);
+#endif
 }
 
 void ABaseWeapon::FireWeaponFX_Multicast_Implementation(UParticleSystem* FX, FHitResult HitResult)
 {
+#if !UE_SERVER
 	if (FX)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
@@ -552,6 +557,7 @@ void ABaseWeapon::FireWeaponFX_Multicast_Implementation(UParticleSystem* FX, FHi
 												 HitResult.TraceStart,
 												 FVector(1.0f)));
 	}
+#endif
 }
 
 //void ABaseWeapon::TraceSound_Server_Implementation(USoundBase* HitSound, FHitResult HitResult)
@@ -583,7 +589,7 @@ void ABaseWeapon::SetAnimationForSwatHero_BP_Implementation() {}
 
 void ABaseWeapon::FireBP_Implementation() {}
 
-void ABaseWeapon::CheckRateOfFire() 
+void ABaseWeapon::CheckRateOfFire() noexcept
 {
 	BlockFire = false;
 }
@@ -596,6 +602,7 @@ void ABaseWeapon::RemoveMaterialLense()
 
 void ABaseWeapon::PlayWeaponAnimation_Multicast_Implementation(UAnimationAsset* AnimToPlay, bool Looping)
 {
+#if !UE_SERVER
 	if (SkeletalMeshWeapon && AnimToPlay)
 	{
 		SkeletalMeshWeapon->PlayAnimation(AnimToPlay, Looping);
@@ -604,6 +611,7 @@ void ABaseWeapon::PlayWeaponAnimation_Multicast_Implementation(UAnimationAsset* 
 	{
 		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshWeapon OR AnimToPlay == 0"));
 	}
+#endif
 }
 
 void ABaseWeapon::StartWeaponAnimReload_Multicast_Implementation()
@@ -672,24 +680,26 @@ FVector ABaseWeapon::ApplyDispersionToShoot(FVector DirectionShoot) const
 	return FMath::VRandCone(DirectionShoot, GetCurrentDispersion() * PI / 180.f);
 }
 
-int32 ABaseWeapon::GetWeaponRound() const
+int32 ABaseWeapon::GetWeaponRound() const noexcept
 {
 	return WeaponInfo.Round;
 }
 
-FProjectileInfo ABaseWeapon::GetProjectile()
+FProjectileInfo ABaseWeapon::GetProjectile() const noexcept
 {
 	return WeaponSetting.ProjectileSetting;
 }
 
-EWeaponType ABaseWeapon::GetWeaponType() const
+EWeaponType ABaseWeapon::GetWeaponType() const noexcept
 {
 	return WeaponSetting.WeaponType;
 }
 
 void ABaseWeapon::FireSound_Multicast_Implementation(USoundBase* Sound, FVector Location)
 {
+#if !UE_SERVER
 	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), Sound, Location);
+#endif
 }
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
