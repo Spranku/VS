@@ -152,6 +152,11 @@ void AVSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void AVSCharacter::Jump()
 {
+	if (bIsCrouch)
+	{
+		StopCrouch();
+	}
+
 	GetCharacterMovement()->GravityScale = 1.3f;
 	CoutJumps++;
 	if (bIsAiming && CoutJumps > 2)
