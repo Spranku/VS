@@ -266,14 +266,24 @@ void AVSCharacter::OnFire()
 {
 	/// TODO Check equip weapon!
 	
+	if (bIsReload)
+		return;
 
-	/// Play fire montage for first person arms
-	if (GetCurrentWeapon()->GetWeaponRound() != 0 && !bIsReload && FirstPersonFireRelax && FirstPersonFireIronsight && GetMesh1P()->GetAnimInstance())
+	bIsFire = true;
+
+	if (GetCurrentWeapon()->GetWeaponRound() != 0)
 	{
-		bIsFire = true;
-		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
-		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireIronsight, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
+		// Play fire montage for first person arms
+		if (FirstPersonFireRelax && FirstPersonFireIronsight && GetMesh1P()->GetAnimInstance())
+		{
+			GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireRelax, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
+			GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonFireIronsight, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, false);
+		}
 		FireEvent(true);
+	}
+	else if (BackpackAmmo > 0)
+	{
+		TryReloadWeapon();
 	}
 }
 
@@ -362,6 +372,9 @@ void AVSCharacter::WeaponReloadEnd()
 
 	bIsReload = false;
 	bCanAiming = true;
+
+	/* Active fire after reload if client press button */
+	bIsFire ? OnFire() : void(0);
 }
 
 void AVSCharacter::StopAiming_OnClient_Implementation()
@@ -782,7 +795,7 @@ void AVSCharacter::StopFireMontage_Multicast_Implementation()
 	/// Disable fire montage for first person arms when weapon round <= 0
 	if (GetMesh1P()->GetAnimInstance()->Montage_IsPlaying(FirstPersonFireRelax))
 	{
-		bIsFire = false;
+		//bIsFire = false;
 		FireEvent(false);
 		GetMesh1P()->GetAnimInstance()->StopAllMontages(1.0f);
 	}
