@@ -100,17 +100,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
 	UAnimMontage* ThirdPersonEquipAnimation = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonEquipAnimation;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonEquipAnimation;*/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonFireIronsight = nullptr;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonFireIronsight = nullptr*/;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonFireRelax = nullptr;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonFireRelax = nullptr;*/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonReload = nullptr;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
+	UAnimMontage* FirstPersonReload = nullptr;*/
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

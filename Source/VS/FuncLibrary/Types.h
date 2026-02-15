@@ -174,7 +174,7 @@ struct FWeaponInfo
 	UAnimMontage* ThirdPersonFireRelax = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Thid Person")
-	UAnimMontage* ThirdPersonEquipAnimation = nullptr;
+	UAnimMontage* ThirdPersonEquipAnimation = nullptr;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
 	UAnimMontage* FirstPersonEquipAnimation;
@@ -186,7 +186,7 @@ struct FWeaponInfo
 	UAnimMontage* FirstPersonFireRelax = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | First Person")
-	UAnimMontage* FirstPersonReload = nullptr;*/
+	UAnimMontage* FirstPersonReload = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations | Weapon")
 	UAnimationAsset* WeaponReload = nullptr;
