@@ -217,6 +217,9 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 	if (IsLocallyControlled() || HasAuthority())
 	{
+		/* Reset Aim Offset during change weapon */
+		bIsEquip = true;
+
 		/* Cancel reload during equip */
 		GetCurrentWeapon()->CancelReload();
 
@@ -227,7 +230,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 
 		BlockActionDuringEquip_OnClient();
 	
-		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon",Index);
+		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon_Multicast",Index);
 		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 0.5f, false);
 	}
 	else if (!HasAuthority())
@@ -248,7 +251,7 @@ void AVSCharacter::BlockActionDuringEquip_OnClient_Implementation()
 	bCanAiming = false;
 }
 
-void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
+void AVSCharacter::ChangingWeapon_Multicast_Implementation(int32 Index)
 {
 	if (!GetWorld())
 		return;
@@ -263,6 +266,8 @@ void AVSCharacter::ChangingWeapon_Implementation(int32 Index)
 
 	CurrentWeapon->BlockFire = false;
 	bCanAiming = true;
+
+	/* Enable Aim Offset afrer equip weapon */
 	bIsEquip = false;
 }
 
@@ -416,10 +421,12 @@ void AVSCharacter::StartWeaponThirdPersonFireAnimation()
 
 void AVSCharacter::StartWeaponEquipAnimation(UAnimMontage* Anim3P, UAnimMontage* Anim1P)
 {
+#if !UE_SERVER
 	if (Anim3P && Anim1P)
 	{
 		PlayWeaponEquipMontage_Multicast(Anim3P, Anim1P);
 	}
+#endif
 }
 
 void AVSCharacter::EnableRagdoll_Multicast_Implementation()
@@ -435,37 +442,45 @@ void AVSCharacter::EnableRagdoll_Multicast_Implementation()
 
 void AVSCharacter::PlayWeaponReloadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
+#if !UE_SERVER
 	if (GetMesh() && GetMesh1P())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
+#endif
 }
 
 void AVSCharacter::PlayWeaponFireMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim)
 {
+#if !UE_SERVER
 	if (GetMesh())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
 	}
+#endif
 }
 
 void AVSCharacter::PlayWeaponEquipMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
+#if !UE_SERVER
 	if (GetMesh() && GetMesh1P())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
+#endif
 }
 
 void AVSCharacter::PlayDeadMontage_Multicast_Implementation(UAnimMontage* ThirdPersonAnim, UAnimMontage* FirstPersonAnim)
 {
+#if !UE_SERVER
 	if (GetMesh() && GetMesh1P())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(ThirdPersonAnim);
 		GetMesh1P()->GetAnimInstance()->Montage_Play(FirstPersonAnim);
 	}
+#endif
 }
 
 void AVSCharacter::ChangeAmmoByShotEvent_Multicast_Implementation() 
@@ -557,7 +572,7 @@ void AVSCharacter::InitAimTimeline(float From, float To)
 
 void AVSCharacter::NextWeapon()
 {
-	bIsEquip = true;
+	//bIsEquip = true;
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
 
 	if (HasAuthority())
@@ -573,7 +588,7 @@ void AVSCharacter::NextWeapon()
 
 void AVSCharacter::LastWeapon()
 {
-	bIsEquip = true;
+	//bIsEquip = true;
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
 	
 	if (HasAuthority())
@@ -761,47 +776,48 @@ void AVSCharacter::SetMovementState_Multicast_Implementation(EMovementState NewS
 
 void AVSCharacter::OnRep_CurrentWeapon(const ABaseWeapon* OldWeapon)
 {
-	if (CurrentWeapon)
+	if (!CurrentWeapon)
+		return;
+	
+	OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo, CurrentWeapon);
+
+	if (!CurrentWeapon->CurrentOwner)
 	{
-		OnSwitchWeapon.Broadcast(CurrentWeapon->GetWeaponType(), CurrentWeapon->WeaponInfo,CurrentWeapon); 
-		
-		if (!CurrentWeapon->CurrentOwner)
-		{
-			CurrentWeapon->SetActorTransform(Mesh1P->GetSocketTransform(FName("gun")), false, nullptr, ETeleportType::TeleportPhysics);
-			CurrentWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("gun"));
-			CurrentWeapon->InitOwnerCharacter();
-			CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
-		}
-		CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
+		CurrentWeapon->SetActorTransform(Mesh1P->GetSocketTransform(FName("gun")), false, nullptr, ETeleportType::TeleportPhysics);
+		CurrentWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules::KeepWorldTransform, FName("gun"));
+		CurrentWeapon->InitOwnerCharacter();
+		CurrentWeapon->SkeletalMeshWeapon->SetOwnerNoSee(false);
+	}
+	CurrentWeapon->SkeletalMeshWeapon->SetVisibility(true, true);
 
-		FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
+	FP_Gun->SetSkeletalMesh(CurrentWeapon->SkeletalMeshWeapon->SkeletalMesh, false);
 
-		if (CurrentWeapon->bIsRailGun)
-		{
-			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("SecondaryWeaponSocket"));
-		}
-		else
-		{
-			FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
-		}
-
-		CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
-		CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
-		CurrentWeapon->OnWeaponFireEnd.RemoveDynamic(this, &AVSCharacter::StopFireMontage_Multicast);
-
-		CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
-		CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
-		CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
-		CurrentWeapon->OnWeaponFireEnd.AddDynamic(this, &AVSCharacter::StopFireMontage_Multicast);
+	if (CurrentWeapon->bIsRailGun)
+	{
+		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("SecondaryWeaponSocket"));
+	}
+	else
+	{
+		FP_Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("WeaponSocket"));
 	}
 
+	CurrentWeapon->OnWeaponReloadStart.RemoveDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
+	CurrentWeapon->OnWeaponReloadEnd.RemoveDynamic(this, &AVSCharacter::WeaponReloadEnd);
+	CurrentWeapon->OnWeaponFireStart.RemoveDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
+	CurrentWeapon->OnWeaponFireEnd.RemoveDynamic(this, &AVSCharacter::StopFireMontage_Multicast);
+
+	CurrentWeapon->OnWeaponReloadStart.AddDynamic(this, &AVSCharacter::StartWeaponReloadAnimation);
+	CurrentWeapon->OnWeaponReloadEnd.AddDynamic(this, &AVSCharacter::WeaponReloadEnd);
+	CurrentWeapon->OnWeaponFireStart.AddDynamic(this, &AVSCharacter::StartWeaponThirdPersonFireAnimation);
+	CurrentWeapon->OnWeaponFireEnd.AddDynamic(this, &AVSCharacter::StopFireMontage_Multicast);
+	
 	if (OldWeapon)
 	{
 		OldWeapon->SkeletalMeshWeapon->SetVisibility(false,true);
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(EquipTimerHandle);
+	//bIsEquip = false;
 }
 
 void AVSCharacter::StopFireMontage_Multicast_Implementation()
@@ -842,7 +858,7 @@ void AVSCharacter::InitWeapon()
 	InitWeaponTimerHandle.Invalidate();
 }
 
-EMovementState AVSCharacter::GetMovementState() const
+EMovementState AVSCharacter::GetMovementState() const noexcept
 {
 	return MovementState;
 }
@@ -877,7 +893,7 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return ActualDamage;
 }
 
-ABaseWeapon* AVSCharacter::GetCurrentWeapon() const
+ABaseWeapon* AVSCharacter::GetCurrentWeapon() const noexcept
 {
 	return CurrentWeapon;
 }
@@ -892,7 +908,7 @@ bool AVSCharacter::GetIsAlive()
 	return result;
 }
 
-EHeroType AVSCharacter::GetHeroType() const
+EHeroType AVSCharacter::GetHeroType() const noexcept
 {
 	return HeroType;
 }

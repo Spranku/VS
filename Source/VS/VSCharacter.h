@@ -114,7 +114,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	USkeletalMeshComponent* GetMesh1P() const noexcept { return Mesh1P; }
 
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
@@ -126,10 +126,10 @@ public:
 	void TryReloadWeapon();
 
 	UFUNCTION(BlueprintCallable)
-	EHeroType GetHeroType() const;
+	EHeroType GetHeroType() const noexcept;
 
 	UFUNCTION(BlueprintCallable)
-	ABaseWeapon* GetCurrentWeapon() const;
+	ABaseWeapon* GetCurrentWeapon() const noexcept;
 
 	UFUNCTION(BlueprintCallable)
 	void CharDead(AController* DamageInstigator);
@@ -168,7 +168,7 @@ public:
 	void EnableRagdoll_Multicast();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void ChangingWeapon(int32 Index);
+	void ChangingWeapon_Multicast(int32 Index);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void StopFireMontage_Multicast();
@@ -298,7 +298,7 @@ protected:
 
 	virtual void StopJumping() override;
 
-	EMovementState GetMovementState() const;
+	EMovementState GetMovementState() const noexcept;
 
 	virtual float TakeDamage(float DamageAmount,
 							 struct FDamageEvent const& DamageEvent,
