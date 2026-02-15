@@ -228,7 +228,7 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 			StartWeaponEquipAnimation(ThirdPersonEquipAnimation, GetCurrentWeapon()->WeaponSetting.FirstPersonEquipAnimation);
 		}
 
-		BlockActionDuringEquip_OnClient();
+		//BlockActionDuringEquip_OnClient();
 	
 		EquipTimerDelegate.BindUFunction(this, "ChangingWeapon_Multicast",Index);
 		GetWorld()->GetTimerManager().SetTimer(EquipTimerHandle, EquipTimerDelegate, 0.5f, false);
@@ -242,10 +242,6 @@ void AVSCharacter::EquipWeapon_OnServer_Implementation(const int32 Index)
 void AVSCharacter::BlockActionDuringEquip_OnClient_Implementation()
 {
 	GetCurrentWeapon()->BlockFire = true;
-
-	/*/// TODO: CANCEL RELOAD
-	UE_LOG(LogTemp, Error,TEXT("CANCEL RELOAD"));
-	GetCurrentWeapon()->CancelReload();*/
 
 	bIsAiming ? StopAiming() : void(0);
 	bCanAiming = false;
@@ -575,6 +571,11 @@ void AVSCharacter::InitAimTimeline(float From, float To)
 
 void AVSCharacter::NextWeapon()
 {
+	EndFire();
+	GetCurrentWeapon()->BlockFire = true;
+	bIsAiming ? StopAiming() : void(0);
+	bCanAiming = false;
+
 	//bIsEquip = true;
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
 
@@ -591,6 +592,11 @@ void AVSCharacter::NextWeapon()
 
 void AVSCharacter::LastWeapon()
 {
+	EndFire();
+	GetCurrentWeapon()->BlockFire = true;
+	bIsAiming ? StopAiming() : void(0);
+	bCanAiming = false;
+
 	//bIsEquip = true;
 	const int32 Index = Weapons.IsValidIndex(CurrentIndex - 1) ? CurrentIndex - 1 : Weapons.Num() - 1;
 	
